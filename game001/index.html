@@ -32,15 +32,14 @@
             backdrop-filter: blur(5px);
         }
 
-        /* スクロールエリアの設定 */
         #game-viewport {
             position: relative;
             width: 100%;
             max-width: 450px;
-            height: 400px;
+            height: 380px;
             overflow: hidden;
             border-radius: 12px;
-            border: 2px solid #1a1a2e; /* 基本の枠線 */
+            border: 2px solid #1a1a2e;
         }
 
         #game-container {
@@ -52,7 +51,6 @@
         }
         #game-container::-webkit-scrollbar { display: none; }
 
-        /* ネオンエッジ・インジケーター（矢印の代わり） */
         .edge-bar {
             position: absolute;
             z-index: 30;
@@ -99,17 +97,59 @@
             50% { opacity: 0.3; }
         }
         .edge-active { animation: pulse-edge 2s infinite; opacity: 1; }
+
+        .scan-effect::after {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(0deg, transparent 0%, var(--neon-blue) 50%, transparent 100%);
+            opacity: 0.05;
+            pointer-events: none;
+            animation: scan-line 6s linear infinite;
+        }
+        @keyframes scan-line {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        #audio-toggle-btn {
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            font-size: 10px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: rgba(0, 243, 255, 0.1);
+        }
+        #audio-toggle-btn.muted {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .shake {
+            animation: shake-anim 0.3s ease-in-out;
+        }
+        @keyframes shake-anim {
+            0%, 100% { transform: translate(0,0); }
+            25% { transform: translate(-5px, 5px); }
+            50% { transform: translate(5px, -5px); }
+            75% { transform: translate(-5px, -5px); }
+        }
     </style>
 </head>
-<body class="flex flex-col items-center justify-center min-h-screen p-4">
+<body class="flex flex-col items-center justify-center min-h-screen p-4 scan-effect">
 
-    <div class="w-full max-w-md mb-4 space-y-3">
-        <div class="flex justify-between items-end">
+    <div class="w-full max-w-md mb-4 space-y-3 relative">
+        <div class="flex justify-between items-start">
             <div>
                 <h1 class="text-2xl font-bold font-orbitron text-[var(--neon-blue)] tracking-wider">CYBER-SWEEP</h1>
-                <p class="text-[10px] text-gray-500">TACTICAL OVERLOAD v2.8</p>
+                <p class="text-[10px] text-gray-500">TACTICAL OVERLOAD v4.1 (FIXED)</p>
             </div>
-            <div id="level-display" class="text-xs text-[var(--neon-pink)]">LEVEL: 01</div>
+            <div class="flex flex-col items-end gap-2">
+                <button id="audio-toggle-btn" class="font-bold">SOUND: ON</button>
+                <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold">LEVEL: 01 / 05</div>
+            </div>
         </div>
 
         <div class="cyber-panel p-3 rounded-lg space-y-2">
@@ -130,7 +170,6 @@
         </div>
     </div>
 
-    <!-- ゲームビューポート (ネオンエッジ・インジケーター) -->
     <div id="game-viewport">
         <div id="edge-top" class="edge-bar"></div>
         <div id="edge-bottom" class="edge-bar"></div>
@@ -142,7 +181,6 @@
         </div>
     </div>
 
-    <!-- コントロールパネル -->
     <div class="w-full max-w-md mt-4 grid grid-cols-3 gap-2">
         <button id="flag-mode-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center transition-all">
             <span class="text-[10px] font-bold">MARK</span>
@@ -158,149 +196,252 @@
         </button>
     </div>
 
-    <!-- モーダル -->
-    <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-sm">
-        <div class="cyber-panel p-8 rounded-2xl text-center max-w-xs w-full mx-4">
+    <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-md">
+        <div class="cyber-panel p-8 rounded-2xl text-center max-w-sm w-full mx-4 relative overflow-hidden">
+            <div id="modal-decor" class="absolute top-0 left-0 w-full h-1 bg-[var(--neon-blue)]"></div>
             <h2 id="modal-title" class="text-3xl font-orbitron font-bold mb-4">SYSTEM HALT</h2>
-            <p id="modal-desc" class="text-sm text-gray-300 mb-6"></p>
-            <button id="modal-close" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold hover:bg-[var(--neon-blue)] hover:text-black transition-all">
-                再接続
-            </button>
+            <p id="modal-desc" class="text-sm text-gray-300 mb-8 leading-relaxed"></p>
+            <div class="flex flex-col gap-3">
+                <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold hover:bg-[var(--neon-blue)] hover:text-black transition-all">
+                    再接続
+                </button>
+                <button id="modal-btn-sub" class="hidden w-full py-2 rounded-lg text-xs text-gray-500 hover:text-white transition-all">
+                    システム終了
+                </button>
+            </div>
         </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-50"></div>
 
     <script>
+        // --- 音響・音楽エンジン ---
+        const Sound = {
+            ctx: null,
+            masterGain: null,
+            enabled: false,
+            isMuted: false,
+            bpm: 124,
+            currentStep: 0,
+            schedulerTimer: null,
+            nextNoteTime: 0,
+            patterns: { kick: [], hat: [], bass: [], lead: [] },
+            scale: [48, 51, 53, 55, 58, 60],
+
+            init() {
+                if (this.ctx) return;
+                try {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    this.masterGain = this.ctx.createGain();
+                    this.masterGain.gain.value = this.isMuted ? 0 : 0.4;
+                    this.masterGain.connect(this.ctx.destination);
+                    this.enabled = true;
+                    this.generateStageMusic(state.level || 1);
+                    this.scheduler();
+                } catch(e) { console.error("Audio init failed", e); }
+            },
+
+            toggleMute() {
+                this.isMuted = !this.isMuted;
+                if (this.masterGain && this.ctx) {
+                    this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : 0.4, this.ctx.currentTime, 0.05);
+                }
+                return this.isMuted;
+            },
+
+            generateStageMusic(level) {
+                if (!this.enabled) return;
+                const seed = (level * 222) % 100;
+                this.bpm = 120 + (seed % 15);
+                this.patterns.kick = Array(16).fill(0).map((_, i) => (i % 4 === 0) ? 1 : 0);
+                this.patterns.hat = Array(16).fill(0).map((_, i) => (i % 2 === 1) ? 1 : 0);
+                this.patterns.bass = Array(16).fill(0).map((_, i) => (i % 4 === 0 || i % 8 === 2) ? this.scale[seed % this.scale.length] : 0);
+                this.patterns.lead = Array(16).fill(0).map((_, i) => (Math.random() > 0.8) ? this.scale[Math.floor(Math.random()*this.scale.length)] + 12 : 0);
+                this.currentStep = 0;
+            },
+
+            scheduler() {
+                if (!this.enabled) return;
+                while (this.nextNoteTime < this.ctx.currentTime + 0.1) {
+                    this.scheduleNote(this.currentStep, this.nextNoteTime);
+                    const secondsPerBeat = 60.0 / this.bpm / 4;
+                    this.nextNoteTime += secondsPerBeat;
+                    this.currentStep = (this.currentStep + 1) % 16;
+                }
+                this.schedulerTimer = setTimeout(() => this.scheduler(), 25);
+            },
+
+            scheduleNote(step, time) {
+                if (this.patterns.kick[step]) this.playKick(time);
+                if (this.patterns.hat[step]) this.playHat(time);
+                if (this.patterns.bass[step]) this.playSynth(this.patterns.bass[step], time, 'sawtooth', 0.1, 0.2);
+                if (this.patterns.lead[step]) this.playSynth(this.patterns.lead[step], time, 'square', 0.04, 0.1);
+            },
+
+            mToF(m) { return 440 * Math.pow(2, (m - 69) / 12); },
+
+            playKick(time) {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.frequency.setValueAtTime(150, time);
+                o.frequency.exponentialRampToValueAtTime(0.01, time + 0.1);
+                g.gain.setValueAtTime(0.3, time);
+                g.gain.exponentialRampToValueAtTime(0.01, time + 0.1);
+                o.connect(g); g.connect(this.masterGain);
+                o.start(time); o.stop(time + 0.1);
+            },
+
+            playHat(time) {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = 'square';
+                o.frequency.setValueAtTime(8000 + Math.random() * 2000, time);
+                g.gain.setValueAtTime(0.03, time);
+                g.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+                o.connect(g); g.connect(this.masterGain);
+                o.start(time); o.stop(time + 0.05);
+            },
+
+            playSynth(midi, time, type, vol, len) {
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.type = type;
+                o.frequency.setValueAtTime(this.mToF(midi), time);
+                g.gain.setValueAtTime(0, time);
+                g.gain.linearRampToValueAtTime(vol, time + 0.01);
+                g.gain.exponentialRampToValueAtTime(0.001, time + len);
+                o.connect(g); g.connect(this.masterGain);
+                o.start(time); o.stop(time + len);
+            },
+
+            playSFX(type) {
+                if (!this.ctx || !this.enabled) return;
+                const now = this.ctx.currentTime;
+                const o = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                o.connect(g); g.connect(this.masterGain);
+                switch(type) {
+                    case 'damage':
+                        o.type = 'square'; o.frequency.setValueAtTime(100, now);
+                        o.frequency.linearRampToValueAtTime(40, now + 0.3);
+                        g.gain.setValueAtTime(0.3, now); g.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                        o.start(); o.stop(now + 0.3); break;
+                    case 'scan':
+                        o.type = 'triangle'; o.frequency.setValueAtTime(200, now);
+                        o.frequency.exponentialRampToValueAtTime(1200, now + 0.5);
+                        g.gain.setValueAtTime(0.2, now); g.gain.linearRampToValueAtTime(0.01, now + 0.5);
+                        o.start(); o.stop(now + 0.5); break;
+                    case 'flag':
+                        o.type = 'sine'; o.frequency.setValueAtTime(1200, now);
+                        g.gain.setValueAtTime(0.1, now); g.gain.linearRampToValueAtTime(0.01, now + 0.05);
+                        o.start(); o.stop(now + 0.05); break;
+                }
+            },
+
+            playFanfare(isAllClear = false) {
+                if (!this.enabled || !this.ctx) return;
+                const now = this.ctx.currentTime;
+                const scale = [60, 63, 65, 67, 70, 72];
+                if (isAllClear) {
+                    const chords = [60, 64, 67, 72];
+                    chords.forEach((m, idx) => {
+                        for(let i=0; i<8; i++) {
+                            const note = m + (i % 2 === 0 ? 0 : 12);
+                            this.playSynth(note, now + idx*0.2 + i*0.05, 'triangle', 0.1, 0.4);
+                        }
+                    });
+                } else {
+                    const melody = Array(5).fill(0).map(() => scale[Math.floor(Math.random()*scale.length)]);
+                    melody.forEach((m, i) => {
+                        this.playSynth(m, now + i*0.12, 'sine', 0.1, 0.3);
+                    });
+                }
+            }
+        };
+
         const CONFIG = {
-            rows: 15,
-            cols: 15,
-            mines: 30,
-            maxHp: 100,
-            damage: 35,
-            energyPerTile: 5,
-            scanCost: 100
+            rows: 15, cols: 15, maxLevels: 5,
+            minesInit: 25, minesInc: 8,
+            maxHp: 100, damage: 35,
+            energyPerTile: 5, scanCost: 100
         };
 
         let state = {
-            grid: [],
-            gameOver: false,
-            hp: CONFIG.maxHp,
-            energy: 0,
-            revealedCount: 0,
-            level: 1,
-            isScanning: false,
-            flagMode: false
+            grid: [], gameOver: false, hp: CONFIG.maxHp, energy: 0,
+            revealedCount: 0, level: 1, isScanning: false, flagMode: false
         };
 
-        const gridElement = document.getElementById('grid');
         const container = document.getElementById('game-container');
+        const gridElement = document.getElementById('grid');
         const hpBar = document.getElementById('hp-bar');
         const hpText = document.getElementById('hp-text');
         const energyBar = document.getElementById('energy-bar');
-        const energyText = document.getElementById('energy-text');
         const scanBtn = document.getElementById('scan-btn');
         const flagBtn = document.getElementById('flag-mode-btn');
         const levelDisplay = document.getElementById('level-display');
         const modal = document.getElementById('modal');
         const toast = document.getElementById('toast');
+        const audioToggleBtn = document.getElementById('audio-toggle-btn');
 
-        // スクロールインジケーターの制御 (ネオンバー版)
         function updateScrollIndicators() {
+            if (!container) return;
             const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = container;
-            
-            // 判定に5pxの遊び（閾値）を持たせて安定化
             const threshold = 5;
-
-            const canScrollUp = scrollTop > threshold;
-            const canScrollDown = scrollTop + clientHeight < scrollHeight - threshold;
-            const canScrollLeft = scrollLeft > threshold;
-            const canScrollRight = scrollLeft + clientWidth < scrollWidth - threshold;
-
-            toggleEdge('edge-top', canScrollUp);
-            toggleEdge('edge-bottom', canScrollDown);
-            toggleEdge('edge-left', canScrollLeft);
-            toggleEdge('edge-right', canScrollRight);
+            toggleEdge('edge-top', scrollTop > threshold);
+            toggleEdge('edge-bottom', scrollTop + clientHeight < scrollHeight - threshold);
+            toggleEdge('edge-left', scrollLeft > threshold);
+            toggleEdge('edge-right', scrollLeft + clientWidth < scrollWidth - threshold);
         }
 
         function toggleEdge(id, show) {
             const el = document.getElementById(id);
-            if (show) {
-                el.classList.add('edge-active');
-            } else {
-                el.classList.remove('edge-active');
+            if (el) {
+                if (show) el.classList.add('edge-active');
+                else el.classList.remove('edge-active');
             }
         }
 
         container.addEventListener('scroll', updateScrollIndicators);
 
         function initGame() {
-            state.gameOver = false;
-            state.hp = CONFIG.maxHp;
-            state.energy = 0;
-            state.revealedCount = 0;
-            state.isScanning = false;
-            state.flagMode = false;
+            state.gameOver = false; state.hp = CONFIG.maxHp; state.energy = 0;
+            state.revealedCount = 0; state.isScanning = false; state.flagMode = false;
             flagBtn.classList.remove('active-mode');
             
-            CONFIG.mines = Math.min(60, 25 + (state.level * 3));
+            const mines = CONFIG.minesInit + (state.level - 1) * CONFIG.minesInc;
+            createGrid(mines);
+            
+            if (Sound.enabled) Sound.generateStageMusic(state.level);
             
             updateUI();
-            createGrid();
             modal.classList.add('hidden');
-            // DOM更新後に判定
-            setTimeout(updateScrollIndicators, 150);
+            setTimeout(updateScrollIndicators, 200);
         }
 
-        function createGrid() {
+        function createGrid(minesCount) {
             gridElement.style.gridTemplateColumns = `repeat(${CONFIG.cols}, 1fr)`;
             gridElement.innerHTML = '';
             state.grid = [];
-
             for (let r = 0; r < CONFIG.rows; r++) {
                 state.grid[r] = [];
                 for (let c = 0; c < CONFIG.cols; c++) {
-                    const tileObj = {
-                        r, c, isMine: false, isRevealed: false, isFlagged: false,
-                        neighborMines: 0, element: null
-                    };
-
+                    const tileObj = { r, c, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: null };
                     const el = document.createElement('div');
                     el.className = 'tile tile-hidden flex items-center justify-center font-bold text-sm rounded';
-                    
-                    el.addEventListener('click', () => {
-                        if (state.flagMode) handleRightClick(r, c);
-                        else handleTileClick(r, c);
+                    el.addEventListener('click', () => { 
+                        Sound.init(); 
+                        if (state.flagMode) handleRightClick(r, c); 
+                        else handleTileClick(r, c); 
                     });
-                    
-                    el.addEventListener('contextmenu', (e) => {
-                        e.preventDefault();
-                        handleRightClick(r, c);
-                    });
-
-                    tileObj.element = el;
-                    gridElement.appendChild(el);
-                    state.grid[r][c] = tileObj;
+                    el.addEventListener('contextmenu', (e) => { e.preventDefault(); handleRightClick(r, c); });
+                    tileObj.element = el; gridElement.appendChild(el); state.grid[r][c] = tileObj;
                 }
             }
-
-            placeMines();
-            calculateNumbers();
-        }
-
-        function placeMines() {
             let placed = 0;
-            while (placed < CONFIG.mines) {
-                const r = Math.floor(Math.random() * CONFIG.rows);
-                const c = Math.floor(Math.random() * CONFIG.cols);
-                if (!state.grid[r][c].isMine) {
-                    state.grid[r][c].isMine = true;
-                    placed++;
-                }
+            while (placed < minesCount) {
+                const r = Math.floor(Math.random() * CONFIG.rows), c = Math.floor(Math.random() * CONFIG.cols);
+                if (!state.grid[r][c].isMine) { state.grid[r][c].isMine = true; placed++; }
             }
-        }
-
-        function calculateNumbers() {
             for (let r = 0; r < CONFIG.rows; r++) {
                 for (let c = 0; c < CONFIG.cols; c++) {
                     if (state.grid[r][c].isMine) continue;
@@ -317,9 +458,7 @@
                 for (let dc = -1; dc <= 1; dc++) {
                     if (dr === 0 && dc === 0) continue;
                     const nr = r + dr, nc = c + dc;
-                    if (nr >= 0 && nr < CONFIG.rows && nc >= 0 && nc < CONFIG.cols) {
-                        neighbors.push(state.grid[nr][nc]);
-                    }
+                    if (nr >= 0 && nr < CONFIG.rows && nc >= 0 && nc < CONFIG.cols) neighbors.push(state.grid[nr][nc]);
                 }
             }
             return neighbors;
@@ -329,12 +468,7 @@
             if (state.gameOver) return;
             const tile = state.grid[r][c];
             if (tile.isRevealed || tile.isFlagged) return;
-
-            if (state.isScanning) {
-                useScan(r, c);
-                return;
-            }
-
+            if (state.isScanning) { useScan(r, c); return; }
             revealTile(r, c);
         }
 
@@ -342,28 +476,29 @@
             if (state.gameOver) return;
             const tile = state.grid[r][c];
             if (tile.isRevealed) return;
-
             tile.isFlagged = !tile.isFlagged;
             tile.element.innerHTML = tile.isFlagged ? '<span style="color:var(--neon-pink)">▲</span>' : '';
             tile.element.style.borderColor = tile.isFlagged ? 'var(--neon-pink)' : '';
+            Sound.playSFX('flag');
         }
 
         function revealTile(r, c) {
             const tile = state.grid[r][c];
             if (tile.isRevealed) return;
-
             tile.isRevealed = true;
             tile.element.classList.remove('tile-hidden');
             tile.element.classList.add('tile-revealed');
             state.revealedCount++;
-
             if (tile.isMine) {
                 tile.element.classList.add('tile-mine');
                 tile.element.innerHTML = '⚡';
-                takeDamage();
-                showToast("CORE DAMAGE!");
+                state.hp -= CONFIG.damage;
+                document.body.classList.add('shake');
+                setTimeout(() => document.body.classList.remove('shake'), 300);
+                Sound.playSFX('damage');
+                if (state.hp <= 0) { state.hp = 0; endGame(false); }
             } else {
-                addEnergy(CONFIG.energyPerTile);
+                state.energy = Math.min(CONFIG.scanCost, state.energy + CONFIG.energyPerTile);
                 if (tile.neighborMines > 0) {
                     tile.element.innerText = tile.neighborMines;
                     tile.element.classList.add(`count-${tile.neighborMines}`);
@@ -371,106 +506,109 @@
                     getNeighbors(r, c).forEach(n => revealTile(n.r, n.c));
                 }
             }
+            updateUI();
             checkWin();
-        }
-
-        function takeDamage() {
-            state.hp -= CONFIG.damage;
-            document.body.classList.add('shake');
-            setTimeout(() => document.body.classList.remove('shake'), 300);
-            if (state.hp <= 0) { state.hp = 0; endGame(false); }
-            updateUI();
-        }
-
-        function addEnergy(amount) {
-            state.energy = Math.min(CONFIG.scanCost, state.energy + amount);
-            updateUI();
         }
 
         function updateUI() {
             hpBar.style.width = `${state.hp}%`;
             hpText.innerText = `${Math.ceil(state.hp)}%`;
-            energyBar.style.width = `${(state.energy / CONFIG.scanCost) * 100}%`;
-            energyText.innerText = `${Math.floor((state.energy / CONFIG.scanCost) * 100)}%`;
-
-            if (state.energy >= CONFIG.scanCost) {
-                scanBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                scanBtn.disabled = false;
-            } else {
-                scanBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                scanBtn.disabled = true;
-            }
-            levelDisplay.innerText = `LEVEL: ${String(state.level).padStart(2, '0')}`;
+            const ePercent = (state.energy / CONFIG.scanCost) * 100;
+            energyBar.style.width = `${ePercent}%`;
+            scanBtn.disabled = state.energy < CONFIG.scanCost;
+            scanBtn.classList.toggle('opacity-50', scanBtn.disabled);
+            levelDisplay.innerText = `LEVEL: ${String(state.level).padStart(2, '0')} / ${String(CONFIG.maxLevels).padStart(2, '0')}`;
         }
 
         function useScan(r, c) {
-            state.energy = 0;
-            state.isScanning = false;
+            state.energy = 0; state.isScanning = false;
             scanBtn.classList.remove('active-mode');
-            
-            const area = getNeighbors(r, c);
-            area.push(state.grid[r][c]);
-
+            Sound.playSFX('scan');
+            const area = getNeighbors(r, c); area.push(state.grid[r][c]);
             area.forEach(t => {
                 if (!t.isRevealed) {
                     t.element.style.boxShadow = `inset 0 0 10px ${t.isMine ? 'var(--neon-pink)' : 'var(--neon-blue)'}`;
                     setTimeout(() => t.element.style.boxShadow = '', 2000);
                 }
             });
-            showToast("SCAN COMPLETE");
             updateUI();
         }
 
         function checkWin() {
-            const totalTiles = CONFIG.rows * CONFIG.cols;
-            if (state.revealedCount + CONFIG.mines === totalTiles) endGame(true);
+            const minesCount = CONFIG.minesInit + (state.level - 1) * CONFIG.minesInc;
+            if (state.revealedCount + minesCount === CONFIG.rows * CONFIG.cols) endGame(true);
         }
 
         function endGame(isWin) {
             state.gameOver = true;
             const title = document.getElementById('modal-title');
             const desc = document.getElementById('modal-desc');
-            const btn = document.getElementById('modal-close');
-
+            const btnMain = document.getElementById('modal-btn-main');
+            const btnSub = document.getElementById('modal-btn-sub');
+            const decor = document.getElementById('modal-decor');
             if (isWin) {
-                title.innerText = "CLEAR";
-                title.style.color = "var(--neon-blue)";
-                desc.innerText = "セクターの無力化に成功。次へ移行します。";
-                btn.onclick = () => { state.level++; initGame(); };
+                if (state.level >= CONFIG.maxLevels) {
+                    title.innerText = "ALL SECTORS CLEARED";
+                    title.style.color = "var(--neon-yellow)";
+                    decor.style.backgroundColor = "var(--neon-yellow)";
+                    desc.innerHTML = "全セキュリティ層の突破に成功しました。<br>あなたは伝説のデバッガーとして刻まれます。";
+                    btnMain.innerText = "再起動 (NEW GAME)";
+                    btnMain.onclick = () => { state.level = 1; initGame(); };
+                    btnSub.classList.remove('hidden');
+                    btnSub.innerText = "接続終了";
+                    btnSub.onclick = () => { location.reload(); };
+                    Sound.playFanfare(true);
+                } else {
+                    title.innerText = "SECTOR DECRYPTED";
+                    title.style.color = "var(--neon-blue)";
+                    decor.style.backgroundColor = "var(--neon-blue)";
+                    desc.innerText = `LEVEL ${state.level} 完了。次の層へダイブします。`;
+                    btnMain.innerText = "次へ進む";
+                    btnMain.onclick = () => { state.level++; initGame(); };
+                    Sound.playFanfare(false);
+                }
             } else {
-                title.innerText = "FAILED";
+                title.innerText = "CRITICAL ERROR";
                 title.style.color = "var(--neon-pink)";
-                desc.innerText = "システムが壊滅的なダメージを受けました。";
-                btn.onclick = () => { state.level = 1; initGame(); };
+                decor.style.backgroundColor = "var(--neon-pink)";
+                desc.innerText = "ハードウェアが限界に達しました。システムを再起動してください。";
+                btnMain.innerText = "リブート (RETRY)";
+                btnMain.onclick = () => { state.level = 1; initGame(); };
             }
             modal.classList.remove('hidden');
         }
 
         function showToast(msg) {
-            toast.innerText = msg;
-            toast.style.opacity = '1';
+            toast.innerText = msg; toast.style.opacity = '1';
             setTimeout(() => toast.style.opacity = '0', 2000);
         }
 
-        // イベントリスナー
         scanBtn.addEventListener('click', () => {
+            Sound.init();
             if (state.energy >= CONFIG.scanCost) {
-                state.isScanning = true;
-                scanBtn.classList.add('active-mode');
-                showToast("SCAN READY: SELECT SECTOR");
+                state.isScanning = true; scanBtn.classList.add('active-mode');
+                showToast("SCAN READY: SELECT AREA");
             }
         });
-
         flagBtn.addEventListener('click', () => {
+            Sound.init();
             state.flagMode = !state.flagMode;
             flagBtn.classList.toggle('active-mode', state.flagMode);
-            showToast(state.flagMode ? "MARKING MODE: ON" : "MARKING MODE: OFF");
+            showToast(state.flagMode ? "MARK MODE: ON" : "MARK MODE: OFF");
+        });
+        document.getElementById('reset-btn').addEventListener('click', () => { state.level = 1; initGame(); });
+        document.getElementById('modal-btn-main').addEventListener('click', () => modal.classList.add('hidden'));
+
+        audioToggleBtn.addEventListener('click', () => {
+            Sound.init(); // ボタンを押した瞬間にシステムを立ち上げる（未初期化エラー防止）
+            const muted = Sound.toggleMute();
+            audioToggleBtn.innerText = `SOUND: ${muted ? 'OFF' : 'ON'}`;
+            audioToggleBtn.classList.toggle('muted', muted);
         });
 
-        document.getElementById('reset-btn').addEventListener('click', () => { state.level = 1; initGame(); });
-        document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));
-
-        window.onload = initGame;
+        // ページロード時に確実にゲームを開始
+        window.addEventListener('load', initGame);
     </script>
 </body>
 </html>
+
