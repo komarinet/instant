@@ -3,19 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Instant Games - 暇つぶしゲーム集</title>
+    <title>INSTANT GAMES - 暇つぶしゲーム集</title>
     <style>
         :root {
-            --primary-color: #00d2ff;
-            --secondary-color: #3a7bd5;
-            --bg-color: #1a1a2e;
-            --text-color: #ffffff;
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --bg-dark: #0a0a0f;
+            --panel-bg: rgba(20, 20, 30, 0.9);
         }
 
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, var(--bg-color), #16213e);
-            color: var(--text-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(circle at 50% 50%, #16213e 0%, #0a0a0f 100%);
+            color: white;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -26,68 +28,112 @@
 
         header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
         h1 {
-            font-size: 2.5rem;
-            letter-spacing: 2px;
-            background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            font-size: 2.2rem;
+            letter-spacing: 4px;
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+            margin-bottom: 5px;
         }
 
-        p {
-            opacity: 0.8;
-            font-size: 0.9rem;
+        .subtitle {
+            font-size: 0.8rem;
+            color: #888;
+            letter-spacing: 1px;
         }
 
-        .game-list {
+        .container {
             width: 100%;
             max-width: 500px;
-            display: grid;
-            gap: 15px;
         }
 
-        .game-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+        /* ゲームカード形式 */
+        .game-section {
+            background: var(--panel-bg);
+            border-left: 4px solid var(--neon-blue);
+            border-radius: 8px;
             padding: 20px;
-            border-radius: 15px;
-            text-decoration: none;
-            color: white;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            transition: transform 0.2s, background 0.2s;
-            backdrop-filter: blur(5px);
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .game-card:active {
-            transform: scale(0.95);
-            background: rgba(255, 255, 255, 0.2);
+        .game-title {
+            font-size: 1.4rem;
+            color: var(--neon-pink);
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-desc {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+
+        .rule-tag {
+            display: inline-block;
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--neon-blue);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+        }
+
+        .play-button {
+            display: block;
+            width: 100%;
+            background: var(--neon-blue);
+            color: black;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .play-button:active {
+            transform: scale(0.98);
+            filter: brightness(1.2);
+        }
+
+        .coming-soon {
+            opacity: 0.5;
+            border-left-color: #444;
         }
 
         footer {
             margin-top: auto;
-            padding: 40px 0 20px;
             text-align: center;
+            padding: 40px 0;
             font-size: 0.8rem;
+            color: #666;
         }
 
         .donate-link {
-            color: var(--primary-color);
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--neon-pink);
             text-decoration: none;
-            border: 1px solid var(--primary-color);
-            padding: 5px 15px;
+            border: 1px solid var(--neon-pink);
+            padding: 6px 16px;
             border-radius: 20px;
             transition: 0.3s;
         }
 
         .donate-link:hover {
-            background: var(--primary-color);
-            color: var(--bg-color);
+            background: var(--neon-pink);
+            color: white;
         }
     </style>
 </head>
@@ -95,21 +141,37 @@
 
     <header>
         <h1>INSTANT GAMES</h1>
-        <p>スマートフォンですぐに遊べる暇つぶしゲームたち</p>
+        <div class="subtitle">TAP & PLAY UNLIMITED</div>
     </header>
 
-    <div class="game-list">
-        <a href="game001/index.html" class="game-card">🎮 Game 001 (準備中)</a>
-        <a href="game002/index.html" class="game-card">🦖 Game 002 (準備中)</a>
-        <a href="game003/index.html" class="game-card">✨ Game 003 (準備中)</a>
+    <div class="container">
+        
+        <div class="game-section">
+            <h2 class="game-title">🕹️ Cyber-Sweep</h2>
+            <div class="game-desc">
+                タクティカル・マインスイーパー。地雷原を解析し、システムを無力化せよ。
+            </div>
+            <div>
+                <span class="rule-tag">HP制（1回ミスOK）</span>
+                <span class="rule-tag">エネルギーを貯めてスキャン</span>
+                <span class="rule-tag">スマホ最適化</span>
+            </div>
+            <a href="game001/index.html" class="play-button">システムに接続する</a>
+        </div>
+
+        <div class="game-section coming-soon">
+            <h2 class="game-title">🦖 Coming Soon...</h2>
+            <div class="game-desc">
+                次なる暇つぶしゲームを開発中。
+            </div>
+        </div>
+
     </div>
 
     <footer>
         <p>&copy; 2026 komarinet</p>
-        <p>
-            気に入っていただけたら 
-            <a href="#" class="donate-link">開発を支援する（寄付）</a>
-        </p>
+        <p>制作を応援していただけると嬉しいです！</p>
+        <a href="#" class="donate-link">☕ 開発を支援する（OFUSE）</a>
     </footer>
 
 </body>
