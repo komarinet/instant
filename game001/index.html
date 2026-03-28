@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cyber-Sweep: Tactical Overload</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-yellow: #fff200;
+            --bg-dark: #0a0a0f;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'JetBrains+Mono', monospace;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+
+        .cyber-panel {
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.3);
+            backdrop-filter: blur(5px);
+        }
+
+        /* スクロールエリアの設定 */
+        #game-viewport {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 2px solid #1a1a2e; /* 基本の枠線 */
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #game-container::-webkit-scrollbar { display: none; }
+
+        /* ネオンエッジ・インジケーター（矢印の代わり） */
+        .edge-bar {
+            position: absolute;
+            z-index: 30;
+            background: var(--neon-blue);
+            box-shadow: 0 0 15px var(--neon-blue);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        #edge-top { top: 0; left: 0; width: 100%; height: 4px; }
+        #edge-bottom { bottom: 0; left: 0; width: 100%; height: 4px; }
+        #edge-left { top: 0; left: 0; width: 4px; height: 100%; }
+        #edge-right { top: 0; right: 0; width: 4px; height: 100%; }
+
+        .tile {
+            width: 42px;
+            height: 42px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
+        .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
+        .tile-mine { background: #4a0000 !important; border-color: #ff0000 !important; }
+        
+        .active-mode {
+            background: var(--neon-pink) !important;
+            color: black !important;
+            box-shadow: 0 0 15px var(--neon-pink);
+        }
+
+        .progress-bar { height: 8px; transition: width 0.3s ease; }
+        .count-1 { color: #4deeea; }
+        .count-2 { color: #74ee15; }
+        .count-3 { color: #ffe700; }
+        .count-4 { color: #f000ff; }
+        .count-5 { color: #ff0000; }
+
+        @keyframes pulse-edge {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.3; }
+        }
+        .edge-active { animation: pulse-edge 2s infinite; opacity: 1; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mb-4 space-y-3">
+        <div class="flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold font-orbitron text-[var(--neon-blue)] tracking-wider">CYBER-SWEEP</h1>
+                <p class="text-[10px] text-gray-500">TACTICAL OVERLOAD v2.8</p>
+            </div>
+            <div id="level-display" class="text-xs text-[var(--neon-pink)]">LEVEL: 01</div>
+        </div>
+
+        <div class="cyber-panel p-3 rounded-lg space-y-2">
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] w-8 text-gray-400">HP</span>
+                <div class="flex-1 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                    <div id="hp-bar" class="progress-bar bg-[var(--neon-pink)] w-full"></div>
+                </div>
+                <span id="hp-text" class="text-[10px] w-8 text-right font-bold text-[var(--neon-pink)]">100%</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] w-8 text-gray-400">ENG</span>
+                <div class="flex-1 bg-gray-800 rounded-full overflow-hidden border border-gray-700">
+                    <div id="energy-bar" class="progress-bar bg-[var(--neon-blue)] w-0"></div>
+                </div>
+                <span id="energy-text" class="text-[10px] w-8 text-right font-bold text-[var(--neon-blue)]">0%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ゲームビューポート (ネオンエッジ・インジケーター) -->
+    <div id="game-viewport">
+        <div id="edge-top" class="edge-bar"></div>
+        <div id="edge-bottom" class="edge-bar"></div>
+        <div id="edge-left" class="edge-bar"></div>
+        <div id="edge-right" class="edge-bar"></div>
+        
+        <div id="game-container">
+            <div id="grid" class="grid gap-1 p-6" style="width: fit-content;"></div>
+        </div>
+    </div>
+
+    <!-- コントロールパネル -->
+    <div class="w-full max-w-md mt-4 grid grid-cols-3 gap-2">
+        <button id="flag-mode-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center transition-all">
+            <span class="text-[10px] font-bold">MARK</span>
+            <span class="text-[8px] text-gray-400">解析フラグ</span>
+        </button>
+        <button id="scan-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center opacity-50 cursor-not-allowed transition-all" disabled>
+            <span class="text-[10px] font-bold text-[var(--neon-blue)]">SCAN</span>
+            <span class="text-[8px] text-gray-400">周囲解析</span>
+        </button>
+        <button id="reset-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center hover:bg-gray-800 transition-all">
+            <span class="text-[10px] font-bold text-[var(--neon-yellow)]">REBOOT</span>
+            <span class="text-[8px] text-gray-400">初期化</span>
+        </button>
+    </div>
+
+    <!-- モーダル -->
+    <div id="modal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="cyber-panel p-8 rounded-2xl text-center max-w-xs w-full mx-4">
+            <h2 id="modal-title" class="text-3xl font-orbitron font-bold mb-4">SYSTEM HALT</h2>
+            <p id="modal-desc" class="text-sm text-gray-300 mb-6"></p>
+            <button id="modal-close" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold hover:bg-[var(--neon-blue)] hover:text-black transition-all">
+                再接続
+            </button>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-50"></div>
+
+    <script>
+        const CONFIG = {
+            rows: 15,
+            cols: 15,
+            mines: 30,
+            maxHp: 100,
+            damage: 35,
+            energyPerTile: 5,
+            scanCost: 100
+        };
+
+        let state = {
+            grid: [],
+            gameOver: false,
+            hp: CONFIG.maxHp,
+            energy: 0,
+            revealedCount: 0,
+            level: 1,
+            isScanning: false,
+            flagMode: false
+        };
+
+        const gridElement = document.getElementById('grid');
+        const container = document.getElementById('game-container');
+        const hpBar = document.getElementById('hp-bar');
+        const hpText = document.getElementById('hp-text');
+        const energyBar = document.getElementById('energy-bar');
+        const energyText = document.getElementById('energy-text');
+        const scanBtn = document.getElementById('scan-btn');
+        const flagBtn = document.getElementById('flag-mode-btn');
+        const levelDisplay = document.getElementById('level-display');
+        const modal = document.getElementById('modal');
+        const toast = document.getElementById('toast');
+
+        // スクロールインジケーターの制御 (ネオンバー版)
+        function updateScrollIndicators() {
+            const { scrollTop, scrollLeft, scrollHeight, scrollWidth, clientHeight, clientWidth } = container;
+            
+            // 判定に5pxの遊び（閾値）を持たせて安定化
+            const threshold = 5;
+
+            const canScrollUp = scrollTop > threshold;
+            const canScrollDown = scrollTop + clientHeight < scrollHeight - threshold;
+            const canScrollLeft = scrollLeft > threshold;
+            const canScrollRight = scrollLeft + clientWidth < scrollWidth - threshold;
+
+            toggleEdge('edge-top', canScrollUp);
+            toggleEdge('edge-bottom', canScrollDown);
+            toggleEdge('edge-left', canScrollLeft);
+            toggleEdge('edge-right', canScrollRight);
+        }
+
+        function toggleEdge(id, show) {
+            const el = document.getElementById(id);
+            if (show) {
+                el.classList.add('edge-active');
+            } else {
+                el.classList.remove('edge-active');
+            }
+        }
+
+        container.addEventListener('scroll', updateScrollIndicators);
+
+        function initGame() {
+            state.gameOver = false;
+            state.hp = CONFIG.maxHp;
+            state.energy = 0;
+            state.revealedCount = 0;
+            state.isScanning = false;
+            state.flagMode = false;
+            flagBtn.classList.remove('active-mode');
+            
+            CONFIG.mines = Math.min(60, 25 + (state.level * 3));
+            
+            updateUI();
+            createGrid();
+            modal.classList.add('hidden');
+            // DOM更新後に判定
+            setTimeout(updateScrollIndicators, 150);
+        }
+
+        function createGrid() {
+            gridElement.style.gridTemplateColumns = `repeat(${CONFIG.cols}, 1fr)`;
+            gridElement.innerHTML = '';
+            state.grid = [];
+
+            for (let r = 0; r < CONFIG.rows; r++) {
+                state.grid[r] = [];
+                for (let c = 0; c < CONFIG.cols; c++) {
+                    const tileObj = {
+                        r, c, isMine: false, isRevealed: false, isFlagged: false,
+                        neighborMines: 0, element: null
+                    };
+
+                    const el = document.createElement('div');
+                    el.className = 'tile tile-hidden flex items-center justify-center font-bold text-sm rounded';
+                    
+                    el.addEventListener('click', () => {
+                        if (state.flagMode) handleRightClick(r, c);
+                        else handleTileClick(r, c);
+                    });
+                    
+                    el.addEventListener('contextmenu', (e) => {
+                        e.preventDefault();
+                        handleRightClick(r, c);
+                    });
+
+                    tileObj.element = el;
+                    gridElement.appendChild(el);
+                    state.grid[r][c] = tileObj;
+                }
+            }
+
+            placeMines();
+            calculateNumbers();
+        }
+
+        function placeMines() {
+            let placed = 0;
+            while (placed < CONFIG.mines) {
+                const r = Math.floor(Math.random() * CONFIG.rows);
+                const c = Math.floor(Math.random() * CONFIG.cols);
+                if (!state.grid[r][c].isMine) {
+                    state.grid[r][c].isMine = true;
+                    placed++;
+                }
+            }
+        }
+
+        function calculateNumbers() {
+            for (let r = 0; r < CONFIG.rows; r++) {
+                for (let c = 0; c < CONFIG.cols; c++) {
+                    if (state.grid[r][c].isMine) continue;
+                    let count = 0;
+                    getNeighbors(r, c).forEach(n => { if (n.isMine) count++; });
+                    state.grid[r][c].neighborMines = count;
+                }
+            }
+        }
+
+        function getNeighbors(r, c) {
+            const neighbors = [];
+            for (let dr = -1; dr <= 1; dr++) {
+                for (let dc = -1; dc <= 1; dc++) {
+                    if (dr === 0 && dc === 0) continue;
+                    const nr = r + dr, nc = c + dc;
+                    if (nr >= 0 && nr < CONFIG.rows && nc >= 0 && nc < CONFIG.cols) {
+                        neighbors.push(state.grid[nr][nc]);
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        function handleTileClick(r, c) {
+            if (state.gameOver) return;
+            const tile = state.grid[r][c];
+            if (tile.isRevealed || tile.isFlagged) return;
+
+            if (state.isScanning) {
+                useScan(r, c);
+                return;
+            }
+
+            revealTile(r, c);
+        }
+
+        function handleRightClick(r, c) {
+            if (state.gameOver) return;
+            const tile = state.grid[r][c];
+            if (tile.isRevealed) return;
+
+            tile.isFlagged = !tile.isFlagged;
+            tile.element.innerHTML = tile.isFlagged ? '<span style="color:var(--neon-pink)">▲</span>' : '';
+            tile.element.style.borderColor = tile.isFlagged ? 'var(--neon-pink)' : '';
+        }
+
+        function revealTile(r, c) {
+            const tile = state.grid[r][c];
+            if (tile.isRevealed) return;
+
+            tile.isRevealed = true;
+            tile.element.classList.remove('tile-hidden');
+            tile.element.classList.add('tile-revealed');
+            state.revealedCount++;
+
+            if (tile.isMine) {
+                tile.element.classList.add('tile-mine');
+                tile.element.innerHTML = '⚡';
+                takeDamage();
+                showToast("CORE DAMAGE!");
+            } else {
+                addEnergy(CONFIG.energyPerTile);
+                if (tile.neighborMines > 0) {
+                    tile.element.innerText = tile.neighborMines;
+                    tile.element.classList.add(`count-${tile.neighborMines}`);
+                } else {
+                    getNeighbors(r, c).forEach(n => revealTile(n.r, n.c));
+                }
+            }
+            checkWin();
+        }
+
+        function takeDamage() {
+            state.hp -= CONFIG.damage;
+            document.body.classList.add('shake');
+            setTimeout(() => document.body.classList.remove('shake'), 300);
+            if (state.hp <= 0) { state.hp = 0; endGame(false); }
+            updateUI();
+        }
+
+        function addEnergy(amount) {
+            state.energy = Math.min(CONFIG.scanCost, state.energy + amount);
+            updateUI();
+        }
+
+        function updateUI() {
+            hpBar.style.width = `${state.hp}%`;
+            hpText.innerText = `${Math.ceil(state.hp)}%`;
+            energyBar.style.width = `${(state.energy / CONFIG.scanCost) * 100}%`;
+            energyText.innerText = `${Math.floor((state.energy / CONFIG.scanCost) * 100)}%`;
+
+            if (state.energy >= CONFIG.scanCost) {
+                scanBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                scanBtn.disabled = false;
+            } else {
+                scanBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                scanBtn.disabled = true;
+            }
+            levelDisplay.innerText = `LEVEL: ${String(state.level).padStart(2, '0')}`;
+        }
+
+        function useScan(r, c) {
+            state.energy = 0;
+            state.isScanning = false;
+            scanBtn.classList.remove('active-mode');
+            
+            const area = getNeighbors(r, c);
+            area.push(state.grid[r][c]);
+
+            area.forEach(t => {
+                if (!t.isRevealed) {
+                    t.element.style.boxShadow = `inset 0 0 10px ${t.isMine ? 'var(--neon-pink)' : 'var(--neon-blue)'}`;
+                    setTimeout(() => t.element.style.boxShadow = '', 2000);
+                }
+            });
+            showToast("SCAN COMPLETE");
+            updateUI();
+        }
+
+        function checkWin() {
+            const totalTiles = CONFIG.rows * CONFIG.cols;
+            if (state.revealedCount + CONFIG.mines === totalTiles) endGame(true);
+        }
+
+        function endGame(isWin) {
+            state.gameOver = true;
+            const title = document.getElementById('modal-title');
+            const desc = document.getElementById('modal-desc');
+            const btn = document.getElementById('modal-close');
+
+            if (isWin) {
+                title.innerText = "CLEAR";
+                title.style.color = "var(--neon-blue)";
+                desc.innerText = "セクターの無力化に成功。次へ移行します。";
+                btn.onclick = () => { state.level++; initGame(); };
+            } else {
+                title.innerText = "FAILED";
+                title.style.color = "var(--neon-pink)";
+                desc.innerText = "システムが壊滅的なダメージを受けました。";
+                btn.onclick = () => { state.level = 1; initGame(); };
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2000);
+        }
+
+        // イベントリスナー
+        scanBtn.addEventListener('click', () => {
+            if (state.energy >= CONFIG.scanCost) {
+                state.isScanning = true;
+                scanBtn.classList.add('active-mode');
+                showToast("SCAN READY: SELECT SECTOR");
+            }
+        });
+
+        flagBtn.addEventListener('click', () => {
+            state.flagMode = !state.flagMode;
+            flagBtn.classList.toggle('active-mode', state.flagMode);
+            showToast(state.flagMode ? "MARKING MODE: ON" : "MARKING MODE: OFF");
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => { state.level = 1; initGame(); });
+        document.getElementById('modal-close').addEventListener('click', () => modal.classList.add('hidden'));
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
