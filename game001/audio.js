@@ -1,6 +1,7 @@
+// CYBER-SWEEP v5.3 | audio.js
 const SoundEngine = {
     ctx: null, masterGain: null, enabled: false, isMuted: false, bpm: 124, currentStep: 0,
-    schedulerTimer: null, nextNoteTime: 0, patterns: { kick: [], hat: [], bass: [], lead: [] },
+    nextNoteTime: 0, patterns: { kick: [], hat: [], bass: [], lead: [] },
     scale: [48, 51, 53, 55, 58, 60],
 
     init() {
@@ -12,7 +13,7 @@ const SoundEngine = {
             this.masterGain.connect(this.ctx.destination);
             this.enabled = true;
             this.scheduler();
-        } catch(e) { console.error("Audio init failed", e); }
+        } catch(e) { console.error("Audio init error", e); }
     },
 
     toggleMute() {
@@ -38,7 +39,7 @@ const SoundEngine = {
             this.nextNoteTime += 60.0 / this.bpm / 4;
             this.currentStep = (this.currentStep + 1) % 16;
         }
-        this.schedulerTimer = setTimeout(() => this.scheduler(), 25);
+        setTimeout(() => this.scheduler(), 25);
     },
 
     scheduleNote(step, time) {
@@ -47,8 +48,6 @@ const SoundEngine = {
         if (this.patterns.bass[step]) this.playSynth(this.patterns.bass[step], time, 'sawtooth', 0.1, 0.2);
         if (this.patterns.lead[step]) this.playSynth(this.patterns.lead[step], time, 'square', 0.04, 0.1);
     },
-
-    mToF(m) { return 440 * Math.pow(2, (m - 69) / 12); },
 
     playKick(time) {
         const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
@@ -66,7 +65,7 @@ const SoundEngine = {
 
     playSynth(midi, time, type, vol, len) {
         const o = this.ctx.createOscillator(); const g = this.ctx.createGain();
-        o.type = type; o.frequency.setValueAtTime(this.mToF(midi), time);
+        o.type = type; o.frequency.setValueAtTime(440 * Math.pow(2, (midi - 69) / 12), time);
         g.gain.setValueAtTime(0, time); g.gain.linearRampToValueAtTime(vol, time + 0.01);
         g.gain.exponentialRampToValueAtTime(0.001, time + len);
         o.connect(g); g.connect(this.masterGain); o.start(time); o.stop(time + len);
