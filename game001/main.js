@@ -1,3 +1,4 @@
+// CYBER-SWEEP v5.3 | main.js
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -8,7 +9,6 @@ const MainController = {
     },
 
     init() {
-        // ボタンイベント登録
         document.getElementById('start-btn').onclick = () => this.startPrologue();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
@@ -32,111 +32,65 @@ const MainController = {
     },
 
     startPrologue() {
-        SoundEngine.init(); // 音声エンジン起動
+        SoundEngine.init();
         this.showScene('scene-prologue');
-        
         const ship = document.getElementById('prologue-ship');
         const exp = document.getElementById('explosion-layer');
-        const pText = document.querySelector('#prologue-text h2');
+        const texts = document.querySelectorAll('#prologue-text > *');
 
-        // リセット
-        exp.style.display = 'none';
-        exp.classList.remove('bomb-play');
-        pText.style.opacity = '0';
-        ship.classList.remove('shake');
-
-        // 1.5秒後に爆発開始
+        setTimeout(() => ship.classList.add('shake-prologue'), 1000);
         setTimeout(() => {
-            ship.classList.add('shake');
             exp.style.display = 'block';
-            exp.style.left = "calc(50% - 150px)"; 
-            exp.style.bottom = "calc(20% + 20px)"; 
+            exp.style.left = "calc(50% - 150px)"; exp.style.bottom = "calc(30% - 50px)";
             exp.classList.add('bomb-play');
-            
+            texts.forEach(t => t.style.opacity = '1');
             SoundEngine.playSFX('damage');
-            pText.style.opacity = '1';
         }, 1500);
 
-        // 4.5秒後にステージ選択へ
-        setTimeout(() => {
-            this.showScene('scene-select');
-        }, 4500);
+        setTimeout(() => this.showScene('scene-select'), 4500);
     },
 
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
-        if (!container) return; // コンテナがない場合は中断
-        
-        container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all active:scale-95';
+            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all';
             btn.innerHTML = `<span class="text-[10px]" style="color:${data.blue}">LEVEL ${lvl}</span><br>${data.name}`;
-            btn.onclick = () => {
-                this.applyTheme(lvl);
-                this.showScene('scene-game');
-                GameLogic.init(parseInt(lvl));
-            };
+            btn.onclick = () => { this.applyTheme(lvl); this.showScene('scene-game'); GameLogic.init(parseInt(lvl)); };
             container.appendChild(btn);
         });
     },
 
     toggleScan() {
-        if (GameLogic.state.energy >= GameLogic.config.scanCost) {
+        if(GameLogic.state.energy >= GameLogic.config.scanCost) {
             GameLogic.state.isScanning = !GameLogic.state.isScanning;
             document.getElementById('scan-btn').classList.toggle('active-mode', GameLogic.state.isScanning);
-            this.showToast(GameLogic.state.isScanning ? "SCAN READY" : "SCAN CANCELLED");
         }
     },
 
     toggleFlag() {
         GameLogic.state.flagMode = !GameLogic.state.flagMode;
         document.getElementById('flag-mode-btn').classList.toggle('active-mode', GameLogic.state.flagMode);
-        this.showToast(GameLogic.state.flagMode ? "MARK MODE: ON" : "MARK MODE: OFF");
     },
 
     toggleAudio() {
-        const muted = SoundEngine.toggleMute();
-        const btn = document.getElementById('audio-toggle-btn');
-        btn.innerText = `SOUND: ${muted ? 'OFF' : 'ON'}`;
-        btn.style.borderColor = muted ? 'var(--neon-pink)' : 'var(--neon-blue)';
+        const m = SoundEngine.toggleMute();
+        document.getElementById('audio-toggle-btn').innerText = `SOUND: ${m ? 'OFF' : 'ON'}`;
     },
 
     showModal(isWin) {
         const modal = document.getElementById('modal');
-        const title = document.getElementById('modal-title');
-        const desc = document.getElementById('modal-desc');
-        const btn = document.getElementById('modal-btn-main');
-
-        if (isWin) {
-            title.innerText = "SECTOR CLEARED";
-            desc.innerText = "セキュリティ層の突破に成功しました。";
-            btn.innerText = "セクター選択へ";
-            btn.onclick = () => { modal.classList.add('hidden'); this.showScene('scene-select'); };
-        } else {
-            title.innerText = "CRITICAL ERROR";
-            desc.innerText = "システムが損壊しました。リブートが必要です。";
-            btn.innerText = "再試行";
-            btn.onclick = () => { modal.classList.add('hidden'); GameLogic.init(GameLogic.state.level); };
-        }
+        document.getElementById('modal-title').innerText = isWin ? "SECTOR CLEARED" : "SYSTEM HALT";
+        document.getElementById('modal-desc').innerText = isWin ? "次のセクターへ移動可能です。" : "リブートが必要です。";
+        document.getElementById('modal-btn-main').onclick = () => { modal.classList.add('hidden'); this.showScene('scene-select'); };
         modal.classList.remove('hidden');
-    },
-
-    showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg; t.style.opacity = '1';
-        setTimeout(() => t.style.opacity = '0', 2000);
     },
 
     setupScrollSync() {
         const cont = document.getElementById('game-container');
-        if (!cont) return;
         cont.onscroll = () => {
-            const threshold = 5;
-            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > threshold);
-            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - threshold);
-            document.getElementById('edge-left').classList.toggle('edge-active', cont.scrollLeft > threshold);
-            document.getElementById('edge-right').classList.toggle('edge-active', cont.scrollLeft + cont.clientWidth < cont.scrollWidth - threshold);
+            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > 5);
+            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - 5);
         };
     }
 };
