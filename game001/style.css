@@ -1,3 +1,4 @@
+/* CYBER-SWEEP v5.3 | style.css */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -11,16 +12,14 @@ body {
     background-color: var(--bg-dark);
     color: white;
     font-family: 'JetBrains Mono', monospace;
-    overflow: hidden;
+    overflow: hidden; margin: 0;
     touch-action: manipulation;
-    margin: 0;
 }
 
 .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
 .scene {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
 }
 
 .cyber-panel {
@@ -30,13 +29,13 @@ body {
     backdrop-filter: blur(5px);
 }
 
-/* プロローグ背景 */
 #space-bg {
-    position: absolute;
-    width: 100%;
-    height: 200%;
-    background: url('img/space02.png') repeat-y;
-    background-size: cover;
+    position: absolute; width: 100%; height: 200%;
+    background: 
+        radial-gradient(1px 1px at 20px 30px, #eee, rgba(0,0,0,0)),
+        radial-gradient(1.5px 1.5px at 100px 150px, #fff, rgba(0,0,0,0)),
+        url('img/space02.png') repeat-y;
+    background-size: 200px 200px, 300px 300px, cover;
     animation: scroll-space 20s linear infinite;
     z-index: 1;
 }
@@ -46,41 +45,37 @@ body {
     to { transform: translateY(-50%); }
 }
 
-/* 戦艦 */
 #prologue-ship {
-    bottom: 20%;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 200px;
-    z-index: 2;
+    bottom: 30%; left: 50%; transform: translateX(-50%);
+    width: 200px; z-index: 2;
 }
 
-/* 爆発アニメ (4列x2行 = 1200x600) */
 #explosion-layer {
-    position: absolute;
-    width: 300px; /* 1200 / 4 */
-    height: 300px; /* 600 / 2 */
+    position: absolute; width: 300px; height: 300px;
     background: url('img/bomb.png');
     background-size: 1200px 600px;
-    display: none;
-    z-index: 10;
-    pointer-events: none;
+    display: none; z-index: 10;
 }
 
 .bomb-play {
     display: block !important;
-    /* X軸で4コマ、Y軸で2コマ分を動かす */
     animation: bomb-frames-x 0.8s steps(4) infinite, bomb-frames-y 1.6s steps(2) forwards;
 }
 
 @keyframes bomb-frames-x { from { background-position-x: 0px; } to { background-position-x: -1200px; } }
 @keyframes bomb-frames-y { from { background-position-y: 0px; } to { background-position-y: -600px; } }
 
-/* ゲームボード関連 */
+.shake-prologue { animation: shake-p 0.2s infinite; }
+@keyframes shake-p {
+    0% { transform: translate(-50%, 0); }
+    50% { transform: translate(-51%, 2px); }
+    100% { transform: translate(-49%, -1px); }
+}
+
+/* Board UI */
 #game-viewport { position: relative; width: 100%; max-width: 450px; height: 380px; overflow: hidden; border-radius: 12px; border: 2px solid #1a1a2e; }
-#game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
-#game-container::-webkit-scrollbar { display: none; }
-.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
+#game-container { width: 100%; height: 100%; overflow: auto; }
+.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
 #edge-top { top: 0; left: 0; width: 100%; height: 4px; }
 #edge-bottom { bottom: 0; left: 0; width: 100%; height: 4px; }
 #edge-left { top: 0; left: 0; width: 4px; height: 100%; }
@@ -88,20 +83,13 @@ body {
 .edge-active { animation: pulse-edge 2s infinite; opacity: 1; }
 @keyframes pulse-edge { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
 
-.tile { width: 42px; height: 42px; transition: all 0.2s; cursor: pointer; user-select: none; flex-shrink: 0; }
+.tile { width: 42px; height: 42px; transition: all 0.2s; cursor: pointer; user-select: none; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
 .tile-mine { background: #4a0000 !important; border-color: #ff0000 !important; }
-.active-mode { background: var(--neon-pink) !important; color: black !important; box-shadow: 0 0 15px var(--neon-pink); }
+.active-mode { background: var(--neon-pink) !important; color: black !important; }
 .progress-bar { height: 8px; transition: width 0.3s ease; }
 .count-1 { color: #4deeea; } .count-2 { color: #74ee15; } .count-3 { color: #ffe700; } .count-4 { color: #f000ff; } .count-5 { color: #ff0000; }
-
-.shake { animation: shake-anim 0.3s ease-in-out infinite; }
-@keyframes shake-anim {
-    0%, 100% { transform: translate(-50%, 0); }
-    25% { transform: translate(-52%, 2px); }
-    75% { transform: translate(-48%, -2px); }
-}
 
 .scan-effect::after {
     content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
