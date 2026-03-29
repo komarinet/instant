@@ -24,7 +24,7 @@ const GameLogic = {
                 const tileObj = { r, c, isMine: false, isRevealed: false, isFlagged: false, neighborMines: 0, element: null };
                 const el = document.createElement('div');
                 el.className = 'tile tile-hidden flex items-center justify-center font-bold text-sm rounded';
-                el.onclick = () => { SoundEngine.init(); if(this.state.flagMode) this.handleRightClick(r,c); else this.handleTileClick(r,c); };
+                el.onclick = () => { if(this.state.flagMode) this.handleRightClick(r,c); else this.handleTileClick(r,c); };
                 el.oncontextmenu = (e) => { e.preventDefault(); this.handleRightClick(r,c); };
                 tileObj.element = el; gridEl.appendChild(el); this.state.grid[r][c] = tileObj;
             }
