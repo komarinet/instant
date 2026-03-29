@@ -1,4 +1,4 @@
-// CYBER-SWEEP v5.3 | main.js
+// CYBER-SWEEP v5.4 | main.js
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -10,13 +10,13 @@ const MainController = {
 
     init() {
         document.getElementById('start-btn').onclick = () => this.startPrologue();
+        document.getElementById('skip-prologue-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
         
         this.createStageSelect();
-        this.setupScrollSync();
     },
 
     showScene(id) {
@@ -34,27 +34,41 @@ const MainController = {
     startPrologue() {
         SoundEngine.init();
         this.showScene('scene-prologue');
+        
         const ship = document.getElementById('prologue-ship');
         const exp = document.getElementById('explosion-layer');
         const texts = document.querySelectorAll('#prologue-text > *');
 
-        setTimeout(() => ship.classList.add('shake-prologue'), 1000);
+        // 1. 揺れ開始
+        setTimeout(() => {
+            ship.classList.add('shake-prologue');
+            SoundEngine.playSFX('damage');
+        }, 800);
+
+        // 2. 爆発
         setTimeout(() => {
             exp.style.display = 'block';
-            exp.style.left = "calc(50% - 150px)"; exp.style.bottom = "calc(30% - 50px)";
+            exp.style.left = "calc(50% - 150px)";
+            exp.style.bottom = "calc(30% - 20px)";
             exp.classList.add('bomb-play');
             texts.forEach(t => t.style.opacity = '1');
             SoundEngine.playSFX('damage');
-        }, 1500);
+        }, 1300);
 
-        setTimeout(() => this.showScene('scene-select'), 4500);
+        // 3. 次のシーンへ
+        setTimeout(() => {
+            if(!document.getElementById('scene-prologue').classList.contains('hidden')) {
+                this.showScene('scene-select');
+            }
+        }, 5000);
     },
 
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
+        container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all';
+            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all active:scale-95';
             btn.innerHTML = `<span class="text-[10px]" style="color:${data.blue}">LEVEL ${lvl}</span><br>${data.name}`;
             btn.onclick = () => { this.applyTheme(lvl); this.showScene('scene-game'); GameLogic.init(parseInt(lvl)); };
             container.appendChild(btn);
@@ -84,15 +98,6 @@ const MainController = {
         document.getElementById('modal-desc').innerText = isWin ? "次のセクターへ移動可能です。" : "リブートが必要です。";
         document.getElementById('modal-btn-main').onclick = () => { modal.classList.add('hidden'); this.showScene('scene-select'); };
         modal.classList.remove('hidden');
-    },
-
-    setupScrollSync() {
-        const cont = document.getElementById('game-container');
-        cont.onscroll = () => {
-            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > 5);
-            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - 5);
-        };
     }
 };
-
 window.onload = () => MainController.init();
