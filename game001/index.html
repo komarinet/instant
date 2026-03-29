@@ -3,29 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v5.6</title>
+    <title>Cyber-Sweep v5.7 [FORCE RENDER]</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=5.6">
+    <link rel="stylesheet" href="style.css?v=5.7">
 </head>
 <body class="scan-effect">
 
+    <div id="debug-log" style="position:fixed; top:0; left:0; font-size:8px; color:#0f0; z-index:9999; pointer-events:none;"></div>
+
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
-        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.6</p>
+        <p class="text-[10px] text-gray-500 mb-12">TACTICAL OVERLOAD v5.7</p>
         <button id="start-btn" class="cyber-panel px-12 py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 transition-all">
             INITIALIZE CONNECTION
         </button>
     </div>
 
-    <div id="scene-prologue" class="scene hidden relative overflow-hidden bg-black z-50">
+    <div id="scene-prologue" class="scene hidden relative overflow-hidden bg-black">
         <div id="space-bg"></div>
-        <img src="img/ship.png" id="prologue-ship" alt="ship" class="absolute">
+        <img src="img/ship.png" id="prologue-ship" alt="ship">
         <div id="explosion-layer"></div>
-        <div id="prologue-text" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[60]">
+        <div id="prologue-text" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
             <h2 class="text-4xl font-orbitron font-bold text-[var(--neon-pink)] opacity-0 transition-opacity duration-500">SYSTEM BREACH</h2>
             <p class="text-[var(--neon-blue)] opacity-0 transition-opacity duration-1000 mt-2">EMERGENCY PROTOCOL ACTIVATED</p>
         </div>
-        <button id="skip-prologue-btn" class="absolute bottom-10 right-10 text-[10px] text-gray-600 border border-gray-800 px-2 py-1 rounded z-[70]">SKIP >></button>
+        <button id="skip-prologue-btn" class="absolute bottom-10 right-10 text-[10px] text-gray-600 border border-gray-800 px-2 py-1 rounded">SKIP >></button>
     </div>
 
     <div id="scene-select" class="scene hidden flex flex-col items-center justify-center p-4">
@@ -37,11 +39,11 @@
         <div class="w-full max-w-md mb-4 space-y-3 relative">
             <div class="flex justify-between items-start">
                 <div>
-                    <h1 id="game-title-text" class="text-2xl font-bold font-orbitron text-[var(--neon-blue)] tracking-wider">CYBER-SWEEP</h1>
+                    <h1 id="game-title-text" class="text-2xl font-bold font-orbitron text-[var(--neon-blue)]">CYBER-SWEEP</h1>
                     <p id="level-label" class="text-[10px] text-gray-500">SECTOR DECRYPTING...</p>
                 </div>
                 <div class="flex flex-col items-end gap-2">
-                    <button id="audio-toggle-btn" class="font-bold">SOUND: ON</button>
+                    <button id="audio-toggle-btn" class="font-bold border border-[var(--neon-blue)] px-2 rounded">SOUND: ON</button>
                     <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold">LEVEL: 01 / 05</div>
                 </div>
             </div>
@@ -65,13 +67,13 @@
         <div class="cyber-panel p-8 rounded-2xl text-center max-w-sm w-full mx-4">
             <h2 id="modal-title" class="text-3xl font-orbitron font-bold mb-4">SYSTEM HALT</h2>
             <p id="modal-desc" class="text-sm text-gray-300 mb-8"></p>
-            <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold">再接続</button>
+            <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold">RECONNECT</button>
         </div>
     </div>
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-[110]"></div>
 
-    <script src="audio.js?v=5.6"></script>
-    <script src="game.js?v=5.6"></script>
-    <script src="main.js?v=5.6"></script>
+    <script src="audio.js?v=5.7"></script>
+    <script src="game.js?v=5.7"></script>
+    <script src="main.js?v=5.7"></script>
 </body>
 </html>
