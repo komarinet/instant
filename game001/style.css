@@ -46,7 +46,7 @@ body {
     to { transform: translateY(-50%); }
 }
 
-/* 戦艦の初期位置 */
+/* 戦艦 */
 #prologue-ship {
     bottom: 20%;
     left: 50%;
@@ -55,13 +55,13 @@ body {
     z-index: 2;
 }
 
-/* 爆発アニメーションの強化 */
+/* 爆発アニメ (4列x2行 = 1200x600) */
 #explosion-layer {
     position: absolute;
-    width: 300px; 
-    height: 300px;
+    width: 300px; /* 1200 / 4 */
+    height: 300px; /* 600 / 2 */
     background: url('img/bomb.png');
-    background-size: 1200px 600px; /* 4x2コマ */
+    background-size: 1200px 600px;
     display: none;
     z-index: 10;
     pointer-events: none;
@@ -69,13 +69,14 @@ body {
 
 .bomb-play {
     display: block !important;
+    /* X軸で4コマ、Y軸で2コマ分を動かす */
     animation: bomb-frames-x 0.8s steps(4) infinite, bomb-frames-y 1.6s steps(2) forwards;
 }
 
 @keyframes bomb-frames-x { from { background-position-x: 0px; } to { background-position-x: -1200px; } }
 @keyframes bomb-frames-y { from { background-position-y: 0px; } to { background-position-y: -600px; } }
 
-/* 既存のゲーム用クラス */
+/* ゲームボード関連 */
 #game-viewport { position: relative; width: 100%; max-width: 450px; height: 380px; overflow: hidden; border-radius: 12px; border: 2px solid #1a1a2e; }
 #game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
 #game-container::-webkit-scrollbar { display: none; }
@@ -86,6 +87,7 @@ body {
 #edge-right { top: 0; right: 0; width: 4px; height: 100%; }
 .edge-active { animation: pulse-edge 2s infinite; opacity: 1; }
 @keyframes pulse-edge { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+
 .tile { width: 42px; height: 42px; transition: all 0.2s; cursor: pointer; user-select: none; flex-shrink: 0; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
