@@ -35,7 +35,8 @@ const MainController = {
                         resolve();
                     }
                 };
-                img.onerror = reject;
+                // 画像が見つからなくてもエラーにせず「完了」として扱う
+                img.onerror = resolve;
             });
         });
         return Promise.all(promises);
