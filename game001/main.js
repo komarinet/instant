@@ -1,4 +1,4 @@
-// CYBER-SWEEP v5.8 | main.js | [決定版] PATH: img/
+// CYBER-SWEEP v5.9 | main.js
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -8,15 +8,8 @@ const MainController = {
         5: { blue: '#ff3300', pink: '#ff00ff', name: "CORE SERVER" }
     },
 
-    debug(msg) {
-        const el = document.getElementById('debug-log');
-        el.innerHTML += msg + "<br>";
-        console.log(msg);
-    },
-
     init() {
-        this.debug("System Init...");
-        this.debug("imgs are at img/ (PATH UNIFIED). TAILWIND conflict fixed by unique scene-show classes.");
+        // 緑色のデバッグ関数は完全に削除しました
         document.getElementById('start-btn').onclick = () => this.handleStart();
         document.getElementById('skip-prologue-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
@@ -29,17 +22,14 @@ const MainController = {
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "LOADING ASSETS...";
-        this.debug("Preloading Images... PATH: img/ship.png etc.");
+        btn.disabled = true; 
+        btn.innerText = "LOADING CORE...";
 
         try {
             await this.preload(['img/ship.png', 'img/space02.png', 'img/bomb.png']);
-            this.debug("Preload OK. Starting Prologue.");
             this.startPrologue();
         } catch(e) { 
-            this.debug("Preload ERROR: " + e);
-            btn.innerText = "LOAD ERROR - SKIP TO SELECT";
-            setTimeout(() => this.showScene('scene-select'), 1000);
+            this.showScene('scene-select'); 
         } finally { 
             btn.disabled = false; btn.innerText = "INITIALIZE CONNECTION"; 
         }
@@ -49,70 +39,60 @@ const MainController = {
         const ps = urls.map(u => new Promise((res, rej) => {
             const i = new Image();
             i.src = u;
-            i.onload = () => {
-                if (i.decode) i.decode().then(res).catch(res);
-                else res();
-            };
+            i.onload = () => i.decode ? i.decode().then(res).catch(res) : res();
             i.onerror = () => rej(u + " failed");
         }));
         return Promise.all(ps);
     },
 
     showScene(id) {
-        this.debug("Switching to: " + id);
-        // Tailwindのhiddenは競合するため独自クラス scene-hidden / scene-show のみで制御
         document.querySelectorAll('.scene').forEach(s => s.classList.replace('scene-show', 'scene-hidden'));
         document.getElementById(id).classList.replace('scene-hidden', 'scene-show');
     },
 
     startPrologue() {
         SoundEngine.init();
-        this.debug("Prologe start... PATH: img/ space02.png full bg.");
         this.showScene('scene-prologue');
         
         const ship = document.getElementById('prologue-ship');
         const exp = document.getElementById('explosion-layer');
         const texts = document.querySelectorAll('#prologue-text > *');
 
-        // 揺れ開始
+        // 1. 揺れ開始
         setTimeout(() => {
-            this.debug("Event: Shake (on mobile, ship bottom may be covered. top: 50% used.)");
             ship.classList.add('shake-prologue');
             SoundEngine.playSFX('damage');
         }, 800);
 
-        // 爆発
+        // 2. 爆発（船の右翼エンジン付近を狙って配置）
         setTimeout(() => {
-            this.debug("Event: Explosion (small, on ship right side, 故障 setting)");
             exp.style.display = 'block';
-            // 宇宙船が中央 (top: 50%, left: 50%) になったので爆発も中央付近から
-            exp.style.left = "calc(50% + 50px)"; // 宇宙船の中心から右に50px
-            exp.style.top = "calc(50% + 20px)"; // 宇宙船の中心から下に20px
-            // style.cssで transform: translate(-50%, -50%) 指定済み。これで爆発の中心が指定座標に来る。
+            exp.style.left = "calc(50% + 15px)"; // 船の中央から少し右
+            exp.style.top = "calc(50% + 5px)";   // 船の中央から少し下
             exp.classList.add('bomb-play');
             texts.forEach(t => t.style.opacity = '1');
             SoundEngine.playSFX('damage');
         }, 1300);
 
-        // シーン終了
+        // 3. 5秒後にステージ選択へ自動移行
         setTimeout(() => {
             if(document.getElementById('scene-prologue').classList.contains('scene-show')) {
                 this.showScene('scene-select');
             }
-        }, 5000);
+        }, 5500);
     },
 
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            // Tailwindのhiddenと競合しないよう独自クラスに変更
             btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all active:scale-95';
-            btn.innerHTML = `<span class="text-[10px]" style="color:${data.blue}">LEVEL ${lvl}</span><br>${data.name}`;
+            btn.innerHTML = `<span class="text-[9px] font-orbitron" style="color:${data.blue}">LEVEL ${lvl}</span><br><span class="text-sm">${data.name}</span>`;
             btn.onclick = () => {
                 document.documentElement.style.setProperty('--neon-blue', data.blue);
                 document.documentElement.style.setProperty('--neon-pink', data.pink);
                 document.getElementById('game-title-text').innerText = data.name;
+                document.getElementById('level-display').innerText = `LVL.0${lvl}`;
                 this.showScene('scene-game');
                 GameLogic.init(parseInt(lvl));
             };
@@ -124,25 +104,33 @@ const MainController = {
         if(GameLogic.state.energy >= GameLogic.config.scanCost) {
             GameLogic.state.isScanning = !GameLogic.state.isScanning;
             document.getElementById('scan-btn').classList.toggle('active-mode', GameLogic.state.isScanning);
+            this.showToast(GameLogic.state.isScanning ? "SCAN READY: SELECT AREA" : "SCAN CANCELLED");
         }
     },
 
     toggleFlag() {
         GameLogic.state.flagMode = !GameLogic.state.flagMode;
         document.getElementById('flag-mode-btn').classList.toggle('active-mode', GameLogic.state.flagMode);
+        this.showToast(GameLogic.state.flagMode ? "MARK MODE: ON" : "MARK MODE: OFF");
     },
 
     toggleAudio() {
         const m = SoundEngine.toggleMute();
-        document.getElementById('audio-toggle-btn').innerText = `SOUND: ${m ? 'OFF' : 'ON'}`;
+        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'Off' : 'On'}`;
     },
 
     showModal(isWin) {
         const modal = document.getElementById('modal');
-        document.getElementById('modal-title').innerText = isWin ? "SECTOR CLEARED" : "SYSTEM HALT";
-        document.getElementById('modal-desc').innerText = isWin ? "Next sector decryption ready." : "Reboot required.";
+        document.getElementById('modal-title').innerText = isWin ? "CLEARED" : "FAILED";
+        document.getElementById('modal-desc').innerText = isWin ? "Sector successfully decrypted. Moving to next sector." : "System integrity compromised. Reboot required.";
         document.getElementById('modal-btn-main').onclick = () => { modal.classList.add('hidden'); this.showScene('scene-select'); };
         modal.classList.remove('hidden');
+    },
+
+    showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.opacity = '1';
+        setTimeout(() => t.style.opacity = '0', 2000);
     }
 };
 window.onload = () => MainController.init();
