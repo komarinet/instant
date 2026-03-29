@@ -3,18 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v5.4</title>
+    <title>Cyber-Sweep v5.6</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-<script>eruda.init();</script>
-
-    <link rel="stylesheet" href="style.css?v=5.4">
+    <link rel="stylesheet" href="style.css?v=5.6">
 </head>
 <body class="scan-effect">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
-        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.4</p>
+        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.6</p>
         <button id="start-btn" class="cyber-panel px-12 py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 transition-all">
             INITIALIZE CONNECTION
         </button>
@@ -22,7 +19,7 @@
 
     <div id="scene-prologue" class="scene hidden relative overflow-hidden bg-black z-50">
         <div id="space-bg"></div>
-        <img src="./img/ship.png" id="prologue-ship" alt="ship" class="absolute">
+        <img src="img/ship.png" id="prologue-ship" alt="ship" class="absolute">
         <div id="explosion-layer"></div>
         <div id="prologue-text" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-[60]">
             <h2 class="text-4xl font-orbitron font-bold text-[var(--neon-pink)] opacity-0 transition-opacity duration-500">SYSTEM BREACH</h2>
@@ -73,8 +70,8 @@
     </div>
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-[110]"></div>
 
-    <script src="audio.js?v=5.4"></script>
-    <script src="game.js?v=5.4"></script>
-    <script src="main.js?v=5.4"></script>
+    <script src="audio.js?v=5.6"></script>
+    <script src="game.js?v=5.6"></script>
+    <script src="main.js?v=5.6"></script>
 </body>
 </html>
