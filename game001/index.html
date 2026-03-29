@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep: Tactical Overload</title>
+    <title>Cyber-Sweep: Tactical Overload v5.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=5.3">
 </head>
 <body class="scan-effect">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
-        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.1</p>
+        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.3</p>
         <button id="start-btn" class="cyber-panel px-12 py-4 rounded-lg font-bold text-[var(--neon-blue)] hover:bg-[var(--neon-blue)] hover:text-black transition-all">
             INITIALIZE CONNECTION
         </button>
@@ -21,8 +21,9 @@
         <div id="space-bg"></div>
         <img src="img/ship.png" id="prologue-ship" alt="ship" class="absolute">
         <div id="explosion-layer"></div>
-        <div id="prologue-text" class="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
-            <h2 class="text-3xl font-orbitron font-bold text-white opacity-0 transition-opacity duration-1000">SYSTEM BREACHED</h2>
+        <div id="prologue-text" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-50">
+            <h2 class="text-4xl font-orbitron font-bold text-[var(--neon-pink)] opacity-0 transition-opacity duration-500">SYSTEM BREACH</h2>
+            <p class="text-[var(--neon-blue)] opacity-0 transition-opacity duration-1000 mt-2">EMERGENCY PROTOCOL ACTIVATED</p>
         </div>
     </div>
 
@@ -72,15 +73,15 @@
         </div>
 
         <div class="w-full max-w-md mt-4 grid grid-cols-3 gap-2">
-            <button id="flag-mode-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center transition-all">
+            <button id="flag-mode-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center">
                 <span class="text-[10px] font-bold">MARK</span>
                 <span class="text-[8px] text-gray-400">解析フラグ</span>
             </button>
-            <button id="scan-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center opacity-50 cursor-not-allowed transition-all" disabled>
+            <button id="scan-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center opacity-50" disabled>
                 <span class="text-[10px] font-bold text-[var(--neon-blue)]">SCAN</span>
                 <span class="text-[8px] text-gray-400">周囲解析</span>
             </button>
-            <button id="back-to-menu-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center hover:bg-gray-800 transition-all">
+            <button id="back-to-menu-btn" class="cyber-panel p-2 rounded-lg flex flex-col items-center justify-center">
                 <span class="text-[10px] font-bold text-[var(--neon-yellow)]">ABORT</span>
                 <span class="text-[8px] text-gray-400">中断</span>
             </button>
@@ -92,16 +93,14 @@
             <div id="modal-decor" class="absolute top-0 left-0 w-full h-1 bg-[var(--neon-blue)]"></div>
             <h2 id="modal-title" class="text-3xl font-orbitron font-bold mb-4">SYSTEM HALT</h2>
             <p id="modal-desc" class="text-sm text-gray-300 mb-8 leading-relaxed"></p>
-            <div class="flex flex-col gap-3">
-                <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold hover:bg-[var(--neon-blue)] hover:text-black transition-all">再接続</button>
-            </div>
+            <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold hover:bg-[var(--neon-blue)] hover:text-black transition-all">再接続</button>
         </div>
     </div>
 
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-50"></div>
 
-    <script src="audio.js"></script>
-    <script src="game.js"></script>
-    <script src="main.js"></script>
+    <script src="audio.js?v=5.3"></script>
+    <script src="game.js?v=5.3"></script>
+    <script src="main.js?v=5.3"></script>
 </body>
 </html>
