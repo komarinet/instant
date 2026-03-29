@@ -8,6 +8,7 @@ const MainController = {
     },
 
     init() {
+        // ボタンイベント登録
         document.getElementById('start-btn').onclick = () => this.startPrologue();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
@@ -31,35 +32,32 @@ const MainController = {
     },
 
     startPrologue() {
-        SoundEngine.init();
+        SoundEngine.init(); // 音声エンジン起動
         this.showScene('scene-prologue');
         
         const ship = document.getElementById('prologue-ship');
         const exp = document.getElementById('explosion-layer');
         const pText = document.querySelector('#prologue-text h2');
 
-        // 初期化（念のため）
+        // リセット
         exp.style.display = 'none';
         exp.classList.remove('bomb-play');
         pText.style.opacity = '0';
         ship.classList.remove('shake');
 
-        // 1.5秒後に爆発発生
+        // 1.5秒後に爆発開始
         setTimeout(() => {
-            // 戦艦を揺らす
             ship.classList.add('shake');
-            
-            // 爆発の位置を艦の中央付近にセット
             exp.style.display = 'block';
-            exp.style.left = "calc(50% - 150px)"; // 300pxの半分で中心合わせ
-            exp.style.bottom = "calc(20% + 20px)"; // 艦の少し上に配置
+            exp.style.left = "calc(50% - 150px)"; 
+            exp.style.bottom = "calc(20% + 20px)"; 
             exp.classList.add('bomb-play');
             
             SoundEngine.playSFX('damage');
             pText.style.opacity = '1';
         }, 1500);
 
-        // 4.5秒後にセレクト画面へ
+        // 4.5秒後にステージ選択へ
         setTimeout(() => {
             this.showScene('scene-select');
         }, 4500);
@@ -67,7 +65,9 @@ const MainController = {
 
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
-        container.innerHTML = ''; // 重複防止
+        if (!container) return; // コンテナがない場合は中断
+        
+        container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all active:scale-95';
@@ -130,6 +130,7 @@ const MainController = {
 
     setupScrollSync() {
         const cont = document.getElementById('game-container');
+        if (!cont) return;
         cont.onscroll = () => {
             const threshold = 5;
             document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > threshold);
