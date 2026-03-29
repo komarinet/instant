@@ -33,28 +33,44 @@ const MainController = {
     startPrologue() {
         SoundEngine.init();
         this.showScene('scene-prologue');
+        
         const ship = document.getElementById('prologue-ship');
         const exp = document.getElementById('explosion-layer');
         const pText = document.querySelector('#prologue-text h2');
 
-        setTimeout(() => {
-            ship.classList.add('shake');
-            const rect = ship.getBoundingClientRect();
-            exp.style.left = `${rect.left - 50}px`;
-            exp.style.top = `${rect.top - 50}px`;
-            exp.classList.add('bomb-play');
-            SoundEngine.playSFX('damage');
-            pText.classList.replace('opacity-0', 'opacity-100');
-        }, 2000);
+        // 初期化（念のため）
+        exp.style.display = 'none';
+        exp.classList.remove('bomb-play');
+        pText.style.opacity = '0';
+        ship.classList.remove('shake');
 
-        setTimeout(() => this.showScene('scene-select'), 5000);
+        // 1.5秒後に爆発発生
+        setTimeout(() => {
+            // 戦艦を揺らす
+            ship.classList.add('shake');
+            
+            // 爆発の位置を艦の中央付近にセット
+            exp.style.display = 'block';
+            exp.style.left = "calc(50% - 150px)"; // 300pxの半分で中心合わせ
+            exp.style.bottom = "calc(20% + 20px)"; // 艦の少し上に配置
+            exp.classList.add('bomb-play');
+            
+            SoundEngine.playSFX('damage');
+            pText.style.opacity = '1';
+        }, 1500);
+
+        // 4.5秒後にセレクト画面へ
+        setTimeout(() => {
+            this.showScene('scene-select');
+        }, 4500);
     },
 
     createStageSelect() {
-        const container = document.querySelector('#scene-select div');
+        const container = document.getElementById('stage-buttons');
+        container.innerHTML = ''; // 重複防止
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800';
+            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 transition-all active:scale-95';
             btn.innerHTML = `<span class="text-[10px]" style="color:${data.blue}">LEVEL ${lvl}</span><br>${data.name}`;
             btn.onclick = () => {
                 this.applyTheme(lvl);
