@@ -1,4 +1,4 @@
-// CYBER-SWEEP v5.4 | main.js
+// CYBER-SWEEP v5.5 | main.js
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -8,8 +8,10 @@ const MainController = {
         5: { blue: '#ff3300', pink: '#ff00ff', name: "CORE SERVER" }
     },
 
-    init() {
-        document.getElementById('start-btn').onclick = () => this.startPrologue();
+    async init() {
+        const startBtn = document.getElementById('start-btn');
+        startBtn.onclick = () => this.handleStart();
+        
         document.getElementById('skip-prologue-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
@@ -17,6 +19,50 @@ const MainController = {
         document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
         
         this.createStageSelect();
+    },
+
+    // 画像の読み込み完了を待機する関数
+    async preloadAssets(urls) {
+        const promises = urls.map(url => {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.src = url;
+                img.onload = () => {
+                    // decode()を使うことで、GPU上の展開まで確実に待機させる
+                    if (img.decode) {
+                        img.decode().then(resolve).catch(resolve);
+                    } else {
+                        resolve();
+                    }
+                };
+                img.onerror = reject;
+            });
+        });
+        return Promise.all(promises);
+    },
+
+    async handleStart() {
+        const btn = document.getElementById('start-btn');
+        const originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = "LOADING ASSETS...";
+
+        try {
+            // 演出に必要な画像を事前に強制ロード
+            await this.preloadAssets([
+                './img/ship.png',
+                './img/space02.png',
+                './img/bomb.png'
+            ]);
+            this.startPrologue();
+        } catch (e) {
+            console.error("Asset Load Error", e);
+            btn.innerText = "LOAD ERROR - SKIP TO SELECT";
+            setTimeout(() => this.showScene('scene-select'), 1000);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = originalText;
+        }
     },
 
     showScene(id) {
@@ -39,13 +85,12 @@ const MainController = {
         const exp = document.getElementById('explosion-layer');
         const texts = document.querySelectorAll('#prologue-text > *');
 
-        // 1. 揺れ開始
+        // 演出開始
         setTimeout(() => {
             ship.classList.add('shake-prologue');
             SoundEngine.playSFX('damage');
-        }, 800);
+        }, 500);
 
-        // 2. 爆発
         setTimeout(() => {
             exp.style.display = 'block';
             exp.style.left = "calc(50% - 150px)";
@@ -53,9 +98,8 @@ const MainController = {
             exp.classList.add('bomb-play');
             texts.forEach(t => t.style.opacity = '1');
             SoundEngine.playSFX('damage');
-        }, 1300);
+        }, 1200);
 
-        // 3. 次のシーンへ
         setTimeout(() => {
             if(!document.getElementById('scene-prologue').classList.contains('hidden')) {
                 this.showScene('scene-select');
