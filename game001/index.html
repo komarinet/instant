@@ -11,7 +11,7 @@
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
-        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.0</p>
+        <p class="text-xs text-gray-500 mb-12">TACTICAL OVERLOAD v5.1</p>
         <button id="start-btn" class="cyber-panel px-12 py-4 rounded-lg font-bold text-[var(--neon-blue)] hover:bg-[var(--neon-blue)] hover:text-black transition-all">
             INITIALIZE CONNECTION
         </button>
@@ -19,16 +19,16 @@
 
     <div id="scene-prologue" class="scene hidden relative overflow-hidden bg-black">
         <div id="space-bg"></div>
-        <img src="img/ship.png" id="prologue-ship" alt="ship">
+        <img src="img/ship.png" id="prologue-ship" alt="ship" class="absolute">
         <div id="explosion-layer"></div>
-        <div id="prologue-text" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <h2 class="text-2xl font-orbitron font-bold text-white opacity-0 transition-opacity duration-1000">SYSTEM BREACHED</h2>
+        <div id="prologue-text" class="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+            <h2 class="text-3xl font-orbitron font-bold text-white opacity-0 transition-opacity duration-1000">SYSTEM BREACHED</h2>
         </div>
     </div>
 
     <div id="scene-select" class="scene hidden flex flex-col items-center justify-center p-4">
         <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8">SELECT SECTOR</h2>
-        <div class="grid grid-cols-1 gap-4 w-full max-w-xs">
+        <div id="stage-buttons" class="grid grid-cols-1 gap-4 w-full max-w-xs">
             </div>
     </div>
 
