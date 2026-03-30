@@ -1,4 +1,4 @@
-// CYBER-SWEEP v6.1 | main.js | NOVEL ENGINE PRO
+// CYBER-SWEEP v6.2 | main.js | TAIL POSITIONING & NAMETAG COLOR ENGINE
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -8,16 +8,17 @@ const MainController = {
         5: { blue: '#ff3300', pink: '#ff00ff', name: "CORE SERVER" }
     },
 
+    // 会話データ：尻尾の位置、ネームタグの色を追加
     dialogueData: [
-        { speaker: "パルス", text: "わっ、なになに？", pulse: "surprised", bit: "calm" },
-        { speaker: "ビット333", text: "宇宙船が小惑星にあたりました。", pulse: "anxious", bit: "calm" },
-        { speaker: "パルス", text: "えっ！？大変じゃない！", pulse: "anxious", bit: "angry" },
-        { speaker: "パルス", text: "どうするの！？", pulse: "angry", bit: "calm" },
-        { speaker: "ビット333", text: "脱出を推奨します。", pulse: "anxious", bit: "smile" },
-        { speaker: "パルス", text: "す、推奨って・・・", pulse: "anxious", bit: "calm" },
-        { speaker: "パルス", text: "もし、脱出しなかったら？", pulse: "anxious", bit: "calm" },
-        { speaker: "ビット333", text: "生命存続不能の可能性、100%。", pulse: "anxious", bit: "smile" },
-        { speaker: "パルス", text: "ダメじゃない！逃げなきゃ！", pulse: "surprised", bit: "smile" }
+        { speaker: "パルス", text: "わっ、なになに？", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+        { speaker: "ビット333", text: "宇宙船が小惑星にあたりました。", pulse: "anxious", bit: "confused", tail: "left", color: "シアン" },
+        { speaker: "パルス", text: "えっ！？大変じゃない！", pulse: "cry", bit: "confused", tail: "right", color: "pink" },
+        { speaker: "パルス", text: "どうするの！？", pulse: "angry", bit: "confused", tail: "right", color: "pink" },
+        { speaker: "ビット333", text: "脱出を推奨します。", pulse: "anxious", bit: "tired", tail: "left", color: "シアン" },
+        { speaker: "パルス", text: "す、推奨って・・・", pulse: "anxious", bit: "confused", tail: "right", color: "pink" },
+        { speaker: "パルス", text: "もし、脱出しなかったら？", pulse: "cry", bit: "confused", tail: "right", color: "pink" },
+        { speaker: "ビット333", text: "生命存続不能の可能性、100%。", pulse: "surprised", bit: "calm", tail: "left", color: "シアン" },
+        { speaker: "パルス", text: "ダメじゃない！逃げなきゃ！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" }
     ],
     currentDialogue: 0,
     isTyping: false,
@@ -28,7 +29,6 @@ const MainController = {
         document.getElementById('start-btn').onclick = () => this.handleStart();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
-        // 会話ウインドウのクリック処理
         document.getElementById('dialogue-container').onclick = () => this.handleDialogueClick();
         this.createStageSelect();
         this.setupScrollSync();
@@ -36,7 +36,7 @@ const MainController = {
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "INITIALIZING CORE...";
+        btn.disabled = true; btn.innerText = "LOADING PROTOCOL...";
         try {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png']);
             this.startPrologue();
@@ -64,7 +64,7 @@ const MainController = {
             count++;
             if(count >= 3) {
                 clearInterval(interval);
-                setTimeout(() => this.startInterior(), 1500);
+                setTimeout(() => this.startInterior(), 1800);
             }
         }, 800);
     },
@@ -74,7 +74,7 @@ const MainController = {
         const exp = document.createElement('div');
         exp.className = 'explosion';
         const rx = 170 + (Math.random() * 80 - 40);
-        const ry = 100 + (Math.random() * 40 - 20);
+        const ry = 100 + (Math.random() * 30 - 15);
         exp.style.left = `${rx - 40}px`; exp.style.top = `${ry - 40}px`;
         container.appendChild(exp);
         exp.classList.add('bomb-play');
@@ -99,12 +99,10 @@ const MainController = {
 
     handleDialogueClick() {
         if(this.isTyping) {
-            // タイピング中なら強制終了して全文表示
             clearInterval(this.typingTimer);
             document.getElementById('dialogue-text').innerText = this.fullText;
             this.isTyping = false;
         } else {
-            // 次のセリフへ
             this.nextDialogue();
         }
     },
@@ -115,13 +113,38 @@ const MainController = {
             return;
         }
         const data = this.dialogueData[this.currentDialogue];
-        document.getElementById('speaker-name').innerText = data.speaker;
+        this.updateDialogueUI(data); // 尻尾、色、名前の更新
         this.updateSprites(data);
-        this.typeText(data.text);
+        this.typeText(data.text, data.color);
         this.currentDialogue++;
     },
 
-    typeText(text) {
+    // 尻尾の位置とタグの色、テキストカラーを更新
+    updateDialogueUI(data) {
+        const label = document.getElementById('speaker-label');
+        const tail = document.getElementById('speaker-tail');
+        const txtColor = data.color === "pink" ? "var(--pink-txt)" : "var(--cyan-txt)";
+        const tagColor = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
+
+        // 名前とタグ色
+        label.innerText = data.speaker;
+        label.style.backgroundColor = tagColor;
+        label.style.borderColor = tagColor;
+
+        // 尻尾の位置調整。ラベルの中心を基準に左右へ
+        if (data.tail === "right") {
+            tail.style.left = "calc(50% + 40px)"; // 右にずらす
+            tail.style.borderTopColor = "var(--neon-pink)";
+        } else {
+            tail.style.left = "calc(50% - 40px)"; // 左にずらす
+            tail.style.borderTopColor = "var(--neon-blue)";
+        }
+
+        // テキストのベースカラー
+        document.getElementById('dialogue-text').style.color = txtColor;
+    },
+
+    typeText(text, color) {
         this.isTyping = true;
         this.fullText = text;
         const el = document.getElementById('dialogue-text');
@@ -138,12 +161,12 @@ const MainController = {
     },
 
     updateSprites(data) {
-        // bit.png (3x2)
+        // bit.png (Confused顔、Tired顔を割り当て)
         const bitMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1] };
         const b = bitMap[data.bit] || [0,0];
         document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*180}px -${b[1]*180}px`;
 
-        // girl.png (3x3)
+        // girl.png
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*180}px -${p[1]*180}px`;
@@ -154,13 +177,13 @@ const MainController = {
         container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-4 rounded-lg font-bold text-left hover:bg-gray-800 active:scale-95 transition-all';
-            btn.innerHTML = `<span class="text-[9px]" style="color:${data.blue}">LEVEL ${lvl}</span><br><span class="text-sm font-orbitron">${data.name}</span>`;
+            btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left hover:bg-gray-800 active:scale-95 transition-all';
+            btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm tracking-wide">${data.name}</span>`;
             btn.onclick = () => {
                 document.documentElement.style.setProperty('--neon-blue', data.blue);
                 document.documentElement.style.setProperty('--neon-pink', data.pink);
                 document.getElementById('game-title-text').innerText = data.name;
-                document.getElementById('level-display').innerText = `LVL.0${lvl}`;
+                document.getElementById('level-display').innerText = `LVL.0${lvl} / 05`;
                 this.showScene('scene-game');
                 GameLogic.init(parseInt(lvl));
             };
@@ -193,7 +216,7 @@ const MainController = {
     showModal(isWin) {
         const modal = document.getElementById('modal');
         document.getElementById('modal-title').innerText = isWin ? "CLEARED" : "FAILED";
-        document.getElementById('modal-desc').innerText = isWin ? "Data decrypted. Moving to the next sector." : "Integrity zero. Reboot system.";
+        document.getElementById('modal-desc').innerText = isWin ? "Data decrypted. Moving to next sector." : "Integrity lost. Rebooting system.";
         document.getElementById('modal-btn-main').onclick = () => { modal.classList.add('hidden'); this.showScene('scene-select'); };
         modal.classList.remove('hidden');
     }
