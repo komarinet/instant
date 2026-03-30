@@ -1,4 +1,4 @@
-// CYBER-SWEEP v8.0 | main.js | STORY-LINKED STAGE SELECT
+// CYBER-SWEEP v9.0 | main.js | FADE-IN STORY PROGRESSION
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -18,10 +18,11 @@ const MainController = {
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "LOADING...";
+        btn.disabled = true; btn.innerText = "LOADING CORE SYSTEMS...";
         try {
-            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png']);
-            this.startStageSequence(1); // 最初はステージ1から
+            // アセット事前読み込み (コクピット画像を追加)
+            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png']);
+            this.startStageSequence(1); 
         } catch(e) { this.showScene('scene-select'); }
     },
 
@@ -40,17 +41,21 @@ const MainController = {
     // 指定したステージの演出〜ゲームを開始する
     startStageSequence(lvl) {
         if (lvl === 1) {
-            // ステージ1：船外カメラ -> ストーリー -> ゲーム
+            // ステージ1：船外衝突カメラ -> ストーリー(inship/door) -> ゲーム
             this.startExteriorPrologue(() => {
                 this.showScene('scene-adventure');
                 StoryEngine.play('stage1', () => this.launchGame(1));
             });
         } else if (lvl === 2) {
-            // ステージ2：格納庫ストーリー -> ゲーム
+            // ステージ2：ストーリー(wing) -> ゲーム
             this.showScene('scene-adventure');
             StoryEngine.play('stage2', () => this.launchGame(2));
+        } else if (lvl === 3) {
+            // ステージ3：ストーリー(cockpit0/cockpit) -> ゲーム
+            this.showScene('scene-adventure');
+            StoryEngine.play('stage3', () => this.launchGame(3));
         } else {
-            // 3以降はまだストーリーがないので直接ゲームへ
+            // 4以降はまだストーリーがないので直接ゲームへ
             this.launchGame(lvl);
         }
     },
@@ -128,9 +133,10 @@ const MainController = {
                 this.startStageSequence(GameLogic.state.level + 1);
             };
         } else {
+            // 失敗時はパズルのみリトライ
             document.getElementById('modal-title').innerText = "FAILED";
             document.getElementById('modal-desc').innerText = "Integrity compromised. Reboot system.";
-            modalBtn.innerText = "RETRY";
+            modalBtn.innerText = "RETRY matrix";
             modalBtn.onclick = () => { modal.classList.add('hidden'); this.launchGame(GameLogic.state.level); };
         }
         modal.classList.remove('hidden');
