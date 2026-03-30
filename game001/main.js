@@ -1,10 +1,10 @@
-// CYBER-SWEEP v9.0 | main.js | FADE-IN STORY PROGRESSION
+// CYBER-SWEEP v10.0 | main.js | MASTER PROGRESSION
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
         2: { blue: '#00ff41', pink: '#00ccff', name: "NEO-SHIBUYA" },
         3: { blue: '#ffff00', pink: '#ff0000', name: "VOID ZONE" },
-        4: { blue: '#ff00ff', pink: '#ffffff', name: "GHOST NETWORK" },
+        4: { blue: '#fff200', pink: '#00f3ff', name: "SCANNERA GATE" },
         5: { blue: '#ff3300', pink: '#ff00ff', name: "CORE SERVER" }
     },
 
@@ -18,12 +18,12 @@ const MainController = {
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "LOADING CORE SYSTEMS...";
+        btn.disabled = true; btn.innerText = "SYNCING CORE...";
         try {
-            // アセット事前読み込み (コクピット画像を追加)
-            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png']);
-            this.startStageSequence(1); 
+            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png']);
+            this.startStageSequence(1);
         } catch(e) { this.showScene('scene-select'); }
+        finally { btn.disabled = false; btn.innerText = "INITIALIZE CONNECTION"; }
     },
 
     async preload(urls) {
@@ -38,24 +38,22 @@ const MainController = {
         document.getElementById(id).classList.replace('scene-hidden', 'scene-show');
     },
 
-    // 指定したステージの演出〜ゲームを開始する
     startStageSequence(lvl) {
         if (lvl === 1) {
-            // ステージ1：船外衝突カメラ -> ストーリー(inship/door) -> ゲーム
             this.startExteriorPrologue(() => {
                 this.showScene('scene-adventure');
                 StoryEngine.play('stage1', () => this.launchGame(1));
             });
         } else if (lvl === 2) {
-            // ステージ2：ストーリー(wing) -> ゲーム
             this.showScene('scene-adventure');
             StoryEngine.play('stage2', () => this.launchGame(2));
         } else if (lvl === 3) {
-            // ステージ3：ストーリー(cockpit0/cockpit) -> ゲーム
             this.showScene('scene-adventure');
             StoryEngine.play('stage3', () => this.launchGame(3));
+        } else if (lvl === 4) {
+            this.showScene('scene-adventure');
+            StoryEngine.play('stage4', () => this.launchGame(4));
         } else {
-            // 4以降はまだストーリーがないので直接ゲームへ
             this.launchGame(lvl);
         }
     },
@@ -89,7 +87,7 @@ const MainController = {
         document.documentElement.style.setProperty('--neon-blue', theme.blue);
         document.documentElement.style.setProperty('--neon-pink', theme.pink);
         document.getElementById('game-title-text').innerText = theme.name;
-        document.getElementById('level-display').innerText = `LVL.0${lvl} / 05`;
+        document.getElementById('level-display').innerText = `LVL.0${lvl}`;
         this.showScene('scene-game');
         GameLogic.init(lvl);
     },
@@ -100,7 +98,7 @@ const MainController = {
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
-            btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm tracking-wide">${data.name}</span>`;
+            btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm tracking-wide uppercase">${data.name}</span>`;
             btn.onclick = () => this.startStageSequence(parseInt(lvl));
             container.appendChild(btn);
         });
@@ -124,19 +122,14 @@ const MainController = {
         const modal = document.getElementById('modal');
         const modalBtn = document.getElementById('modal-btn-main');
         if (isWin) {
-            document.getElementById('modal-title').innerText = "CLEARED";
-            document.getElementById('modal-desc').innerText = "Data decrypted. Moving to the next area.";
-            modalBtn.innerText = "CONTINUE";
-            modalBtn.onclick = () => {
-                modal.classList.add('hidden');
-                // クリアしたステージの次のステージを開始
-                this.startStageSequence(GameLogic.state.level + 1);
-            };
+            document.getElementById('modal-title').innerText = "DECRYPTED";
+            document.getElementById('modal-desc').innerText = "Matrix break success. Advancing to next node.";
+            modalBtn.innerText = "CONTINUE CONNECTION";
+            modalBtn.onclick = () => { modal.classList.add('hidden'); this.startStageSequence(GameLogic.state.level + 1); };
         } else {
-            // 失敗時はパズルのみリトライ
-            document.getElementById('modal-title').innerText = "FAILED";
-            document.getElementById('modal-desc').innerText = "Integrity compromised. Reboot system.";
-            modalBtn.innerText = "RETRY matrix";
+            document.getElementById('modal-title').innerText = "CRITICAL FAIL";
+            document.getElementById('modal-desc').innerText = "Matrix lock active. Resetting connection.";
+            modalBtn.innerText = "REBOOT MATRIX";
             modalBtn.onclick = () => { modal.classList.add('hidden'); this.launchGame(GameLogic.state.level); };
         }
         modal.classList.remove('hidden');
