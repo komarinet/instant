@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v7.1 | style.css | NAME LABEL FIX */
+/* CYBER-SWEEP v8.0 | style.css */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -16,43 +16,42 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .scene-hidden { opacity: 0 !important; pointer-events: none !important; }
 .scene-show { opacity: 1 !important; pointer-events: auto !important; }
 
-.cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
+.cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
 
-/* 船外演出 */
-#prologue-viewport { width: 340px; height: 200px; background: #000; z-index: 5; }
-#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; z-index: 1; }
+/* 演出共通 */
+#prologue-viewport, #adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; }
+#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+
 #prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
 .explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 3; display: none; }
 .bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
 @keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
 @keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
-/* アドベンチャーシーン */
-#adventure-viewport { width: 340px; height: 240px; z-index: 5; background: #000; }
-.background-center { background-no-repeat; background-size: cover; background-position: center; transition: background-image 0.2s; opacity: 0.6; z-index: 1; }
+/* ADVシーン */
+.background-center { background-no-repeat; background-size: cover; background-position: center; transition: background-image 0.5s; opacity: 0.6; }
 #interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; mix-blend-mode: overlay; }
 
 .character { position: absolute; bottom: -15px; width: 180px; height: 200px; z-index: 20; transition: transform 0.2s, background-position 0.1s; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
 .character-bit { left: -30px; background: url('img/bit.png') no-repeat; background-size: calc(180px * 3) calc(180px * 2); }
 .character-girl { right: -30px; background: url('img/girl.png') no-repeat; background-size: calc(180px * 3) calc(180px * 3); }
 
-/* 名前ラベル (強制表示用) */
-#speaker-label { display: block !important; transform: translate(-50%, 20%); z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,1); }
-#speaker-tail { transform: translateX(-50%) rotate(180deg); transform-origin: top; margin-top: 2px; }
+/* ラベル周り */
+#speaker-label { transform: translate(-50%, 20%); z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,1); transition: all 0.2s; }
+#speaker-tail { transform: translateX(-50%) rotate(180deg); transform-origin: top; transition: left 0.3s; }
 
-/* 衝撃演出 */
+/* 揺れ */
 .shake-scene { animation: shake-s 0.08s infinite; }
 @keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-6px, 6px); } 75% { transform: translate(6px, -6px); } }
 
-/* ゲームUI */
-#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1.5px solid #1a1a2e; z-index: 5; }
-#game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
-#game-container::-webkit-scrollbar { display: none; }
-.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; flex-shrink: 0; cursor: pointer; }
+/* パズルUI */
+#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1.5px solid #1a1a2e; }
+#game-container { width: 100%; height: 100%; overflow: auto; }
+.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; flex-shrink: 0; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
-.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
+.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; }
 .edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
 .edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
 
