@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v6.0</title>
+    <title>Cyber-Sweep v6.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=6.0">
+    <link rel="stylesheet" href="style.css?v=6.1">
 </head>
 <body class="scan-effect">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4 scene-show">
-        <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
-        <p class="text-[10px] text-gray-500 mb-12">TACTICAL OVERLOAD v6.0</p>
+        <div class="mb-8 text-center">
+            <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tighter mb-2">CYBER-SWEEP</h1>
+            <p class="text-[10px] text-gray-500 font-mono uppercase tracking-[0.3em]">Tactical Overload v6.1</p>
+        </div>
         <button id="start-btn" class="cyber-panel px-12 py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 transition-all">
             INITIALIZE CONNECTION
         </button>
@@ -20,11 +22,11 @@
     <div id="scene-prologue" class="scene flex flex-col items-center justify-center bg-black scene-hidden">
         <div class="w-full max-w-sm px-6 mb-4">
             <div class="flex justify-between items-end border-b border-[var(--neon-blue)] pb-1">
-                <span class="text-[10px] text-[var(--neon-blue)] font-bold font-orbitron">EXTERNAL CAMERA</span>
-                <span id="cam-status" class="text-[8px] text-[var(--neon-pink)] animate-pulse">WARNING // COLLISION</span>
+                <span class="text-[10px] text-[var(--neon-blue)] font-bold font-orbitron">EXT-VIEW // CAM_01</span>
+                <span id="cam-status" class="text-[8px] text-[var(--neon-pink)] animate-pulse">COLLISION DETECTED</span>
             </div>
         </div>
-        <div id="prologue-viewport" class="relative overflow-hidden border-2 border-gray-800 rounded-lg bg-[#000]">
+        <div id="prologue-viewport" class="relative overflow-hidden border-2 border-gray-900 rounded-lg shadow-2xl">
             <div id="space-bg"></div>
             <img src="img/ship.png" id="prologue-ship" alt="ship">
             <div id="exp-container"></div>
@@ -32,24 +34,24 @@
     </div>
 
     <div id="scene-interior" class="scene flex flex-col items-center justify-center bg-black scene-hidden">
-        <div id="interior-window" class="relative overflow-hidden border-2 border-[var(--neon-blue)] rounded-lg">
+        <div id="interior-window" class="relative overflow-hidden border-2 border-[var(--neon-blue)] rounded-t-lg bg-[#05050a]">
             <div id="interior-bg"></div>
             <div id="char-bit" class="character"></div>
             <div id="char-pulse" class="character"></div>
             <div id="interior-alert-overlay"></div>
         </div>
 
-        <div id="dialogue-container" class="mt-4 w-full max-w-sm px-4">
-            <div class="cyber-panel p-4 rounded-lg h-32 relative">
-                <div id="speaker-name" class="absolute -top-3 left-4 bg-[var(--neon-blue)] text-black text-[10px] font-bold px-2 py-0.5 rounded">NAME</div>
-                <div id="dialogue-text" class="text-xs text-white leading-relaxed font-mono mt-1"></div>
-                <div id="dialogue-next" class="absolute bottom-2 right-4 text-[var(--neon-blue)] animate-bounce text-[10px]">▼</div>
+        <div id="dialogue-container" class="w-full max-w-sm px-0 cursor-pointer">
+            <div class="cyber-panel p-4 rounded-b-lg h-36 relative border-t-0">
+                <div id="speaker-name" class="absolute -top-3 left-4 bg-[var(--neon-blue)] text-black text-[10px] font-bold px-3 py-0.5 rounded-full uppercase tracking-tighter">NAME</div>
+                <div id="dialogue-text" class="text-xs text-white leading-relaxed font-mono mt-2 pr-4"></div>
+                <div id="dialogue-next" class="absolute bottom-3 right-4 text-[var(--neon-blue)] animate-bounce text-[10px]">▼</div>
             </div>
         </div>
     </div>
 
     <div id="scene-select" class="scene flex flex-col items-center justify-center p-4 scene-hidden">
-        <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8">SELECT SECTOR</h2>
+        <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8 tracking-widest">SELECT SECTOR</h2>
         <div id="stage-buttons" class="grid grid-cols-1 gap-4 w-full max-w-xs"></div>
     </div>
 
@@ -58,11 +60,11 @@
             <div class="flex justify-between items-start">
                 <div class="space-y-1">
                     <h1 id="game-title-text" class="text-xl font-bold font-orbitron text-[var(--neon-blue)] leading-none">CYBER-SWEEP</h1>
-                    <p id="level-label" class="text-[9px] text-gray-500 tracking-widest">ENCRYPTED DATA ANALYZING...</p>
+                    <p id="level-label" class="text-[9px] text-gray-500 uppercase tracking-widest">Data Decrypting...</p>
                 </div>
                 <div class="flex flex-col items-end gap-2">
-                    <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold">LVL.01</div>
-                    <button id="audio-toggle-btn" class="text-[9px] text-[var(--neon-blue)] border border-[var(--neon-blue)] px-2 py-0.5 rounded font-bold">Sound: ON</button>
+                    <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold font-orbitron">LVL.01</div>
+                    <button id="audio-toggle-btn" class="text-[9px] text-[var(--neon-blue)] border border-[var(--neon-blue)] px-2 py-0.5 rounded font-bold uppercase">Sound: ON</button>
                 </div>
             </div>
             <div class="cyber-panel p-3 rounded-lg grid grid-cols-2 gap-4">
@@ -81,9 +83,9 @@
             <div id="game-container"><div id="grid" class="grid gap-1 p-6" style="width: fit-content;"></div></div>
         </div>
         <div class="w-full max-w-md mt-6 grid grid-cols-3 gap-3">
-            <button id="flag-mode-btn" class="cyber-panel p-2.5 rounded-lg flex flex-col items-center justify-center font-bold text-[10px]">MARK</button>
-            <button id="scan-btn" class="cyber-panel p-2.5 rounded-lg flex flex-col items-center justify-center opacity-50 font-bold text-[10px] text-[var(--neon-blue)]" disabled>SCAN</button>
-            <button id="back-to-menu-btn" class="cyber-panel p-2.5 rounded-lg flex flex-col items-center justify-center font-bold text-[10px] text-[var(--neon-yellow)]">ABORT</button>
+            <button id="flag-mode-btn" class="cyber-panel p-3 rounded-lg flex flex-col items-center justify-center font-bold text-[10px]">MARK</button>
+            <button id="scan-btn" class="cyber-panel p-3 rounded-lg flex flex-col items-center justify-center opacity-50 font-bold text-[10px] text-[var(--neon-blue)]" disabled>SCAN</button>
+            <button id="back-to-menu-btn" class="cyber-panel p-3 rounded-lg flex flex-col items-center justify-center font-bold text-[10px] text-[var(--neon-yellow)]">ABORT</button>
         </div>
     </div>
 
@@ -94,10 +96,10 @@
             <button id="modal-btn-main" class="w-full py-3 rounded-lg border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold">RECONNECT</button>
         </div>
     </div>
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-6 py-2 rounded-full font-bold text-[10px] opacity-0 transition-opacity pointer-events-none z-[110]"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-6 py-2 rounded-full font-bold text-[10px] opacity-0 transition-opacity pointer-events-none z-[110] uppercase tracking-widest"></div>
 
-    <script src="audio.js?v=6.0"></script>
-    <script src="game.js?v=6.0"></script>
-    <script src="main.js?v=6.0"></script>
+    <script src="audio.js?v=6.1"></script>
+    <script src="game.js?v=6.1"></script>
+    <script src="main.js?v=6.1"></script>
 </body>
 </html>
