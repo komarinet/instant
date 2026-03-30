@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.0 | main.js | ALL STAGES & ASSETS PRELOAD
+// CYBER-SWEEP v11.2 | main.js | SCENE LOGIC STABILIZATION
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -10,40 +10,47 @@ const MainController = {
 
     init() {
         document.getElementById('start-btn').onclick = () => this.handleStart();
-        document.getElementById('select-scene-btn').onclick = () => {
-            this.createStageSelect();
-            this.showScene('scene-select');
-        };
+        document.getElementById('select-scene-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('back-to-title-btn').onclick = () => this.showScene('scene-title');
+        
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
-        document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
         
+        this.createStageSelect();
         StoryEngine.init();
-        this.setupScrollSync();
     },
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "SYNCING CORE...";
+        btn.disabled = true; btn.innerText = "LOADING...";
         try {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png']);
             this.startStageSequence(1);
-        } catch(e) { this.showScene('scene-select'); }
+        } catch(e) { this.startStageSequence(1); }
         finally { btn.disabled = false; btn.innerText = "START MISSION"; }
     },
 
     async preload(urls) {
         const ps = urls.map(u => new Promise(res => {
-            const i = new Image(); i.src = u; i.onload = () => i.decode ? i.decode().then(res) : res(); i.onerror = res;
+            const i = new Image(); i.src = u;
+            i.onload = () => res(); i.onerror = () => res();
         }));
         return Promise.all(ps);
     },
 
     showScene(id) {
-        document.querySelectorAll('.scene').forEach(s => s.classList.replace('scene-show', 'scene-hidden'));
-        document.getElementById(id).classList.replace('scene-hidden', 'scene-show');
+        // 全てのシーンを隠し、対象だけを表示
+        const scenes = document.querySelectorAll('.scene');
+        scenes.forEach(s => {
+            s.classList.remove('scene-show');
+            s.classList.add('scene-hidden');
+        });
+        const target = document.getElementById(id);
+        if (target) {
+            target.classList.remove('scene-hidden');
+            target.classList.add('scene-show');
+        }
     },
 
     startStageSequence(lvl) {
@@ -65,7 +72,7 @@ const MainController = {
             this.showScene('scene-adventure');
             StoryEngine.play('stage5', () => this.launchGame(5));
         } else {
-            this.launchGame(lvl);
+            this.showScene('scene-select');
         }
     },
 
@@ -82,13 +89,13 @@ const MainController = {
 
     playRandomExplosion() {
         const container = document.getElementById('exp-container');
+        if (!container) return;
         const exp = document.createElement('div');
-        exp.className = 'explosion';
+        exp.className = 'explosion bomb-play';
         const rx = 170 + (Math.random() * 80 - 40);
         const ry = 100 + (Math.random() * 30 - 15);
         exp.style.left = `${rx - 40}px`; exp.style.top = `${ry - 40}px`;
         container.appendChild(exp);
-        exp.classList.add('bomb-play');
         SoundEngine.playSFX('damage');
         setTimeout(() => exp.remove(), 1000);
     },
@@ -106,11 +113,12 @@ const MainController = {
 
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
+        if (!container) return;
         container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
-            btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm tracking-wide uppercase">${data.name}</span>`;
+            btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95';
+            btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm uppercase">${data.name}</span>`;
             btn.onclick = () => this.startStageSequence(parseInt(lvl));
             container.appendChild(btn);
         });
@@ -119,48 +127,32 @@ const MainController = {
     toggleFlag() {
         GameLogic.state.flagMode = !GameLogic.state.flagMode;
         const btn = document.getElementById('flag-mode-btn');
-        btn.classList.toggle('active-mode', GameLogic.state.flagMode);
-        if(GameLogic.state.flagMode) { btn.style.backgroundColor = "var(--neon-pink)"; btn.style.color = "black"; }
-        else { btn.style.backgroundColor = ""; btn.style.color = ""; }
+        btn.style.backgroundColor = GameLogic.state.flagMode ? "var(--neon-pink)" : "";
+        btn.style.color = GameLogic.state.flagMode ? "black" : "";
+        this.showToast(GameLogic.state.flagMode ? "MARK ON" : "MARK OFF");
     },
 
     toggleScan() {
         if(GameLogic.state.energy >= GameLogic.config.scanCost) {
             GameLogic.state.isScanning = !GameLogic.state.isScanning;
-            const btn = document.getElementById('scan-btn');
-            btn.classList.toggle('active-mode', GameLogic.state.isScanning);
+            document.getElementById('scan-btn').style.backgroundColor = GameLogic.state.isScanning ? "var(--neon-blue)" : "";
         }
-    },
-
-    toggleAudio() {
-        const m = SoundEngine.toggleMute();
-        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
-    },
-
-    setupScrollSync() {
-        const cont = document.getElementById('game-container');
-        cont.onscroll = () => {
-            const th = 5;
-            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > th);
-            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - th);
-        };
     },
 
     showModal(isWin) {
         const modal = document.getElementById('modal');
-        const modalBtn = document.getElementById('modal-btn-main');
-        if (isWin) {
-            document.getElementById('modal-title').innerText = "DECRYPTED";
-            document.getElementById('modal-desc').innerText = "Matrix break success. Advancing to next node.";
-            modalBtn.innerText = "CONTINUE CONNECTION";
-            modalBtn.onclick = () => { modal.classList.add('hidden'); this.startStageSequence(GameLogic.state.level + 1); };
-        } else {
-            document.getElementById('modal-title').innerText = "CRITICAL FAIL";
-            document.getElementById('modal-desc').innerText = "Matrix lock active. Resetting connection.";
-            modalBtn.innerText = "REBOOT MATRIX";
-            modalBtn.onclick = () => { modal.classList.add('hidden'); this.launchGame(GameLogic.state.level); };
-        }
+        document.getElementById('modal-title').innerText = isWin ? "DECRYPTED" : "HALT";
+        document.getElementById('modal-desc').innerText = isWin ? "Matrix break success." : "Critical error.";
+        document.getElementById('modal-btn-main').onclick = () => {
+            modal.classList.add('hidden');
+            this.startStageSequence(isWin ? GameLogic.state.level + 1 : GameLogic.state.level);
+        };
         modal.classList.remove('hidden');
+    },
+
+    showToast(msg) {
+        const t = document.getElementById('toast');
+        if (t) { t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 1500); }
     }
 };
 window.onload = () => MainController.init();
