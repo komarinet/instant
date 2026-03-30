@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.7 | story.js
+// CYBER-SWEEP v11.8 | story.js
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -47,7 +47,7 @@ const StoryEngine = {
         ],
         stage4: [
             { bg: "uni", speaker: "パルス", text: "し、死んだかと思ったわ・・・", pulse: "cry", bit: "calm", tail: "right", color: "pink" },
-            { bg: "uni", speaker: "ビット333", text: "私もです。AIなので死ぬという表現はどうでしょうね。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "uni", speaker: "ビット333", text: "私もです。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわよ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "スカネイラ惑星が近いですね。ワープしますか？", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "いいわ, そこまでワープしましょ。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
@@ -90,6 +90,7 @@ const StoryEngine = {
         this.currentScript = this.scripts[key] || [];
         this.currentIndex = 0;
         this.onComplete = cb;
+        // 演出のリセット
         const advBg = document.getElementById('adv-bg');
         advBg.style.opacity = "0.7";
         advBg.style.filter = "brightness(1)";
@@ -110,7 +111,7 @@ const StoryEngine = {
     handleDialogueClick() {
         if(this.isTyping) {
             clearInterval(this.typingTimer);
-            document.getElementById('dialogue-text').innerHTML = this.fullText;
+            document.getElementById('dialogue-text').innerHTML = this.fullText || "";
             this.isTyping = false;
         } else this.next();
     },
@@ -194,9 +195,11 @@ const StoryEngine = {
         overlay.style.display = 'block'; overlay.classList.add('alert-blink-red');
         SoundEngine.playSFX('damage'); win.classList.add('shake-scene-heavy');
         setTimeout(() => { 
-            overlay.style.display = 'none'; overlay.classList.remove('alert-blink-red'); 
-            win.classList.remove('shake-scene-heavy'); this.isTyping = false;
-            this.next();
+            overlay.style.display = 'none'; 
+            overlay.classList.remove('alert-blink-red'); 
+            win.classList.remove('shake-scene-heavy'); 
+            this.isTyping = false;
+            this.next(); 
         }, 1500);
     },
 
@@ -216,7 +219,10 @@ const StoryEngine = {
     },
 
     typeText(text, colorType) {
-        if (!text) return;
+        if (!text) {
+             document.getElementById('dialogue-text').innerHTML = "";
+             return;
+        }
         this.isTyping = true; this.fullText = text.replace(/\n/g, '<br>');
         const el = document.getElementById('dialogue-text');
         el.style.color = (colorType === "pink") ? "var(--pink-txt)" : (colorType === "yellow") ? "var(--yellow-txt)" : "var(--cyan-txt)";
@@ -229,11 +235,13 @@ const StoryEngine = {
 
     updateSprites(data) {
         if (data.unknown) return;
+        // パルス (210px単位)
         const pSize = 210;
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0] * pSize}px -${p[1] * pSize}px`;
 
+        // ビット (横186.6px, 縦196.35px単位)
         const bW = 186.6; const bH = 196.35;
         const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
         const b = bMap[data.bit] || [0,0];
