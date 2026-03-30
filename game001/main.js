@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.2 | main.js | SCENE LOGIC STABILIZATION
+// CYBER-SWEEP v11.7 | main.js
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -12,18 +12,19 @@ const MainController = {
         document.getElementById('start-btn').onclick = () => this.handleStart();
         document.getElementById('select-scene-btn').onclick = () => this.showScene('scene-select');
         document.getElementById('back-to-title-btn').onclick = () => this.showScene('scene-title');
-        
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
+        document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
         
         this.createStageSelect();
         StoryEngine.init();
+        this.setupScrollSync();
     },
 
     async handleStart() {
         const btn = document.getElementById('start-btn');
-        btn.disabled = true; btn.innerText = "LOADING...";
+        btn.disabled = true; btn.innerText = "SYNCING...";
         try {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png']);
             this.startStageSequence(1);
@@ -40,9 +41,7 @@ const MainController = {
     },
 
     showScene(id) {
-        // 全てのシーンを隠し、対象だけを表示
-        const scenes = document.querySelectorAll('.scene');
-        scenes.forEach(s => {
+        document.querySelectorAll('.scene').forEach(s => {
             s.classList.remove('scene-show');
             s.classList.add('scene-hidden');
         });
@@ -59,18 +58,9 @@ const MainController = {
                 this.showScene('scene-adventure');
                 StoryEngine.play('stage1', () => this.launchGame(1));
             });
-        } else if (lvl === 2) {
+        } else if (lvl >= 2 && lvl <= 5) {
             this.showScene('scene-adventure');
-            StoryEngine.play('stage2', () => this.launchGame(2));
-        } else if (lvl === 3) {
-            this.showScene('scene-adventure');
-            StoryEngine.play('stage3', () => this.launchGame(3));
-        } else if (lvl === 4) {
-            this.showScene('scene-adventure');
-            StoryEngine.play('stage4', () => this.launchGame(4));
-        } else if (lvl === 5) {
-            this.showScene('scene-adventure');
-            StoryEngine.play('stage5', () => this.launchGame(5));
+            StoryEngine.play(`stage${lvl}`, () => this.launchGame(lvl));
         } else {
             this.showScene('scene-select');
         }
@@ -107,6 +97,11 @@ const MainController = {
         document.documentElement.style.setProperty('--neon-pink', theme.pink);
         document.getElementById('game-title-text').innerText = theme.name;
         document.getElementById('level-display').innerText = `LVL.0${lvl}`;
+        
+        // マークモード解除
+        const fBtn = document.getElementById('flag-mode-btn');
+        fBtn.style.backgroundColor = ""; fBtn.style.color = "";
+
         this.showScene('scene-game');
         GameLogic.init(lvl);
     },
@@ -117,7 +112,7 @@ const MainController = {
         container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
-            btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95';
+            btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
             btn.innerHTML = `<span class="text-[10px] font-orbitron" style="color:${data.blue}">SECTOR ${String(lvl).padStart(2,'0')}</span><br><span class="text-sm uppercase">${data.name}</span>`;
             btn.onclick = () => this.startStageSequence(parseInt(lvl));
             container.appendChild(btn);
@@ -136,7 +131,23 @@ const MainController = {
         if(GameLogic.state.energy >= GameLogic.config.scanCost) {
             GameLogic.state.isScanning = !GameLogic.state.isScanning;
             document.getElementById('scan-btn').style.backgroundColor = GameLogic.state.isScanning ? "var(--neon-blue)" : "";
+            document.getElementById('scan-btn').style.color = GameLogic.state.isScanning ? "black" : "";
         }
+    },
+
+    toggleAudio() {
+        const m = SoundEngine.toggleMute();
+        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
+    },
+
+    setupScrollSync() {
+        const cont = document.getElementById('game-container');
+        if (!cont) return;
+        cont.onscroll = () => {
+            const th = 5;
+            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > th);
+            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - th);
+        };
     },
 
     showModal(isWin) {
