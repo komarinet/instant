@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v10.2 | style.css | SPRITE 70% SIZE & ERROR FIX */
+/* CYBER-SWEEP v11.2 | style.css | SPRITE REPEAT & BACKGROUND FIX */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -9,59 +9,67 @@
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
 .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-.scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; }
-.scene-hidden { opacity: 0 !important; pointer-events: none !important; }
-.scene-show { opacity: 1 !important; pointer-events: auto !important; }
+.scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
+.scene-hidden { display: none !important; }
+.scene-show { display: block !important; opacity: 1 !important; }
 
 .cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
 
 /* 演出レイアウト */
-#prologue-viewport, #adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; }
+#prologue-viewport, #adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; margin: 0 auto; position: relative; }
+
 #space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 
 #prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
-.explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 3; display: none; }
-.bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
-@keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
-@keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
 /* ADVシーン演出 */
-.background-center { background-no-repeat; background-size: cover; background-position: center; transition: background-image 0s, filter 0.5s, opacity 0.5s; opacity: 0.6; }
-.background-alert { background: rgba(255,0,0,0.6); }
-.fade-black { opacity: 1 !important; pointer-events: auto !important; }
-.brightness-20 { filter: brightness(0.2) !important; }
-.brightness-100 { filter: brightness(1.0) !important; }
+#adv-bg { 
+    position: absolute; inset: 0; 
+    background-repeat: no-repeat !important; 
+    background-size: cover !important; 
+    background-position: center !important; 
+    opacity: 0.7 !important; 
+    z-index: 1;
+}
 
-/* 立ち絵 (180px * 0.7 = 126px) */
-.character { position: absolute; bottom: -5px; width: 126px; height: 140px; z-index: 20; transition: transform 0.2s, background-position 0.1s, opacity 0.2s; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); }
-.character-bit { left: -10px; background: url('img/bit.png') no-repeat; background-size: 378px 252px; } /* 126*3, 126*2 */
-.character-girl { right: -10px; background: url('img/girl.png') no-repeat; background-size: 378px 378px; } /* 126*3, 126*3 */
+/* 立ち絵 (リピート禁止と計算修正) */
+.character { 
+    position: absolute; bottom: 0; 
+    width: 126px; height: 140px; 
+    z-index: 20; 
+    background-repeat: no-repeat !important; /* ここが重要：リピートを禁止 */
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
+}
+.character-bit { 
+    left: 0; 
+    background: url('img/bit.png'); 
+    background-size: 378px 252px; /* 126*3, 126*2 */
+}
+.character-girl { 
+    right: 0; 
+    background: url('img/girl.png'); 
+    background-size: 378px 378px; /* 126*3, 126*3 */
+}
 
-#speaker-label { transform: translate(-50%, 20%); z-index: 100; transition: all 0.2s; border: 2px solid #000; }
-#speaker-tail { transform: translateX(-50%) rotate(180deg); transform-origin: top; transition: left 0.3s, border-top-color 0.2s; }
+/* 名前タグと尻尾 (位置固定) */
+#speaker-label { 
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%); 
+    z-index: 150 !important; /* 最前面 */
+    border: 2px solid #000; padding: 4px 16px;
+}
+#speaker-tail { 
+    position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); 
+    z-index: 140; 
+}
 
-/* 揺れ・点滅 */
-.shake-scene { animation: shake-s 0.08s infinite; }
-@keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-6px, 6px); } 75% { transform: translate(6px, -6px); } }
-.shake-scene-heavy { animation: shake-h 0.05s infinite; }
-@keyframes shake-h { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-10px, 10px); } 75% { transform: translate(10px, -10px); } }
-.alert-blink-red { animation: alert-blink 0.2s infinite; display: block !important; }
-@keyframes alert-blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+/* 各種オーバーレイ */
+#black-out-overlay { position: absolute; inset: 0; background: #000; z-index: 100; opacity: 0; pointer-events: none; }
+#interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; }
 
-/* ワープ */
-#warp-container { background: black; }
-.warp-particle { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: white; border-radius: 50%; opacity: 0; animation: warp-move 0.8s linear infinite; }
-@keyframes warp-move { 0% { transform: translate(0, 0) scale(1.5); opacity: 1; } 100% { transform: translate(var(--tw-x), var(--tw-y)) scale(0.1); opacity: 0; } }
-
-/* パズル */
-#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1.5px solid #1a1a2e; z-index: 5; }
+/* パズルUI */
+#game-viewport { position: relative; width: 340px; height: 350px; overflow: hidden; border-radius: 8px; border: 2px solid #1a1a2e; margin: 0 auto; }
 #game-container { width: 100%; height: 100%; overflow: auto; }
-.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; flex-shrink: 0; cursor: pointer; }
+.tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
-.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
-.edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
-
-.scan-effect::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 0%, var(--neon-blue) 40%, transparent 100%); opacity: 0.04; pointer-events: none; animation: scan-line 8s linear infinite; z-index: 100; }
-@keyframes scan-line { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
