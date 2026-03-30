@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v11.6 | style.css | SPRITE PIXEL PERFECT FIX */
+/* CYBER-SWEEP v11.7 | style.css */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -9,54 +9,79 @@
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
 .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
+/* 共通シーン設定 */
 .scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
 .scene-hidden { display: none !important; }
 .scene-show { display: flex !important; opacity: 1 !important; }
 
-.cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
+.cyber-panel { background: rgba(5, 5, 15, 0.98); border: 1.5px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.15); }
 
-/* アドベンチャーシーン窓 (高さ210pxに固定) */
+/* プロローグ窓 */
+#prologue-viewport { 
+    width: 340px; height: 210px; background: #000; z-index: 5; margin: 0 auto; position: relative; 
+    border: 4px solid #1a1a2e; border-radius: 12px; overflow: hidden; 
+}
+#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; background-position: center; animation: scroll-space 30s linear infinite; z-index: 1; }
+@keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+#prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
+
+/* アドベンチャーシーン共通設定 */
 #adventure-viewport { 
-    width: 340px; height: 210px; 
-    background: #000; z-index: 5; margin: 0 auto; position: relative; 
-    border: 4px solid var(--neon-blue); border-radius: 12px 12px 0 0; 
-    overflow: hidden;
+    width: 340px; height: 210px; background: #000; z-index: 5; margin: 0 auto; position: relative; 
+    border: 4px solid var(--neon-blue); border-radius: 12px 12px 0 0; overflow: hidden;
 }
+#adv-bg { position: absolute; inset: 0; background-repeat: no-repeat !important; background-size: cover !important; background-position: center !important; opacity: 0.7 !important; z-index: 1; transition: filter 0.5s, opacity 0.5s; }
 
-/* 立ち絵共通設定 */
-.character { 
-    position: absolute; bottom: 0; 
-    background-repeat: no-repeat !important; 
-    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); 
-}
+/* 立ち絵 (Version 11.7 修正：70%縮小・ピクセルパーフェクト) */
+.character { position: absolute; bottom: 0; background-repeat: no-repeat !important; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); }
 
-/* ビット: 800*0.7=560, 561*0.7=392.7 | 1コマ 186.6 x 196.3 */
+/* ビット (800x561の70% = 560x392.7) 1コマ 186.6 x 196.3 */
 .character-bit { 
-    left: 0; 
-    width: 186.6px; height: 196.3px; 
-    background: url('img/bit.png'); 
-    background-size: 560px 392.7px; 
-    z-index: 20;
+    left: 0; width: 186.6px; height: 196.3px; 
+    background: url('img/bit.png'); background-size: 560px 392.7px; 
+    z-index: 20; 
 }
-
-/* パルス: 900*0.7=630 | 1コマ 210 x 210 */
+/* パルス (900x900の70% = 630x630) 1コマ 210 x 210 */
 .character-girl { 
-    right: 0; 
-    width: 210px; height: 210px; 
-    background: url('img/girl.png'); 
-    background-size: 630px 630px; 
+    right: 0; width: 210px; height: 210px; 
+    background: url('img/girl.png'); background-size: 630px 630px; 
     z-index: 21; 
 }
 
-/* --- 以下、他スタイル省略なし --- */
-#adv-bg { position: absolute; inset: 0; background-repeat: no-repeat; background-size: cover; background-position: center; opacity: 0.7; z-index: 1; }
-#speaker-label { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); z-index: 150 !important; border: 2px solid #000; padding: 4px 16px; font-weight: bold; color: black; border-radius: 999px; text-transform: uppercase; font-size: 11px; }
-#speaker-tail { position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); z-index: 140; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid var(--neon-blue); }
+/* 名前タグと尻尾 */
+#speaker-label { 
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%); 
+    z-index: 150 !important; border: 2px solid #000; padding: 4px 16px; 
+    font-weight: bold; border-radius: 999px; font-size: 11px; color: black;
+}
+#speaker-tail { 
+    position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); 
+    z-index: 140; width: 0; height: 0; 
+    border-left: 8px solid transparent; border-right: 8px solid transparent; 
+    border-top: 12px solid var(--neon-blue);
+}
+
+/* 特殊演出用 */
 #black-out-overlay { position: absolute; inset: 0; background: #000; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 #interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; }
-#game-viewport { position: relative; width: 340px; max-height: 45vh; min-height: 250px; overflow: hidden; border-radius: 8px; border: 2px solid #1a1a2e; margin: 0 auto; }
+.alert-blink-red { animation: alert-blink 0.2s infinite; display: block !important; }
+@keyframes alert-blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+/* ゲームUI */
+#game-viewport { position: relative; width: 340px; max-height: 45vh; min-height: 250px; overflow: hidden; border-radius: 8px; border: 2.5px solid #1a1a2e; margin: 0 auto; background: #05050a; }
 #game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
 #game-container::-webkit-scrollbar { display: none; }
-.tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; }
+.tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: all 0.2s; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
+
+/* ワープ演出 */
+#warp-container { background: black; }
+.warp-particle { position: absolute; top: 50%; left: 50%; width: 2px; height: 2px; background: white; border-radius: 50%; opacity: 0; animation: warp-move 0.8s linear infinite; }
+@keyframes warp-move { 0% { transform: translate(0, 0) scale(1.5); opacity: 1; } 100% { transform: translate(var(--tw-x), var(--tw-y)) scale(0.1); opacity: 0; } }
+
+/* 揺れ */
+.shake-scene { animation: shake-s 0.08s infinite; }
+@keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-6px, 6px); } 75% { transform: translate(6px, -6px); } }
+.shake-scene-heavy { animation: shake-h 0.05s infinite; }
+@keyframes shake-h { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-10px, 10px); } 75% { transform: translate(10px, -10px); } }
