@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.0 | story.js | STAGE 5 ADDED & ERROR GUARD
+// CYBER-SWEEP v11.2 | story.js | DIALOGUE STABILIZATION
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -26,7 +26,7 @@ const StoryEngine = {
             { bg: "wing", speaker: "ビット333", text: "宇宙船崩壊まであと5分。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan", special: "shake" },
             { bg: "wing", speaker: "パルス", text: "わわっ！ 早く開けてよ！", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "非常に申し訳ないのですが、これも・・・", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
-            { bg: "wing", speaker: "パルス", text: "ああもう、わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
+            { bg: "wing", speaker: "パルス", text: "ああもう, わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage3: [
             { bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "うわ、暗い", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
@@ -61,7 +61,6 @@ const StoryEngine = {
             { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠、パスコードを解いてもらおう。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "やりますよ！ やればいいんでしょ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
-        // ステージ5前 (惑星着陸〜ビット暴走)
         stage5: [
             { bg: "chaku", speaker: "パルス", text: "ふわー、やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "ヴヴ・・・！　ヴヴヴ！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan", special: "shake" },
@@ -87,12 +86,18 @@ const StoryEngine = {
         document.getElementById('adv-skip-btn').onclick = (e) => { e.stopPropagation(); this.skip(); };
     },
 
-    play(scriptKey, callback) {
-        this.currentScript = this.scripts[scriptKey] || [];
+    play(key, cb) {
+        this.currentScript = this.scripts[key] || [];
         this.currentIndex = 0;
-        this.onComplete = callback;
-        this.setSpritesHidden(false);
-        if (scriptKey === 'stage1') this.startAlert演出(() => this.next()); else this.next();
+        this.onComplete = cb;
+        // 背景と立ち絵の状態を強制リセット
+        const advBg = document.getElementById('adv-bg');
+        advBg.style.opacity = "0.7";
+        advBg.style.filter = "brightness(1)";
+        document.getElementById('char-bit').style.opacity = 1;
+        document.getElementById('char-pulse').style.opacity = 1;
+        
+        if (key === 'stage1') this.startAlert演出(() => this.next()); else this.next();
     },
 
     startAlert演出(callback) {
@@ -140,9 +145,8 @@ const StoryEngine = {
         }
     },
 
-    applyBrightness(el, brightness) {
-        if (brightness === "dark") { el.classList.add('brightness-20'); el.classList.remove('brightness-100'); }
-        else { el.classList.add('brightness-100'); el.classList.remove('brightness-20'); }
+    applyBrightness(el, b) {
+        el.style.filter = (b === "dark") ? "brightness(0.2)" : "brightness(1.0)";
     },
 
     skip() { clearInterval(this.typingTimer); if(this.onComplete) this.onComplete(); },
@@ -163,17 +167,21 @@ const StoryEngine = {
         const tail = document.getElementById('speaker-tail');
         
         if (data.unknown) {
-            this.setSpritesHidden(true);
+            document.getElementById('char-bit').style.opacity = 0;
+            document.getElementById('char-pulse').style.opacity = 0;
             label.innerText = "UNKNOWN"; 
             label.style.backgroundColor = "var(--neon-yellow)"; 
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            this.setSpritesHidden(false);
+            document.getElementById('char-bit').style.opacity = 1;
+            document.getElementById('char-pulse').style.opacity = 1;
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
-            label.innerText = data.speaker || ""; label.style.backgroundColor = color; label.style.borderColor = color;
-            tail.style.left = data.tail === "right" ? "calc(50% + 50px)" : "calc(50% - 50px)";
+            label.innerText = data.speaker || ""; 
+            label.style.backgroundColor = color; 
+            label.style.borderColor = color;
+            tail.style.left = data.tail === "right" ? "calc(50% + 40px)" : "calc(50% - 40px)";
             tail.style.borderTopColor = color;
             this.updateSprites(data);
         }
@@ -186,32 +194,35 @@ const StoryEngine = {
         this.isTyping = true;
         overlay.style.display = 'block'; overlay.classList.add('alert-blink-red');
         SoundEngine.playSFX('damage'); win.classList.add('shake-scene-heavy');
-        setTimeout(() => { document.getElementById('scene-adventure').style.opacity = 0; this.setSpritesHidden(true); }, 1200);
-        setTimeout(() => { overlay.style.display = 'none'; overlay.classList.remove('alert-blink-red'); win.classList.remove('shake-scene-heavy'); this.isTyping = false; }, 2000);
+        setTimeout(() => { 
+            overlay.style.display = 'none'; 
+            overlay.classList.remove('alert-blink-red'); 
+            win.classList.remove('shake-scene-heavy'); 
+            this.isTyping = false;
+            this.next(); // 演出終了後に自動で次へ
+        }, 1500);
     },
 
     playWarpEffect(callback) {
         const container = document.getElementById('warp-container');
         container.innerHTML = ''; container.classList.remove('hidden');
-        for (let i = 0; i < 60; i++) {
+        for (let i = 0; i < 50; i++) {
             const p = document.createElement('div'); p.className = 'warp-particle';
-            const angle = Math.random() * Math.PI * 2; const dist = 100 + Math.random() * 250;
+            const angle = Math.random() * Math.PI * 2; const dist = 100 + Math.random() * 200;
             p.style.setProperty('--tw-x', `${Math.cos(angle) * dist}px`);
             p.style.setProperty('--tw-y', `${Math.sin(angle) * dist}px`);
             p.style.animationDelay = `${Math.random() * 0.5}s`;
             container.appendChild(p);
         }
         SoundEngine.playSFX('scan');
-        setTimeout(() => { container.classList.add('hidden'); callback(); }, 2200);
+        setTimeout(() => { container.classList.add('hidden'); callback(); }, 2000);
     },
 
     typeText(text, colorType) {
-        if (typeof text === 'undefined') return;
+        if (!text) return;
         this.isTyping = true; this.fullText = text.replace(/\n/g, '<br>');
         const el = document.getElementById('dialogue-text');
-        if (colorType === "pink") el.style.color = "var(--pink-txt)";
-        else if (colorType === "yellow") el.style.color = "var(--yellow-txt)";
-        else el.style.color = "var(--cyan-txt)";
+        el.style.color = (colorType === "pink") ? "var(--pink-txt)" : (colorType === "yellow") ? "var(--yellow-txt)" : "var(--cyan-txt)";
         el.innerHTML = ''; let i = 0;
         this.typingTimer = setInterval(() => {
             if (text[i] === '\n') el.innerHTML += '<br>'; else el.innerHTML += text[i];
@@ -226,4 +237,7 @@ const StoryEngine = {
         document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*126}px -${b[1]*126}px`;
 
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
-        const p = pMap[data.pulse]
+        const p = pMap[data.pulse] || [0,0];
+        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*126}px -${p[1]*126}px`;
+    }
+};
