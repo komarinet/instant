@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.2 | story.js | DIALOGUE STABILIZATION
+// CYBER-SWEEP v11.5 | story.js | PAL PULSE COMPLETE FIX (210px UNIT)
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -50,13 +50,13 @@ const StoryEngine = {
             { bg: "uni", speaker: "ビット333", text: "私もです。AIなので死ぬという表現はどうでしょうね。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわよ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "スカネイラ惑星が近いですね。ワープしますか？", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
-            { bg: "uni", speaker: "パルス", text: "いいわ、そこまでワープしましょ。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
+            { bg: "uni", speaker: "パルス", text: "いいわ, そこまでワープしましょ。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "かしこまりました。", pulse: "smile", bit: "smile", tail: "left", color: "cyan", special: "warp" },
             { bg: "waku", speaker: "パルス", text: "わあ、綺麗。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "ビット333", text: "スカネイラ惑星は植物資源で有名な惑星です。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "不明機、応答せよ。", color: "yellow" },
             { bg: "waku", speaker: "ビット333", text: "こちら、O-559。緊急避難中。着陸許可を求む。", pulse: "anxious", bit: "calm", tail: "left", color: "cyan" },
-            { bg: "waku", speaker: "unknown", unknown: true, text: "わかった。だが、そちらが敵性AIでないことを示してほしい。", color: "yellow" },
+            { bg: "waku", speaker: "unknown", unknown: true, text: "わかって。だが、そちらが敵性AIでないことを示してほしい。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "わ、私人間です！ 敵性なんてありません！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠、パスコードを解いてもらおう。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "やりますよ！ やればいいんでしょ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
@@ -145,11 +145,19 @@ const StoryEngine = {
         }
     },
 
-    applyBrightness(el, b) {
-        el.style.filter = (b === "dark") ? "brightness(0.2)" : "brightness(1.0)";
+    applyBrightness(el, brightness) {
+        if (brightness === "dark") { el.classList.add('brightness-20'); el.classList.remove('brightness-100'); }
+        else { el.classList.add('brightness-100'); el.classList.remove('brightness-20'); }
     },
 
-    skip() { clearInterval(this.typingTimer); if(this.onComplete) this.onComplete(); },
+    skip() { 
+        clearInterval(this.typingTimer); 
+        // 演出用オーバーレイを全部消す
+        document.getElementById('interior-alert-overlay').style.display = 'none';
+        document.getElementById('interior-alert-overlay').classList.remove('alert-blink-red');
+        document.getElementById('black-out-overlay').classList.remove('fade-black');
+        if(this.onComplete) this.onComplete(); 
+    },
 
     updateUI(data) {
         if (data.special === "shake") {
@@ -167,21 +175,19 @@ const StoryEngine = {
         const tail = document.getElementById('speaker-tail');
         
         if (data.unknown) {
-            document.getElementById('char-bit').style.opacity = 0;
-            document.getElementById('char-pulse').style.opacity = 0;
+            this.setSpritesHidden(true);
             label.innerText = "UNKNOWN"; 
             label.style.backgroundColor = "var(--neon-yellow)"; 
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            document.getElementById('char-bit').style.opacity = 1;
-            document.getElementById('char-pulse').style.opacity = 1;
+            this.setSpritesHidden(false);
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
             label.innerText = data.speaker || ""; 
             label.style.backgroundColor = color; 
             label.style.borderColor = color;
-            tail.style.left = data.tail === "right" ? "calc(50% + 40px)" : "calc(50% - 40px)";
+            tail.style.left = data.tail === "right" ? "calc(50% + 50px)" : "calc(50% - 50px)";
             tail.style.borderTopColor = color;
             this.updateSprites(data);
         }
@@ -194,35 +200,32 @@ const StoryEngine = {
         this.isTyping = true;
         overlay.style.display = 'block'; overlay.classList.add('alert-blink-red');
         SoundEngine.playSFX('damage'); win.classList.add('shake-scene-heavy');
-        setTimeout(() => { 
-            overlay.style.display = 'none'; 
-            overlay.classList.remove('alert-blink-red'); 
-            win.classList.remove('shake-scene-heavy'); 
-            this.isTyping = false;
-            this.next(); // 演出終了後に自動で次へ
-        }, 1500);
+        setTimeout(() => { document.getElementById('scene-adventure').style.opacity = 0; this.setSpritesHidden(true); }, 1200);
+        setTimeout(() => { overlay.style.display = 'none'; overlay.classList.remove('alert-blink-red'); win.classList.remove('shake-scene-heavy'); this.isTyping = false; }, 2000);
     },
 
     playWarpEffect(callback) {
         const container = document.getElementById('warp-container');
         container.innerHTML = ''; container.classList.remove('hidden');
-        for (let i = 0; i < 50; i++) {
+        for (let i = 0; i < 60; i++) {
             const p = document.createElement('div'); p.className = 'warp-particle';
-            const angle = Math.random() * Math.PI * 2; const dist = 100 + Math.random() * 200;
+            const angle = Math.random() * Math.PI * 2; const dist = 100 + Math.random() * 250;
             p.style.setProperty('--tw-x', `${Math.cos(angle) * dist}px`);
             p.style.setProperty('--tw-y', `${Math.sin(angle) * dist}px`);
             p.style.animationDelay = `${Math.random() * 0.5}s`;
             container.appendChild(p);
         }
         SoundEngine.playSFX('scan');
-        setTimeout(() => { container.classList.add('hidden'); callback(); }, 2000);
+        setTimeout(() => { container.classList.add('hidden'); callback(); }, 2200);
     },
 
     typeText(text, colorType) {
-        if (!text) return;
+        if (typeof text === 'undefined' || text === null) return;
         this.isTyping = true; this.fullText = text.replace(/\n/g, '<br>');
         const el = document.getElementById('dialogue-text');
-        el.style.color = (colorType === "pink") ? "var(--pink-txt)" : (colorType === "yellow") ? "var(--yellow-txt)" : "var(--cyan-txt)";
+        if (colorType === "pink") el.style.color = "var(--pink-txt)";
+        else if (colorType === "yellow") el.style.color = "var(--yellow-txt)";
+        else el.style.color = "var(--cyan-txt)";
         el.innerHTML = ''; let i = 0;
         this.typingTimer = setInterval(() => {
             if (text[i] === '\n') el.innerHTML += '<br>'; else el.innerHTML += text[i];
@@ -232,12 +235,26 @@ const StoryEngine = {
 
     updateSprites(data) {
         if (data.unknown) return;
-        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1], surprised: [2,1], cry:[0,1] };
+        
+        // 元タイル300x300px * 0.7 = 210x210px
+        const tileSize = 210;
+        
+        // Bitの表情マップ。surprised表情がマップにないので追加
+        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1], surprised: [0,2], cry:[0,1] };
         const b = bMap[data.bit] || [0,0];
-        document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*126}px -${b[1]*126}px`;
+        // 210px単位で計算
+        document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*tileSize}px -${b[1]*tileSize}px`;
 
+        // Pulseの表情マップ
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
-        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*126}px -${p[1]*126}px`;
+        // 210px単位で計算。これがユーザー様の指摘したアルゴリズム
+        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*tileSize}px -${p[1]*tileSize}px`;
+    },
+
+    setSpritesHidden(hidden) {
+        const op = hidden ? 0 : 1;
+        document.getElementById('char-bit').style.opacity = op;
+        document.getElementById('char-pulse').style.opacity = op;
     }
 };
