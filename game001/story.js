@@ -1,4 +1,4 @@
-// CYBER-SWEEP v10.0 | story.js | DEFINITIVE STORY ENGINE
+// CYBER-SWEEP v10.2 | story.js | ERROR HANDLING & SCALE 70% FIX
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -74,9 +74,6 @@ const StoryEngine = {
         this.currentScript = this.scripts[scriptKey];
         this.currentIndex = 0;
         this.onComplete = callback;
-        const advBg = document.getElementById('adv-bg');
-        advBg.style.filter = "brightness(1.0)";
-        document.getElementById('scene-adventure').style.opacity = 1;
         this.setSpritesHidden(false);
         if (scriptKey === 'stage1') this.startAlert演出(() => this.next()); else this.next();
     },
@@ -99,9 +96,6 @@ const StoryEngine = {
 
     next() {
         if(this.currentIndex >= this.currentScript.length) { this.onComplete(); return; }
-        const advScene = document.getElementById('scene-adventure');
-        if (advScene.style.opacity === "0") { advScene.style.opacity = 1; this.setSpritesHidden(false); }
-
         const data = this.currentScript[this.currentIndex];
         this.fadeBackgroundUpdate(data.bg, data.brightness, () => {
             this.updateUI(data);
@@ -146,19 +140,20 @@ const StoryEngine = {
         } else if (data.special === "warp") {
             this.isTyping = true;
             this.playWarpEffect(() => { this.isTyping = false; this.next(); });
-            // ワープ実行時のセリフはそのまま出す
         }
 
         const label = document.getElementById('speaker-label');
         const tail = document.getElementById('speaker-tail');
+        
+        // unknown 処理の強化 (undefined防止)
         if (data.unknown) {
-            document.getElementById('char-bit').style.opacity = 0;
-            document.getElementById('char-pulse').style.opacity = 0;
-            label.innerText = "UNKNOWN"; label.style.backgroundColor = "var(--neon-yellow)"; label.style.borderColor = "var(--neon-yellow)";
+            this.setSpritesHidden(true); // 全立ち絵を隠す
+            label.innerText = "UNKNOWN"; 
+            label.style.backgroundColor = "var(--neon-yellow)"; 
+            label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            document.getElementById('char-bit').style.opacity = 1;
-            document.getElementById('char-pulse').style.opacity = 1;
+            this.setSpritesHidden(false); // 立ち絵を出す
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
             label.innerText = data.speaker; label.style.backgroundColor = color; label.style.borderColor = color;
@@ -195,7 +190,7 @@ const StoryEngine = {
     },
 
     typeText(text, colorType) {
-        if (!text) return;
+        if (typeof text === 'undefined') return; // undefinedガード
         this.isTyping = true; this.fullText = text.replace(/\n/g, '<br>');
         const el = document.getElementById('dialogue-text');
         if (colorType === "pink") el.style.color = "var(--pink-txt)";
@@ -209,12 +204,15 @@ const StoryEngine = {
     },
 
     updateSprites(data) {
-        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1] };
+        if (data.unknown) return; // unknown時はスキップ
+        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1], surprised: [2,1] };
         const b = bMap[data.bit] || [0,0];
-        document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*180}px -${b[1]*180}px`;
+        // 126pxサイズに基づいた計算
+        document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*126}px -${b[1]*126}px`;
+
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
-        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*180}px -${p[1]*180}px`;
+        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*126}px -${p[1]*126}px`;
     },
 
     setSpritesHidden(hidden) {
