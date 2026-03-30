@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.0 | story.js | ANTI-BUG ENGINE
+// CYBER-SWEEP v12.1 | story.js | SPRITE 40% SIZE
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -88,7 +88,6 @@ const StoryEngine = {
         document.getElementById('adv-skip-btn').onclick = (e) => { e.stopPropagation(); this.skip(); };
     },
 
-    // 演出用タイマーを安全に登録する
     safeTimeout(fn, delay) {
         const id = setTimeout(() => {
             this.activeTimeouts = this.activeTimeouts.filter(t => t !== id);
@@ -107,13 +106,12 @@ const StoryEngine = {
         this.currentScript = this.scripts[key] || [];
         this.currentIndex = 0;
         this.onComplete = cb;
-        this.currentBgKey = ""; // 背景キーをリセット
+        this.currentBgKey = ""; 
         
-        // 演出のリセット
         this.isAnimating = false;
         const advBg = document.getElementById('adv-bg');
         advBg.style.opacity = "0.7";
-        advBg.className = 'brightness-100'; // classListで管理
+        advBg.className = 'brightness-100'; 
         this.setSpritesHidden(false);
         document.getElementById('interior-alert-overlay').style.display = 'none';
         document.getElementById('black-out-overlay').classList.remove('fade-black');
@@ -138,7 +136,7 @@ const StoryEngine = {
     },
 
     handleDialogueClick() {
-        if(this.isAnimating) return; // ★危険度:高 バグ対策。暗転中やワープ中の連打を無視
+        if(this.isAnimating) return; 
 
         if(this.isTyping) {
             clearInterval(this.typingTimer);
@@ -159,7 +157,6 @@ const StoryEngine = {
         });
     },
 
-    // ★危険度:高 バグ対策。文字列比較ではなくキー名で比較
     fadeBackgroundUpdate(bgName, brightness, callback) {
         const advBg = document.getElementById('adv-bg');
         const blackOut = document.getElementById('black-out-overlay');
@@ -192,11 +189,10 @@ const StoryEngine = {
 
     skip() { 
         clearInterval(this.typingTimer); 
-        this.clearAllTimeouts(); // ★危険度:高 バグ対策。進行中の全アニメーションを破棄
+        this.clearAllTimeouts(); 
         this.isTyping = false;
         this.isAnimating = false;
         
-        // 演出用オーバーレイを全部強制リセット
         const alertOverlay = document.getElementById('interior-alert-overlay');
         alertOverlay.style.display = 'none';
         alertOverlay.classList.remove('alert-blink-red');
@@ -300,12 +296,15 @@ const StoryEngine = {
 
     updateSprites(data) {
         if (data.unknown) return;
-        const pSize = 210;
+
+        // パルス (120px単位)
+        const pSize = 120;
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0] * pSize}px -${p[1] * pSize}px`;
 
-        const bW = 186.6; const bH = 196.35;
+        // ビット (横106.66px, 縦112.2px単位)
+        const bW = 106.66; const bH = 112.2;
         const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
         const b = bMap[data.bit] || [0,0];
         document.getElementById('char-bit').style.backgroundPosition = `-${b[0] * bW}px -${b[1] * bH}px`;
