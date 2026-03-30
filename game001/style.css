@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v5.9 | style.css */
+/* CYBER-SWEEP v6.0 | style.css | DIALOGUE & SPRITE UPDATE */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -14,57 +14,36 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .scene-hidden { opacity: 0 !important; pointer-events: none !important; }
 .scene-show { opacity: 1 !important; pointer-events: auto !important; }
 
-.cyber-panel { background: rgba(10, 10, 20, 0.9); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.4); }
+.cyber-panel { background: rgba(10, 10, 20, 0.95); border: 1px solid var(--neon-blue); box-shadow: 0 0 10px rgba(0, 243, 255, 0.3); }
 
-/* プロローグ・ビューポート設定 */
-#prologue-viewport {
-    width: 320px;   /* 窓のサイズを固定してチープさを解消 */
-    height: 200px;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 1);
-}
-
-#space-bg {
-    position: absolute; width: 100%; height: 200%;
-    background: url('img/space02.png') repeat-y;
-    background-size: cover;
-    animation: scroll-space 30s linear infinite; /* 少しゆっくりにして巨大感を出す */
-    z-index: 1;
-}
+/* 船外演出 */
+#prologue-viewport { width: 340px; height: 220px; box-shadow: inset 0 0 40px #000; background: #000; }
+#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+#prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 160px; z-index: 2; }
+.explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 5; display: none; }
+.bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
+@keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
+@keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
-#prologue-ship {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 140px; /* ウィンドウに合わせて適正サイズに */
-    height: auto; z-index: 2;
-    filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.5));
-}
+/* 船内会話シーン */
+#interior-window { width: 340px; height: 240px; background: #000; }
+#interior-bg { position: absolute; inset: 0; background: url('img/inship.png'); background-size: cover; background-position: center; z-index: 1; opacity: 0.8; }
+#interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.4); z-index: 5; display: none; }
+.character { position: absolute; bottom: 0; width: 150px; height: 200px; z-index: 3; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); transition: transform 0.1s; }
+#char-bit { left: -10px; background: url('img/bit.png'); background-size: 450px 400px; }
+#char-pulse { right: -10px; background: url('img/girl.png'); background-size: 450px 600px; }
 
-#explosion-layer {
-    position: absolute; width: 80px; height: 80px; /* 爆発を船のサイズに合わせる */
-    background: url('img/bomb.png');
-    background-size: 320px 160px; /* 4x2コマに合わせて縮小 */
-    display: none; z-index: 3;
-}
-.bomb-play { 
-    display: block !important; 
-    animation: bomb-frames-x 0.6s steps(4) infinite, bomb-frames-y 1.2s steps(2) forwards;
-}
-@keyframes bomb-frames-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
-@keyframes bomb-frames-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
+/* 画面揺れ */
+.shake-scene { animation: shake-s 0.1s infinite; }
+@keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-4px, 4px); } 75% { transform: translate(4px, -4px); } }
 
-.shake-prologue { animation: shake-p 0.1s infinite; }
-@keyframes shake-p { 
-    0% { transform: translate(-50%, -50%); } 
-    50% { transform: translate(-51%, -49%); } 
-    100% { transform: translate(-49.5%, -50.5%); } 
-}
-
-/* ゲーム画面 UI 調整 */
-#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 12px; border: 2px solid #1a1a2e; z-index: 5; }
+/* ゲームUI */
+#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1px solid #1a1a2e; }
 #game-container { width: 100%; height: 100%; overflow: auto; }
-.tile { width: 42px; height: 42px; transition: all 0.2s; cursor: pointer; flex-shrink: 0; }
+.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
-
-.scan-effect::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 0%, var(--neon-blue) 30%, transparent 100%); opacity: 0.03; pointer-events: none; animation: scan-line 8s linear infinite; z-index: 100; }
-@keyframes scan-line { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
+.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; }
+.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; }
+.edge-active { opacity: 1; box-shadow: 0 0 15px var(--neon-blue); }
