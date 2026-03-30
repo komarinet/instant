@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v11.2</title>
+    <title>Cyber-Sweep v11.3</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=11.2">
+    <link rel="stylesheet" href="style.css?v=11.3">
 </head>
 <body class="scan-effect">
 
     <div id="scene-title" class="scene scene-show flex flex-col items-center justify-center p-4">
         <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] mb-2">CYBER-SWEEP</h1>
-        <p class="text-[10px] text-gray-500 mb-10">TACTICAL OVERLOAD v11.2</p>
+        <p class="text-[10px] text-gray-500 mb-10">TACTICAL OVERLOAD v11.3</p>
         <div class="flex flex-col gap-4 w-full max-w-xs">
-            <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95">START MISSION</button>
-            <button id="select-scene-btn" class="cyber-panel py-2 rounded-lg text-xs text-gray-400">SELECT SECTOR</button>
+            <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 transition-all text-lg">START MISSION</button>
+            <button id="select-scene-btn" class="cyber-panel py-2 rounded-lg text-xs text-gray-400 uppercase tracking-widest active:scale-95 transition-all">Select Sector</button>
         </div>
     </div>
 
@@ -26,7 +26,7 @@
         </div>
     </div>
 
-    <div id="scene-adventure" class="scene scene-hidden flex flex-col items-center justify-center bg-black">
+    <div id="scene-adventure" class="scene scene-hidden flex flex-col items-center justify-center bg-black transition-opacity duration-300">
         <div id="adventure-viewport">
             <div id="adv-bg"></div>
             <div id="warp-container" class="absolute inset-0 z-30 pointer-events-none hidden"></div>
@@ -34,65 +34,67 @@
             <div id="char-pulse" class="character character-girl"></div>
             <div id="black-out-overlay"></div>
             <div id="interior-alert-overlay"></div>
-            <button id="adv-skip-btn" class="absolute top-2 right-2 z-50 text-[9px] border border-gray-700 px-2 py-1 rounded bg-black/60">SKIP >></button>
+            <button id="adv-skip-btn" class="absolute top-2 right-2 z-50 text-[9px] text-[var(--neon-blue)] border border-gray-700 px-2 py-1 rounded bg-black/60 uppercase">SKIP >></button>
         </div>
 
-        <div id="dialogue-container" class="w-full max-w-[340px] cursor-pointer relative">
-            <div id="speaker-label" class="absolute bg-[var(--neon-blue)] font-bold text-black rounded-full shadow-2xl">NAME</div>
-            <div id="speaker-tail" class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[var(--neon-blue)]"></div>
+        <div id="dialogue-container" class="w-full max-w-[340px] cursor-pointer relative overflow-visible">
+            <div id="speaker-label" class="absolute bg-[var(--neon-blue)] font-bold text-black rounded-full shadow-2xl z-[150] uppercase text-[11px]">NAME</div>
+            <div id="speaker-tail" class="w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[12px] border-t-[var(--neon-blue)] z-[140]"></div>
 
-            <div class="cyber-panel p-5 rounded-b-xl h-40 bg-[#05050a] border-t-0 shadow-xl">
-                <div id="dialogue-text" class="text-xs leading-relaxed font-mono mt-1"></div>
-                <div class="absolute bottom-3 right-5 text-[var(--neon-blue)] animate-bounce">▼</div>
+            <div class="cyber-panel p-5 rounded-b-xl h-40 bg-[#05050a]/98 border-t-0 shadow-xl relative">
+                <div id="dialogue-text" class="text-xs leading-relaxed font-mono mt-1 text-white pr-6"></div>
+                <div id="dialogue-next" class="absolute bottom-3 right-5 text-[var(--neon-blue)] animate-bounce">▼</div>
             </div>
         </div>
     </div>
 
     <div id="scene-select" class="scene scene-hidden flex flex-col items-center justify-center p-4">
-        <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8">SELECT SECTOR</h2>
+        <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8 tracking-widest uppercase">SELECT SECTOR</h2>
         <div id="stage-buttons" class="grid grid-cols-1 gap-4 w-full max-w-xs px-2"></div>
-        <button id="back-to-title-btn" class="mt-8 text-[10px] text-gray-500 border-b border-gray-800">BACK TO MAIN</button>
+        <button id="back-to-title-btn" class="mt-8 text-[10px] text-gray-500 uppercase tracking-widest border-b border-gray-800">BACK TO MAIN</button>
     </div>
 
     <div id="scene-game" class="scene scene-hidden flex flex-col items-center justify-center p-4">
-        <div class="w-full max-w-[340px] mb-4 space-y-3">
+        <div class="w-full max-w-[340px] mb-4 space-y-2">
             <div class="flex justify-between items-center">
-                <h1 id="game-title-text" class="text-lg font-bold font-orbitron text-[var(--neon-blue)] leading-none">ALPHA</h1>
-                <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold">LVL.01</div>
+                <h1 id="game-title-text" class="text-xl font-bold font-orbitron text-[var(--neon-blue)] leading-none">ALPHA</h1>
+                <div id="level-display" class="text-xs text-[var(--neon-pink)] font-bold font-orbitron">LVL.01</div>
             </div>
-            <div class="cyber-panel p-3 rounded-lg grid grid-cols-2 gap-4">
-                <div>
-                    <div class="flex justify-between text-[9px] mb-1"><span>HULL</span><span id="hp-text">100%</span></div>
-                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden"><div id="hp-bar" class="h-full bg-[var(--neon-pink)] w-full"></div></div>
+            <div class="cyber-panel p-3 rounded-lg grid grid-cols-2 gap-4 shadow-inner">
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[9px] font-bold text-gray-300 uppercase"><span>Hull</span><span id="hp-text">100%</span></div>
+                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="hp-bar" class="h-full bg-[var(--neon-pink)] transition-all w-full"></div></div>
                 </div>
-                <div>
-                    <div class="flex justify-between text-[9px] mb-1"><span>ENG</span><span id="energy-text">0%</span></div>
-                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden"><div id="energy-bar" class="h-full bg-[var(--neon-blue)] w-0"></div></div>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[9px] font-bold text-gray-300 uppercase"><span>Energy</span><span id="energy-text">0%</span></div>
+                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="energy-bar" class="h-full bg-[var(--neon-blue)] transition-all w-0"></div></div>
                 </div>
             </div>
         </div>
+        
         <div id="game-viewport">
             <div id="game-container"><div id="grid" class="grid gap-1 p-5"></div></div>
         </div>
-        <div class="w-full max-w-[340px] mt-5 grid grid-cols-3 gap-2">
-            <button id="flag-mode-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs uppercase">Mark</button>
-            <button id="scan-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-blue)] opacity-50" disabled>Scan</button>
-            <button id="back-to-menu-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-yellow)]">Abort</button>
+        
+        <div class="w-full max-w-[340px] mt-4 grid grid-cols-3 gap-3 px-1">
+            <button id="flag-mode-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs uppercase active:scale-95 transition-all text-white hover:text-[var(--neon-pink)] border border-gray-800">MARK</button>
+            <button id="scan-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-blue)] opacity-50 uppercase active:scale-95 transition-all border border-gray-800" disabled>SCAN</button>
+            <button id="back-to-menu-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-yellow)] uppercase active:scale-95 transition-all border border-gray-800">Abort</button>
         </div>
     </div>
 
     <div id="modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[200] hidden backdrop-blur-md">
-        <div class="cyber-panel p-8 rounded-2xl text-center max-w-xs mx-4">
-            <h2 id="modal-title" class="text-2xl font-orbitron font-bold mb-4 text-[var(--neon-blue)]">HALT</h2>
-            <p id="modal-desc" class="text-xs text-gray-300 mb-8"></p>
-            <button id="modal-btn-main" class="w-full py-3 rounded-lg border border-[var(--neon-blue)] text-[var(--neon-blue)] font-bold">RECONNECT</button>
+        <div class="cyber-panel p-8 rounded-2xl text-center max-w-xs mx-4 relative border border-[var(--neon-pink)]">
+            <h2 id="modal-title" class="text-2xl font-orbitron font-bold mb-4 text-[var(--neon-pink)]">HALT</h2>
+            <p id="modal-desc" class="text-xs text-gray-300 mb-8 font-medium leading-relaxed"></p>
+            <button id="modal-btn-main" class="w-full py-3 rounded-lg border border-[var(--neon-pink)] text-[var(--neon-pink)] font-bold active:scale-95 transition-all uppercase">RECONNECT</button>
         </div>
     </div>
-    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-[10px] opacity-0 pointer-events-none z-[210] uppercase shadow-xl"></div>
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-[10px] opacity-0 pointer-events-none z-[210] uppercase shadow-xl trucking-widest"></div>
 
-    <script src="audio.js?v=11.2"></script>
-    <script src="game.js?v=11.2"></script>
-    <script src="story.js?v=11.2"></script>
-    <script src="main.js?v=11.2"></script>
+    <script src="audio.js?v=11.3"></script>
+    <script src="game.js?v=11.3"></script>
+    <script src="story.js?v=11.3"></script>
+    <script src="main.js?v=11.3"></script>
 </body>
 </html>
