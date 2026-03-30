@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v11.2 | style.css | SPRITE REPEAT & BACKGROUND FIX */
+/* Version 11.3 | style.css | LAYOUT FIX */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -9,67 +9,79 @@
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
 .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-.scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
-.scene-hidden { display: none !important; }
-.scene-show { display: block !important; opacity: 1 !important; }
+.scene {
+    position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+    transition: opacity 0.5s; z-index: 10;
+}
+.scene-hidden {
+    display: none !important;
+}
+.scene-show {
+    /* ここを display: block !important; から display: flex !important; に変更 */
+    display: flex !important;
+    opacity: 1 !important;
+}
 
 .cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
 
-/* 演出レイアウト */
-#prologue-viewport, #adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; margin: 0 auto; position: relative; }
-
+/* プロローグ演出窓 */
+#prologue-viewport { width: 340px; height: 200px; background: #000; z-index: 5; margin: 0 auto; position: relative; }
 #space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-
 #prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
 
-/* ADVシーン演出 */
-#adv-bg { 
-    position: absolute; inset: 0; 
-    background-repeat: no-repeat !important; 
-    background-size: cover !important; 
-    background-position: center !important; 
-    opacity: 0.7 !important; 
+/* アドベンチャーシーン共通設定 */
+#adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; margin: 0 auto; position: relative; border: 4px solid var(--neon-blue); border-radius: 12px 12px 0 0; }
+#adv-bg {
+    position: absolute; inset: 0;
+    background-repeat: no-repeat !important;
+    background-size: cover !important;
+    background-position: center !important;
+    opacity: 0.7 !important;
     z-index: 1;
 }
 
-/* 立ち絵 (リピート禁止と計算修正) */
-.character { 
-    position: absolute; bottom: 0; 
-    width: 126px; height: 140px; 
-    z-index: 20; 
-    background-repeat: no-repeat !important; /* ここが重要：リピートを禁止 */
-    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9));
-}
-.character-bit { 
-    left: 0; 
-    background: url('img/bit.png'); 
-    background-size: 378px 252px; /* 126*3, 126*2 */
-}
-.character-girl { 
-    right: 0; 
-    background: url('img/girl.png'); 
-    background-size: 378px 378px; /* 126*3, 126*3 */
-}
+/* 立ち絵 (70%サイズ) */
+.character { position: absolute; bottom: 0; width: 126px; height: 140px; z-index: 20; background-repeat: no-repeat !important; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); }
+.character-bit { left: 0; background: url('img/bit.png'); background-size: 378px 252px; }
+.character-girl { right: 0; background: url('img/girl.png'); background-size: 378px 378px; }
 
-/* 名前タグと尻尾 (位置固定) */
-#speaker-label { 
-    position: absolute; top: -18px; left: 50%; transform: translateX(-50%); 
-    z-index: 150 !important; /* 最前面 */
+/* 名前タグと尻尾 */
+#speaker-label {
+    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    z-index: 150 !important;
     border: 2px solid #000; padding: 4px 16px;
 }
-#speaker-tail { 
-    position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); 
-    z-index: 140; 
+#speaker-tail {
+    position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg);
+    z-index: 140;
 }
 
-/* 各種オーバーレイ */
+/* オーバーレイ */
 #black-out-overlay { position: absolute; inset: 0; background: #000; z-index: 100; opacity: 0; pointer-events: none; }
 #interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; }
 
-/* パズルUI */
-#game-viewport { position: relative; width: 340px; height: 350px; overflow: hidden; border-radius: 8px; border: 2px solid #1a1a2e; margin: 0 auto; }
-#game-container { width: 100%; height: 100%; overflow: auto; }
+/* パズルUI (Version 11.3 修正版) */
+#game-viewport {
+    position: relative;
+    width: 340px;
+    /* 高さ固定を廃止し、max-height と min-height で画面サイズに合わせる */
+    max-height: 45vh; /* 画面高さの45%を上限に */
+    min-height: 250px; /* 最小高さを確保 */
+    overflow: hidden;
+    border-radius: 8px;
+    border: 2px solid #1a1a2e;
+    margin: 0 auto;
+}
+#game-container {
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    scrollbar-width: none;
+}
+#game-container::-webkit-scrollbar {
+    display: none;
+}
 .tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
