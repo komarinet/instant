@@ -1,4 +1,4 @@
-// CYBER-SWEEP v10.2 | story.js | ERROR HANDLING & SCALE 70% FIX
+// CYBER-SWEEP v11.0 | story.js | STAGE 5 ADDED & ERROR GUARD
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -60,6 +60,23 @@ const StoryEngine = {
             { bg: "waku", speaker: "パルス", text: "わ、私人間です！ 敵性なんてありません！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠、パスコードを解いてもらおう。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "やりますよ！ やればいいんでしょ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
+        ],
+        // ステージ5前 (惑星着陸〜ビット暴走)
+        stage5: [
+            { bg: "chaku", speaker: "パルス", text: "ふわー、やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "ヴヴ・・・！　ヴヴヴ！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan", special: "shake" },
+            { bg: "chaku", speaker: "パルス", text: "ビット！？　どうしたの！？", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "他の惑星に機密を持ち込む可能性を検知しました。", pulse: "surprised", bit: "angry", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "ビット333", text: "あなたを企業スパイと認定します。", pulse: "surprised", bit: "angry", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "パルス", text: "ちょっと！　しっかりしてよ、ビット！", pulse: "angry", bit: "angry", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "パルス、私を破壊して・・・下さい。", pulse: "anxious", bit: "cry", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "ビット333", text: "私はあなたを・・・排除しようとしている！", pulse: "cry", bit: "cry", tail: "left", color: "cyan", special: "shake" },
+            { bg: "chaku", speaker: "パルス", text: "そんなことできるわけないじゃない。どうしよう。", pulse: "cry", bit: "tired", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "マスターコードの書き換えを・・・。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "パルス", text: "マスターコードの書き換え！？　それってまさか・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "人にしかできない、コードを。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "パルス", text: "またそれかっ！　ここまで来たらやってやるわよ！", pulse: "angry", bit: "tired", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "来なさい、ビット！　あなたを解放してあげる！", pulse: "smile", bit: "tired", tail: "right", color: "pink" }
         ]
     },
 
@@ -71,7 +88,7 @@ const StoryEngine = {
     },
 
     play(scriptKey, callback) {
-        this.currentScript = this.scripts[scriptKey];
+        this.currentScript = this.scripts[scriptKey] || [];
         this.currentIndex = 0;
         this.onComplete = callback;
         this.setSpritesHidden(false);
@@ -95,7 +112,7 @@ const StoryEngine = {
     },
 
     next() {
-        if(this.currentIndex >= this.currentScript.length) { this.onComplete(); return; }
+        if(this.currentIndex >= this.currentScript.length) { if(this.onComplete) this.onComplete(); return; }
         const data = this.currentScript[this.currentIndex];
         this.fadeBackgroundUpdate(data.bg, data.brightness, () => {
             this.updateUI(data);
@@ -128,7 +145,7 @@ const StoryEngine = {
         else { el.classList.add('brightness-100'); el.classList.remove('brightness-20'); }
     },
 
-    skip() { clearInterval(this.typingTimer); this.onComplete(); },
+    skip() { clearInterval(this.typingTimer); if(this.onComplete) this.onComplete(); },
 
     updateUI(data) {
         if (data.special === "shake") {
@@ -145,18 +162,17 @@ const StoryEngine = {
         const label = document.getElementById('speaker-label');
         const tail = document.getElementById('speaker-tail');
         
-        // unknown 処理の強化 (undefined防止)
         if (data.unknown) {
-            this.setSpritesHidden(true); // 全立ち絵を隠す
+            this.setSpritesHidden(true);
             label.innerText = "UNKNOWN"; 
             label.style.backgroundColor = "var(--neon-yellow)"; 
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            this.setSpritesHidden(false); // 立ち絵を出す
+            this.setSpritesHidden(false);
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
-            label.innerText = data.speaker; label.style.backgroundColor = color; label.style.borderColor = color;
+            label.innerText = data.speaker || ""; label.style.backgroundColor = color; label.style.borderColor = color;
             tail.style.left = data.tail === "right" ? "calc(50% + 50px)" : "calc(50% - 50px)";
             tail.style.borderTopColor = color;
             this.updateSprites(data);
@@ -190,7 +206,7 @@ const StoryEngine = {
     },
 
     typeText(text, colorType) {
-        if (typeof text === 'undefined') return; // undefinedガード
+        if (typeof text === 'undefined') return;
         this.isTyping = true; this.fullText = text.replace(/\n/g, '<br>');
         const el = document.getElementById('dialogue-text');
         if (colorType === "pink") el.style.color = "var(--pink-txt)";
@@ -204,20 +220,10 @@ const StoryEngine = {
     },
 
     updateSprites(data) {
-        if (data.unknown) return; // unknown時はスキップ
-        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1], surprised: [2,1] };
+        if (data.unknown) return;
+        const bMap = { calm: [0,0], smile: [1,0], angry: [2,0], confused: [0,1], tired: [1,1], surprised: [2,1], cry:[0,1] };
         const b = bMap[data.bit] || [0,0];
-        // 126pxサイズに基づいた計算
         document.getElementById('char-bit').style.backgroundPosition = `-${b[0]*126}px -${b[1]*126}px`;
 
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
-        const p = pMap[data.pulse] || [0,0];
-        document.getElementById('char-pulse').style.backgroundPosition = `-${p[0]*126}px -${p[1]*126}px`;
-    },
-
-    setSpritesHidden(hidden) {
-        const op = hidden ? 0 : 1;
-        document.getElementById('char-bit').style.opacity = op;
-        document.getElementById('char-pulse').style.opacity = op;
-    }
-};
+        const p = pMap[data.pulse]
