@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.8 | story.js
+// CYBER-SWEEP v12.0 | story.js | ANTI-BUG ENGINE
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -47,7 +47,7 @@ const StoryEngine = {
         ],
         stage4: [
             { bg: "uni", speaker: "パルス", text: "し、死んだかと思ったわ・・・", pulse: "cry", bit: "calm", tail: "right", color: "pink" },
-            { bg: "uni", speaker: "ビット333", text: "私もです。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "uni", speaker: "ビット333", text: "私もです。AIなので死ぬという表現はどうでしょうね。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわよ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "スカネイラ惑星が近いですね。ワープしますか？", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "いいわ, そこまでワープしましょ。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
@@ -79,103 +79,156 @@ const StoryEngine = {
         ]
     },
 
-    currentScript: [], currentIndex: 0, isTyping: false, typingTimer: null, fullText: "", onComplete: null,
+    currentScript: [], currentIndex: 0, currentBgKey: "",
+    isTyping: false, isAnimating: false, typingTimer: null, activeTimeouts: [],
+    fullText: "", onComplete: null,
 
     init() {
         document.getElementById('dialogue-container').onclick = () => this.handleDialogueClick();
         document.getElementById('adv-skip-btn').onclick = (e) => { e.stopPropagation(); this.skip(); };
     },
 
+    // 演出用タイマーを安全に登録する
+    safeTimeout(fn, delay) {
+        const id = setTimeout(() => {
+            this.activeTimeouts = this.activeTimeouts.filter(t => t !== id);
+            fn();
+        }, delay);
+        this.activeTimeouts.push(id);
+        return id;
+    },
+
+    clearAllTimeouts() {
+        this.activeTimeouts.forEach(id => clearTimeout(id));
+        this.activeTimeouts = [];
+    },
+
     play(key, cb) {
         this.currentScript = this.scripts[key] || [];
         this.currentIndex = 0;
         this.onComplete = cb;
+        this.currentBgKey = ""; // 背景キーをリセット
+        
         // 演出のリセット
+        this.isAnimating = false;
         const advBg = document.getElementById('adv-bg');
         advBg.style.opacity = "0.7";
-        advBg.style.filter = "brightness(1)";
-        document.getElementById('char-bit').style.opacity = 1;
-        document.getElementById('char-pulse').style.opacity = 1;
+        advBg.className = 'brightness-100'; // classListで管理
+        this.setSpritesHidden(false);
+        document.getElementById('interior-alert-overlay').style.display = 'none';
+        document.getElementById('black-out-overlay').classList.remove('fade-black');
+        document.getElementById('warp-container').classList.add('hidden');
         
         if (key === 'stage1') this.startAlert演出(() => this.next()); else this.next();
     },
 
     startAlert演出(callback) {
+        this.isAnimating = true;
         const overlay = document.getElementById('interior-alert-overlay');
         const win = document.getElementById('adventure-viewport');
+        this.currentBgKey = "inship";
         document.getElementById('adv-bg').style.backgroundImage = "url('img/inship.png')";
+        
         overlay.style.display = 'block'; win.classList.add('shake-scene'); SoundEngine.playSFX('damage');
-        setTimeout(() => { overlay.style.display = 'none'; win.classList.remove('shake-scene'); callback(); }, 1200);
+        this.safeTimeout(() => { 
+            overlay.style.display = 'none'; win.classList.remove('shake-scene'); 
+            this.isAnimating = false;
+            callback(); 
+        }, 1200);
     },
 
     handleDialogueClick() {
+        if(this.isAnimating) return; // ★危険度:高 バグ対策。暗転中やワープ中の連打を無視
+
         if(this.isTyping) {
             clearInterval(this.typingTimer);
             document.getElementById('dialogue-text').innerHTML = this.fullText || "";
             this.isTyping = false;
-        } else this.next();
+        } else {
+            this.next();
+        }
     },
 
     next() {
         if(this.currentIndex >= this.currentScript.length) { if(this.onComplete) this.onComplete(); return; }
         const data = this.currentScript[this.currentIndex];
+        
         this.fadeBackgroundUpdate(data.bg, data.brightness, () => {
             this.updateUI(data);
             this.currentIndex++;
         });
     },
 
+    // ★危険度:高 バグ対策。文字列比較ではなくキー名で比較
     fadeBackgroundUpdate(bgName, brightness, callback) {
         const advBg = document.getElementById('adv-bg');
         const blackOut = document.getElementById('black-out-overlay');
-        const currentBg = advBg.style.backgroundImage;
-        const newBg = `url("img/${bgName}.png")`;
 
-        if (currentBg !== newBg) {
+        if (this.currentBgKey !== bgName && this.currentBgKey !== "") {
+            this.isAnimating = true;
             blackOut.classList.add('fade-black');
-            setTimeout(() => {
-                advBg.style.backgroundImage = newBg;
+            this.safeTimeout(() => {
+                advBg.style.backgroundImage = `url("img/${bgName}.png")`;
+                this.currentBgKey = bgName;
                 this.applyBrightness(advBg, brightness);
                 blackOut.classList.remove('fade-black');
-                setTimeout(callback, 300);
+                this.safeTimeout(() => {
+                    this.isAnimating = false;
+                    callback();
+                }, 300);
             }, 300);
         } else {
+            advBg.style.backgroundImage = `url("img/${bgName}.png")`;
+            this.currentBgKey = bgName;
             this.applyBrightness(advBg, brightness);
             callback();
         }
     },
 
     applyBrightness(el, b) {
-        el.style.filter = (b === "dark") ? "brightness(0.2)" : "brightness(1.0)";
+        if (b === "dark") { el.classList.add('brightness-20'); el.classList.remove('brightness-100'); }
+        else { el.classList.add('brightness-100'); el.classList.remove('brightness-20'); }
     },
 
-    skip() { clearInterval(this.typingTimer); if(this.onComplete) this.onComplete(); },
+    skip() { 
+        clearInterval(this.typingTimer); 
+        this.clearAllTimeouts(); // ★危険度:高 バグ対策。進行中の全アニメーションを破棄
+        this.isTyping = false;
+        this.isAnimating = false;
+        
+        // 演出用オーバーレイを全部強制リセット
+        const alertOverlay = document.getElementById('interior-alert-overlay');
+        alertOverlay.style.display = 'none';
+        alertOverlay.classList.remove('alert-blink-red');
+        document.getElementById('black-out-overlay').classList.remove('fade-black');
+        document.getElementById('warp-container').classList.add('hidden');
+        document.getElementById('adventure-viewport').classList.remove('shake-scene', 'shake-scene-heavy');
+        
+        if(this.onComplete) this.onComplete(); 
+    },
 
     updateUI(data) {
         if (data.special === "shake") {
             const win = document.getElementById('adventure-viewport');
             win.classList.add('shake-scene'); SoundEngine.playSFX('damage');
-            setTimeout(() => win.classList.remove('shake-scene'), 800);
+            this.safeTimeout(() => win.classList.remove('shake-scene'), 800);
         } else if (data.special === "alert_dark_shake") {
-            this.playAlertDarkShake(); this.isTyping = false; return;
+            this.playAlertDarkShake(); return;
         } else if (data.special === "warp") {
-            this.isTyping = true;
-            this.playWarpEffect(() => { this.isTyping = false; this.next(); });
+            this.playWarpEffect(() => this.next());
         }
 
         const label = document.getElementById('speaker-label');
         const tail = document.getElementById('speaker-tail');
         
         if (data.unknown) {
-            document.getElementById('char-bit').style.opacity = 0;
-            document.getElementById('char-pulse').style.opacity = 0;
+            this.setSpritesHidden(true);
             label.innerText = "UNKNOWN"; 
             label.style.backgroundColor = "var(--neon-yellow)"; 
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            document.getElementById('char-bit').style.opacity = 1;
-            document.getElementById('char-pulse').style.opacity = 1;
+            this.setSpritesHidden(false);
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
             label.innerText = data.speaker || ""; 
@@ -191,19 +244,27 @@ const StoryEngine = {
     playAlertDarkShake() {
         const win = document.getElementById('adventure-viewport');
         const overlay = document.getElementById('interior-alert-overlay');
-        this.isTyping = true;
+        this.isAnimating = true;
+        
         overlay.style.display = 'block'; overlay.classList.add('alert-blink-red');
         SoundEngine.playSFX('damage'); win.classList.add('shake-scene-heavy');
-        setTimeout(() => { 
+        
+        this.safeTimeout(() => { 
+            document.getElementById('scene-adventure').style.opacity = 0; 
+            this.setSpritesHidden(true); 
+        }, 1200);
+        
+        this.safeTimeout(() => { 
             overlay.style.display = 'none'; 
             overlay.classList.remove('alert-blink-red'); 
             win.classList.remove('shake-scene-heavy'); 
-            this.isTyping = false;
+            this.isAnimating = false;
             this.next(); 
-        }, 1500);
+        }, 2000);
     },
 
     playWarpEffect(callback) {
+        this.isAnimating = true;
         const container = document.getElementById('warp-container');
         container.innerHTML = ''; container.classList.remove('hidden');
         for (let i = 0; i < 50; i++) {
@@ -215,7 +276,11 @@ const StoryEngine = {
             container.appendChild(p);
         }
         SoundEngine.playSFX('scan');
-        setTimeout(() => { container.classList.add('hidden'); callback(); }, 2000);
+        this.safeTimeout(() => { 
+            container.classList.add('hidden'); 
+            this.isAnimating = false;
+            callback(); 
+        }, 2000);
     },
 
     typeText(text, colorType) {
@@ -235,16 +300,20 @@ const StoryEngine = {
 
     updateSprites(data) {
         if (data.unknown) return;
-        // パルス (210px単位)
         const pSize = 210;
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0] * pSize}px -${p[1] * pSize}px`;
 
-        // ビット (横186.6px, 縦196.35px単位)
         const bW = 186.6; const bH = 196.35;
         const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
         const b = bMap[data.bit] || [0,0];
         document.getElementById('char-bit').style.backgroundPosition = `-${b[0] * bW}px -${b[1] * bH}px`;
+    },
+
+    setSpritesHidden(hidden) {
+        const op = hidden ? 0 : 1;
+        document.getElementById('char-bit').style.opacity = op;
+        document.getElementById('char-pulse').style.opacity = op;
     }
 };
