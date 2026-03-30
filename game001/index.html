@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v11.8 [FULL FIXED]</title>
+    <title>Cyber-Sweep v12.0 [STABLE]</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=11.8">
+    <link rel="stylesheet" href="style.css?v=12.0">
 </head>
 <body class="scan-effect bg-black text-white overflow-hidden">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <div class="mb-10 text-center">
             <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] mb-2">CYBER-SWEEP</h1>
-            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v11.8</p>
+            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v12.0</p>
         </div>
         <div class="flex flex-col gap-4 w-full max-w-xs">
-            <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 text-lg">START MISSION</button>
-            <button id="select-scene-btn" class="cyber-panel py-2 rounded-lg text-xs text-gray-400 uppercase active:scale-95">Select Sector</button>
+            <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 text-lg transition-all">START MISSION</button>
+            <button id="select-scene-btn" class="cyber-panel py-2 rounded-lg text-xs text-gray-400 uppercase active:scale-95 transition-all">Select Sector</button>
         </div>
     </div>
 
@@ -38,21 +38,21 @@
 
     <div id="scene-adventure" class="scene flex flex-col items-center justify-center bg-black hidden">
         <div id="adventure-viewport">
-            <div id="adv-bg"></div>
+            <div id="adv-bg" class="brightness-100"></div>
             <div id="warp-container" class="absolute inset-0 z-30 hidden pointer-events-none"></div>
             <div id="char-bit" class="character character-bit"></div>
             <div id="char-pulse" class="character character-girl"></div>
             <div id="black-out-overlay" class="absolute inset-0 bg-black z-[100] opacity-0 pointer-events-none"></div>
-            <div id="interior-alert-overlay" class="absolute inset-0 z-40 hidden background-alert"></div>
-            <button id="adv-skip-btn" class="absolute top-2 right-2 z-[110] text-[9px] border border-gray-700 px-2 py-1 rounded bg-black/70 uppercase">SKIP >></button>
+            <div id="interior-alert-overlay" class="absolute inset-0 z-40 hidden background-alert pointer-events-none"></div>
+            <button id="adv-skip-btn" class="absolute top-2 right-2 z-[110] text-[9px] text-[var(--neon-blue)] border border-gray-700 px-3 py-1.5 rounded bg-black/80 uppercase active:scale-90">SKIP >></button>
         </div>
 
         <div id="dialogue-container" class="w-full max-w-[340px] cursor-pointer relative overflow-visible mt-0">
-            <div id="speaker-label" class="absolute bg-[var(--neon-blue)] font-bold text-black rounded-full shadow-2xl z-[150] uppercase text-[11px]">NAME</div>
-            <div id="speaker-tail" class="z-[140]"></div>
+            <div id="speaker-label" class="absolute bg-[var(--neon-blue)] font-bold text-black rounded-full shadow-2xl z-[150] uppercase text-[11px] pointer-events-none">NAME</div>
+            <div id="speaker-tail" class="z-[140] pointer-events-none"></div>
             <div class="cyber-panel p-5 rounded-b-xl h-40 bg-[#05050a] border-t-0 shadow-xl relative">
-                <div id="dialogue-text" class="text-xs leading-relaxed font-mono mt-1 text-white pr-6"></div>
-                <div class="absolute bottom-3 right-5 text-[var(--neon-blue)] animate-bounce text-[10px]">▼</div>
+                <div id="dialogue-text" class="text-xs leading-relaxed font-mono mt-1 text-white pr-6 select-none"></div>
+                <div class="absolute bottom-3 right-5 text-[var(--neon-blue)] animate-bounce text-[10px] pointer-events-none">▼</div>
             </div>
         </div>
     </div>
@@ -60,7 +60,7 @@
     <div id="scene-select" class="scene flex flex-col items-center justify-center p-4 hidden">
         <h2 class="text-2xl font-orbitron font-bold text-[var(--neon-blue)] mb-8 tracking-widest uppercase">SELECT SECTOR</h2>
         <div id="stage-buttons" class="grid grid-cols-1 gap-4 w-full max-w-xs px-2"></div>
-        <button id="back-to-title-btn" class="mt-8 text-[10px] text-gray-500 uppercase tracking-widest border-b border-gray-800">Back to Title</button>
+        <button id="back-to-title-btn" class="mt-8 text-[10px] text-gray-500 uppercase tracking-widest border-b border-gray-800 active:text-[var(--neon-blue)] transition-colors">Back to Title</button>
     </div>
 
     <div id="scene-game" class="scene flex flex-col items-center justify-center p-4 hidden">
@@ -84,8 +84,8 @@
             <div id="game-container"><div id="grid" class="grid gap-1 p-5"></div></div>
         </div>
         <div class="w-full max-w-[340px] mt-4 grid grid-cols-3 gap-3 px-1">
-            <button id="flag-mode-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs uppercase active:scale-95 text-white">MARK</button>
-            <button id="scan-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-blue)] opacity-50 active:scale-95" disabled>SCAN</button>
+            <button id="flag-mode-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs uppercase active:scale-95 text-white transition-colors">MARK</button>
+            <button id="scan-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-blue)] opacity-50 active:scale-95 transition-colors" disabled>SCAN</button>
             <button id="back-to-menu-btn" class="cyber-panel py-3 rounded-lg font-bold text-xs text-[var(--neon-yellow)] active:scale-95">Abort</button>
         </div>
     </div>
@@ -94,14 +94,14 @@
         <div class="cyber-panel p-8 rounded-2xl text-center max-w-xs mx-4 border border-[var(--neon-pink)] shadow-2xl">
             <h2 id="modal-title" class="text-2xl font-orbitron font-bold mb-4 text-[var(--neon-pink)] uppercase">Halt</h2>
             <p id="modal-desc" class="text-xs text-gray-300 mb-8 font-medium"></p>
-            <button id="modal-btn-main" class="w-full py-3 rounded-lg border border-[var(--neon-pink)] text-[var(--neon-pink)] font-bold active:scale-95 uppercase">Reconnect</button>
+            <button id="modal-btn-main" class="w-full py-3 rounded-lg border border-[var(--neon-pink)] text-[var(--neon-pink)] font-bold active:scale-95 uppercase transition-all">Reconnect</button>
         </div>
     </div>
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-[10px] opacity-0 transition-opacity pointer-events-none z-[210] uppercase shadow-xl tracking-widest"></div>
 
-    <script src="audio.js?v=11.8"></script>
-    <script src="game.js?v=11.8"></script>
-    <script src="story.js?v=11.8"></script>
-    <script src="main.js?v=11.8"></script>
+    <script src="audio.js?v=12.0"></script>
+    <script src="game.js?v=12.0"></script>
+    <script src="story.js?v=12.0"></script>
+    <script src="main.js?v=12.0"></script>
 </body>
 </html>
