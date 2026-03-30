@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v11.8 | style.css */
+/* CYBER-SWEEP v12.0 | style.css | STABLE VERSION */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -9,8 +9,7 @@
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
 .font-orbitron { font-family: 'Orbitron', sans-serif; }
 
-/* 共通シーン設定 (Flexboxで中央寄せ) */
-.scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; }
+.scene { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; transition: opacity 0.5s; z-index: 10; display: none; }
 .scene-hidden { display: none !important; }
 .scene-show { display: flex !important; opacity: 1 !important; }
 
@@ -25,29 +24,20 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 
 #space-bg { position: absolute; inset: 0; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; z-index: 1; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-
 #prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
 
 /* ADVシーン演出 */
-#adv-bg { position: absolute; inset: 0; background-repeat: no-repeat !important; background-size: cover !important; background-position: center !important; opacity: 0.7 !important; z-index: 1; }
+#adv-bg { position: absolute; inset: 0; background-repeat: no-repeat !important; background-size: cover !important; background-position: center !important; opacity: 0.7 !important; z-index: 1; transition: filter 0.5s; }
 
-/* 立ち絵 (70%縮小・ピクセルパーフェクト) */
+.brightness-20 { filter: brightness(0.2) !important; }
+.brightness-100 { filter: brightness(1.0) !important; }
+
+/* 立ち絵 */
 .character { position: absolute; bottom: 0; background-repeat: no-repeat !important; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); pointer-events: none; }
+.character-bit { left: 0; width: 186.6px; height: 196.4px; background: url('img/bit.png'); background-size: 560px 392.7px; z-index: 20; }
+.character-girl { right: 0; width: 210px; height: 210px; background: url('img/girl.png'); background-size: 630px 630px; z-index: 21; }
 
-/* ビット (800x561の70% = 560x392.7) | 1コマ 186.66 x 196.35 */
-.character-bit { 
-    left: 0; width: 186.6px; height: 196.4px; 
-    background: url('img/bit.png'); background-size: 560px 392.7px; 
-    z-index: 20; 
-}
-/* パルス (900x900の70% = 630x630) | 1コマ 210 x 210 */
-.character-girl { 
-    right: 0; width: 210px; height: 210px; 
-    background: url('img/girl.png'); background-size: 630px 630px; 
-    z-index: 21; 
-}
-
-/* 名前タグと尻尾 (修正：z-indexを最強に) */
+/* 名前タグと尻尾 */
 #speaker-label { 
     position: absolute; top: -18px; left: 50%; transform: translateX(-50%); 
     z-index: 150 !important; border: 2px solid #000; padding: 4px 16px; 
@@ -57,7 +47,7 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
     position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); 
     z-index: 140; width: 0; height: 0; 
     border-left: 8px solid transparent; border-right: 8px solid transparent; 
-    border-top: 12px solid var(--neon-blue);
+    border-top: 12px solid var(--neon-blue); transition: left 0.2s, border-top-color 0.2s;
 }
 
 /* 特殊演出用 */
@@ -74,6 +64,9 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: all 0.2s; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
+.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
+.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
+.edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
 
 /* 爆破 */
 .explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 100; display: none; }
