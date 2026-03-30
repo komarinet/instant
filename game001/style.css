@@ -1,12 +1,12 @@
-/* CYBER-SWEEP v7.0 | style.css | ADV-VIEWPORT & PATH CORRECT */
+/* CYBER-SWEEP v7.1 | style.css | NAME LABEL FIX */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
     --neon-blue: #00f3ff;
     --neon-pink: #ff00ff;
     --neon-yellow: #fff200;
-    --cyan-txt: #e0f7fa; /* ビット用 */
-    --pink-txt: #f8bbd0; /* パルス用 */
+    --cyan-txt: #e0f7fa;
+    --pink-txt: #f8bbd0;
 }
 
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
@@ -28,7 +28,7 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 @keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
 @keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
-/* アドベンチャーシーン (船内・扉前) */
+/* アドベンチャーシーン */
 #adventure-viewport { width: 340px; height: 240px; z-index: 5; background: #000; }
 .background-center { background-no-repeat; background-size: cover; background-position: center; transition: background-image 0.2s; opacity: 0.6; z-index: 1; }
 #interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; mix-blend-mode: overlay; }
@@ -37,9 +37,9 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .character-bit { left: -30px; background: url('img/bit.png') no-repeat; background-size: calc(180px * 3) calc(180px * 2); }
 .character-girl { right: -30px; background: url('img/girl.png') no-repeat; background-size: calc(180px * 3) calc(180px * 3); }
 
-/* 名前タグと尻尾 */
-#speaker-tail { transition: left 0.2s; }
-.transition-left { transition: left 0.2s, border-top-color 0.1s; }
+/* 名前ラベル (強制表示用) */
+#speaker-label { display: block !important; transform: translate(-50%, 20%); z-index: 100; box-shadow: 0 5px 20px rgba(0,0,0,1); }
+#speaker-tail { transform: translateX(-50%) rotate(180deg); transform-origin: top; margin-top: 2px; }
 
 /* 衝撃演出 */
 .shake-scene { animation: shake-s 0.08s infinite; }
@@ -54,9 +54,6 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
 .tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
 .edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
-#edge-top, #edge-bottom { width: 100%; height: 3px; left: 0; }
-#edge-left, #edge-right { height: 100%; width: 3px; top: 0; }
-#edge-top { top: 0; } #edge-bottom { bottom: 0; } #edge-left { left: 0; } #edge-right { right: 0; }
 .edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
 
 .scan-effect::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 0%, var(--neon-blue) 40%, transparent 100%); opacity: 0.04; pointer-events: none; animation: scan-line 8s linear infinite; z-index: 100; }
