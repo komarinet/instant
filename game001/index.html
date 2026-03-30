@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v6.2</title>
+    <title>Cyber-Sweep v7.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=6.2">
+    <link rel="stylesheet" href="style.css?v=7.0">
 </head>
 <body class="scan-effect">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4 scene-show">
         <div class="mb-10 text-center">
             <h1 class="text-6xl font-bold font-orbitron text-[var(--neon-blue)] tracking-tight mb-2">CYBER-SWEEP</h1>
-            <p class="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em]">Tactical Overload v6.2</p>
+            <p class="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em]">Tactical Overload v7.0</p>
         </div>
         <button id="start-btn" class="cyber-panel px-16 py-5 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 transition-all">
             INITIALIZE CONNECTION
@@ -22,8 +22,8 @@
     <div id="scene-prologue" class="scene flex flex-col items-center justify-center bg-black scene-hidden">
         <div class="w-full max-w-sm px-6 mb-4">
             <div class="flex justify-between items-end border-b-2 border-[var(--neon-blue)] pb-2">
-                <span class="text-[11px] text-[var(--neon-blue)] font-bold font-orbitron tracking-widest">EXTERNAL CAMERA</span>
-                <span id="cam-status" class="text-[9px] text-[var(--neon-pink)] font-bold animate-pulse">WARNING // HULL IMPACT</span>
+                <span class="text-[11px] text-[var(--neon-blue)] font-bold font-orbitron tracking-widest">EXT-VIEW // CAM_01</span>
+                <span id="cam-status" class="text-[9px] text-[var(--neon-pink)] animate-pulse">WARNING // COLLISION</span>
             </div>
         </div>
         <div id="prologue-viewport" class="relative overflow-hidden border-4 border-gray-900 rounded-xl shadow-2xl">
@@ -33,23 +33,21 @@
         </div>
     </div>
 
-    <div id="scene-interior" class="scene flex flex-col items-center justify-center bg-black scene-hidden">
-        <div id="interior-window" class="relative border-4 border-[var(--neon-blue)] rounded-t-2xl bg-[#000] overflow-visible">
-            <div id="interior-bg"></div>
+    <div id="scene-adventure" class="scene flex flex-col items-center justify-center bg-black scene-hidden">
+        <div id="adventure-viewport" class="relative border-4 border-[var(--neon-blue)] rounded-t-2xl bg-[#000] overflow-visible">
+            <div id="adv-bg" class="absolute inset-0 background-center"></div>
             
-            <div id="name-tag-layer" class="absolute left-1/2 -translate-x-1/2 w-full h-full z-10 pointer-events-none overflow-visible">
-                <div id="speaker-label" class="absolute -bottom-4 bg-[var(--neon-blue)] text-black text-xs font-bold px-4 py-1 rounded-full uppercase tracking-tighter shadow-xl">NAME</div>
-                <div id="speaker-tail" class="absolute -bottom-6 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[10px] border-t-[var(--neon-blue)]"></div>
-            </div>
+            <div id="char-bit" class="character character-bit z-20"></div>
+            <div id="char-pulse" class="character character-girl z-20"></div>
+            
+            <div id="speaker-label" class="absolute -bottom-5 z-15 left-1/2 -translate-x-1/2 text-black text-xs font-bold px-4 py-1 rounded-full uppercase tracking-tighter shadow-xl border-2 border-[#000]">NAME</div>
+            <div id="speaker-tail" class="absolute -bottom-7 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[12px] border-t-[var(--neon-blue)] z-10 transition-left"></div>
 
-            <div id="char-bit" class="character z-20"></div>
-            <div id="char-pulse" class="character z-20"></div>
-            
             <div id="interior-alert-overlay"></div>
         </div>
 
         <div id="dialogue-container" class="w-full max-w-sm px-0 cursor-pointer">
-            <div class="cyber-panel p-5 rounded-b-2xl h-40 relative border-t-0 shadow-lg bg-[#05050a]/95">
+            <div class="cyber-panel p-5 rounded-b-2xl h-44 relative border-t-0 shadow-lg bg-[#05050a]/98">
                 <div id="dialogue-text" class="text-xs text-[var(--cyan-txt)] leading-relaxed font-mono mt-1 pr-6 tracking-wide"></div>
                 <div id="dialogue-next" class="absolute bottom-3 right-6 text-[var(--neon-blue)] animate-bounce text-xs">▼</div>
             </div>
@@ -68,7 +66,7 @@
                     <h1 id="game-title-text" class="text-2xl font-bold font-orbitron text-[var(--neon-blue)] leading-none tracking-tight">CYBER-SWEEP</h1>
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 bg-[var(--neon-pink)] animate-pulse rounded-full"></span>
-                        <p id="level-label" class="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium">Decryption Matrix Active</p>
+                        <p id="level-label" class="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-medium">Data Matrix Decrypting</p>
                     </div>
                 </div>
                 <div class="flex flex-col items-end gap-3">
@@ -99,17 +97,16 @@
     </div>
 
     <div id="modal" class="fixed inset-0 bg-black/95 flex items-center justify-center z-[200] hidden backdrop-blur-md">
-        <div class="cyber-panel p-10 rounded-3xl text-center max-w-md w-full mx-6 shadow-2xl relative">
-            <div class="absolute top-0 left-0 w-full h-1.5 bg-[var(--neon-blue)] rounded-t-full"></div>
-            <h2 id="modal-title" class="text-4xl font-orbitron font-bold mb-6 text-[var(--neon-blue)]">HALT</h2>
+        <div class="cyber-panel p-10 rounded-3xl text-center max-w-md w-full mx-6 shadow-2xl relative border-4 border-[var(--neon-pink)]">
+            <h2 id="modal-title" class="text-4xl font-orbitron font-bold mb-6 text-[var(--neon-pink)]">HALT</h2>
             <p id="modal-desc" class="text-base text-gray-100 mb-10 font-medium"></p>
-            <button id="modal-btn-main" class="w-full py-4 rounded-xl border-2 border-[var(--neon-blue)] text-[var(--neon-blue)] text-lg font-bold tracking-widest bg-[var(--neon-blue)]/10">RECONNECT</button>
+            <button id="modal-btn-main" class="w-full py-4 rounded-xl border-2 border-[var(--neon-pink)] text-[var(--neon-pink)] text-lg font-bold tracking-widest bg-[var(--neon-pink)]/10">RECONNECT</button>
         </div>
     </div>
     <div id="toast" class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-8 py-3 rounded-full font-bold text-xs opacity-0 transition-opacity pointer-events-none z-[210] uppercase tracking-[0.2em] shadow-xl"></div>
 
-    <script src="audio.js?v=6.2"></script>
-    <script src="game.js?v=6.2"></script>
-    <script src="main.js?v=6.2"></script>
+    <script src="audio.js?v=7.0"></script>
+    <script src="game.js?v=7.0"></script>
+    <script src="story.js?v=7.0"></script> <script src="main.js?v=7.0"></script>
 </body>
 </html>
