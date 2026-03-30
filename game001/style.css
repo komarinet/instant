@@ -1,10 +1,12 @@
-/* CYBER-SWEEP v6.1 | style.css */
+/* CYBER-SWEEP v6.2 | style.css | TAIL & NAMETAG ORDER */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
     --neon-blue: #00f3ff;
     --neon-pink: #ff00ff;
     --neon-yellow: #fff200;
+    --cyan-txt: #e0f7fa; /* ビット用 */
+    --pink-txt: #f8bbd0; /* パルス用 */
 }
 
 body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; overflow: hidden; margin: 0; touch-action: manipulation; }
@@ -14,45 +16,45 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .scene-hidden { opacity: 0 !important; pointer-events: none !important; }
 .scene-show { opacity: 1 !important; pointer-events: auto !important; }
 
-.cyber-panel { background: rgba(10, 10, 20, 0.95); border: 1px solid var(--neon-blue); box-shadow: 0 0 10px rgba(0, 243, 255, 0.2); }
+.cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.3); }
 
 /* 船外演出 */
-#prologue-viewport { width: 340px; height: 200px; background: #000; }
-#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; }
+#prologue-viewport { width: 340px; height: 200px; background: #000; z-index: 5; }
+#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; z-index: 1; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
 #prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); }
-.explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 5; display: none; }
+.explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 3; display: none; }
 .bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
 @keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
 @keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
 /* 船内演出 */
-#interior-window { width: 340px; height: 220px; }
-#interior-bg { position: absolute; inset: 0; background: url('img/inship.png'); background-size: cover; background-position: center; opacity: 0.6; z-index: 1; }
-#interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.5); z-index: 10; display: none; mix-blend-mode: overlay; }
+#interior-window { width: 340px; height: 220px; z-index: 5; }
+#interior-bg { position: absolute; inset: 0; background: url('img/inship.png') no-repeat; background-size: cover; background-position: center; opacity: 0.5; z-index: 1; }
+#interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; mix-blend-mode: overlay; }
 
-.character { position: absolute; bottom: -10px; width: 180px; height: 180px; z-index: 5; transition: transform 0.2s, background-position 0.1s; }
-/* bit.png 800x561 (3x2) -> 1コマ 266x280 */
-#char-bit { left: -30px; background: url('img/bit.png') no-repeat; background-size: calc(180px * 3) calc(180px * 2); }
-/* girl.png 900x900 (3x3) -> 1コマ 300x300 */
-#char-pulse { right: -30px; background: url('img/girl.png') no-repeat; background-size: calc(180px * 3) calc(180px * 3); }
+/* 立ち絵の前後関係のためにz-indexを明記 */
+.character { position: absolute; bottom: -10px; width: 180px; height: 180px; z-index: 20; transition: transform 0.2s, background-position 0.1s; filter: drop-shadow(0 0 10px rgba(0,0,0,0.9)); }
+#char-bit { left: -35px; background: url('img/bit.png') no-repeat; background-size: calc(180px * 3) calc(180px * 2); }
+#char-pulse { right: -35px; background: url('img/girl.png') no-repeat; background-size: calc(180px * 3) calc(180px * 3); }
+
+/* 名前タグと尻尾の制御 */
+#speaker-label { position: absolute; bottom: -6px; z-index: 15; transform: translate(-50%, -50%); transition: background-color 0.1s, border-color 0.1s; border: 1.5px solid #000; box-shadow: 0 4px 10px rgba(0,0,0,0.7); }
+#speaker-tail { position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%); z-index: 10; transition: left 0.2s, border-top-color 0.1s; }
 
 /* 衝撃演出 */
-.shake-scene { animation: shake-s 0.1s infinite; }
-@keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-5px, 5px); } 75% { transform: translate(5px, -5px); } }
+.shake-scene { animation: shake-s 0.08s infinite; }
+@keyframes shake-s { 0%, 100% { transform: translate(0,0); } 25% { transform: translate(-6px, 6px); } 75% { transform: translate(6px, -6px); } }
 
 /* ゲームUI */
-#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1px solid #1a1a2e; }
+#game-viewport { position: relative; width: 100%; max-width: 400px; height: 350px; overflow: hidden; border-radius: 8px; border: 1.5px solid #1a1a2e; z-index: 5; }
 #game-container { width: 100%; height: 100%; overflow: auto; }
-.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; flex-shrink: 0; }
+.tile { width: 44px; height: 44px; transition: all 0.2s; border-radius: 4px; flex-shrink: 0; cursor: pointer; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
-.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; }
+.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
 .edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
-#edge-top, #edge-bottom { width: 100%; height: 3px; left: 0; }
-#edge-left, #edge-right { height: 100%; width: 3px; top: 0; }
-#edge-top { top: 0; } #edge-bottom { bottom: 0; } #edge-left { left: 0; } #edge-right { right: 0; }
-.edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
+.edge-active { opacity: 1; box-shadow: 0 0 15px var(--neon-blue); }
 
 .scan-effect::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(0deg, transparent 0%, var(--neon-blue) 40%, transparent 100%); opacity: 0.04; pointer-events: none; animation: scan-line 8s linear infinite; z-index: 100; }
 @keyframes scan-line { 0% { transform: translateY(-100%); } 100% { transform: translateY(100%); } }
