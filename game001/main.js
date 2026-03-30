@@ -1,4 +1,4 @@
-// CYBER-SWEEP v11.8 | main.js
+// CYBER-SWEEP v12.0 | main.js | STABILITY FIXES
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -9,31 +9,25 @@ const MainController = {
     },
 
     init() {
-        console.log("System Initialization...");
+        console.log("System Initialization v12.0...");
         
-        // 1. 各ボタンへのイベント登録 (ID間違いを徹底チェック)
         const startBtn = document.getElementById('start-btn');
         const selectBtn = document.getElementById('select-scene-btn');
         const backTitleBtn = document.getElementById('back-to-title-btn');
         
         if(startBtn) startBtn.onclick = () => this.handleStart();
         if(selectBtn) selectBtn.onclick = () => {
-            this.createStageSelect(); // ボタンを再生成
+            this.createStageSelect();
             this.showScene('scene-select');
         };
         if(backTitleBtn) backTitleBtn.onclick = () => this.showScene('scene-title');
 
-        // ゲーム中ボタン
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
-        document.getElementById('audio-toggle-btn').onclick = () => this.toggleAudio();
         
-        // 初期状態：ステージ選択ボタンを作っておく
         this.createStageSelect();
-        
         StoryEngine.init();
-        this.setupScrollSync();
     },
 
     async handleStart() {
@@ -42,21 +36,24 @@ const MainController = {
         try {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png']);
             this.startStageSequence(1);
-        } catch(e) { this.startStageSequence(1); }
+        } catch(e) { 
+            console.error("Asset load ignored:", e);
+            this.startStageSequence(1); 
+        }
         finally { btn.disabled = false; btn.innerText = "START MISSION"; }
     },
 
     async preload(urls) {
         const ps = urls.map(u => new Promise(res => {
             const i = new Image(); i.src = u;
-            i.onload = () => res(); i.onerror = () => { console.warn("Asset missing:", u); res(); };
+            // エラー時もフリーズさせずに進める
+            i.onload = () => i.decode ? i.decode().then(res).catch(res) : res();
+            i.onerror = () => { console.warn("Missing:", u); res(); };
         }));
         return Promise.all(ps);
     },
 
     showScene(id) {
-        console.log("Switching scene to:", id);
-        // 全シーンを .hidden (display:none) にし、対象だけ .scene-show にする
         const scenes = document.querySelectorAll('.scene');
         scenes.forEach(s => {
             s.classList.add('hidden');
@@ -99,7 +96,6 @@ const MainController = {
         if (!container) return;
         const exp = document.createElement('div');
         exp.className = 'explosion bomb-play';
-        // 船体に重なるランダム位置
         const rx = 170 + (Math.random() * 80 - 40);
         const ry = 100 + (Math.random() * 30 - 15);
         exp.style.left = `${rx - 40}px`; exp.style.top = `${ry - 40}px`;
@@ -116,9 +112,12 @@ const MainController = {
         document.getElementById('game-title-text').innerText = theme.name;
         document.getElementById('level-display').innerText = `LVL.0${lvl}`;
         
+        // ★危険度:中のバグ修正 (ボタン状態の完全リセット)
         const fBtn = document.getElementById('flag-mode-btn');
         fBtn.style.backgroundColor = ""; fBtn.style.color = "";
-
+        const sBtn = document.getElementById('scan-btn');
+        sBtn.style.backgroundColor = ""; sBtn.style.color = "";
+        
         this.showScene('scene-game');
         GameLogic.init(lvl);
     },
@@ -126,7 +125,7 @@ const MainController = {
     createStageSelect() {
         const container = document.getElementById('stage-buttons');
         if (!container) return;
-        container.innerHTML = ''; // 一旦クリア
+        container.innerHTML = '';
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
@@ -147,24 +146,10 @@ const MainController = {
     toggleScan() {
         if(GameLogic.state.energy >= GameLogic.config.scanCost) {
             GameLogic.state.isScanning = !GameLogic.state.isScanning;
-            document.getElementById('scan-btn').style.backgroundColor = GameLogic.state.isScanning ? "var(--neon-blue)" : "";
-            document.getElementById('scan-btn').style.color = GameLogic.state.isScanning ? "black" : "";
+            const btn = document.getElementById('scan-btn');
+            btn.style.backgroundColor = GameLogic.state.isScanning ? "var(--neon-blue)" : "";
+            btn.style.color = GameLogic.state.isScanning ? "black" : "";
         }
-    },
-
-    toggleAudio() {
-        const m = SoundEngine.toggleMute();
-        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
-    },
-
-    setupScrollSync() {
-        const cont = document.getElementById('game-container');
-        if (!cont) return;
-        cont.onscroll = () => {
-            const th = 5;
-            document.getElementById('edge-top').classList.toggle('edge-active', cont.scrollTop > th);
-            document.getElementById('edge-bottom').classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - th);
-        };
     },
 
     showModal(isWin) {
@@ -183,5 +168,4 @@ const MainController = {
         if (t) { t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 1500); }
     }
 };
-// 最後に確実に初期化
 window.onload = () => MainController.init();
