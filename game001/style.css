@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v11.4 | style.css | PROLOGUE MOVIE FIX */
+/* CYBER-SWEEP v11.5 | style.css | PAL PULSE COMPLETE FIX (70%) */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -17,126 +17,69 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
     display: none !important;
 }
 .scene-show {
-    /* シーン全体のFlexセンタリングを優先 */
     display: flex !important;
     opacity: 1 !important;
 }
 
 .cyber-panel { background: rgba(5, 5, 15, 0.98); border: 2px solid var(--neon-blue); box-shadow: 0 0 15px rgba(0, 243, 255, 0.2); }
 
-/* プロローグカメラ演出 (Version 11.4 修正版) */
-#prologue-viewport {
-    /* 1. 位置ずれ防止: ムービー窓のサイズを明示的に固定 (340x200) */
-    width: 340px; height: 200px;
-    /* 2. Act as root: 中の宇宙船や爆破エフェクトの位置参照元に強制固定 */
-    position: relative;
-    /* 3. Contain bg: 背景スクロールや爆破アニメーションを窓枠の中に収める */
-    overflow: hidden;
-    background: #000;
-    z-index: 5;
-    
-    /* 窓枠のスタイリング */
-    border: 4px solid #1a1a2e; border-radius: 12px;
-    filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.2));
-    margin: 0; /* 親Flexコンテナに配置を任せるため、margin: auto を削除 */
-}
-
-/* 宇宙背景スクロール */
-#space-bg {
-    position: absolute;
-    width: 100%; height: 200%;
-    background: url('img/space02.png') repeat-y;
-    background-size: cover; /* 窓枠 340x200 を満たすようにカバー */
-    background-position: center;
-    animation: scroll-space 30s linear infinite;
-    z-index: 1; /* 窓枠の中で最背面 */
-}
-
+/* プロローグカメラ演出 */
+#prologue-viewport { width: 340px; height: 200px; background: #000; z-index: 5; margin: 0 auto; position: relative; border: 4px solid #1a1a2e; border-radius: 12px; filter: drop-shadow(0 0 10px rgba(0, 243, 255, 0.2)); overflow: hidden; }
+#space-bg { position: absolute; width: 100%; height: 200%; background: url('img/space02.png') repeat-y; background-size: cover; animation: scroll-space 30s linear infinite; z-index: 1; }
 @keyframes scroll-space { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-
-/* 宇宙船 (プロローグ) */
-#prologue-ship {
-    position: absolute;
-    /* 窓枠 340x200 の中央に配置 */
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%); /* 中央揃えの基準点を画像の中央に */
-    width: 150px;
-    z-index: 2; /* 宇宙背景の上 */
-    filter: drop-shadow(0 0 10px var(--neon-blue));
-    display: block; /* エラーによる非表示を防止 */
-    opacity: 1;
-}
-
-/* 爆破エフェクトコンテナ */
-#exp-container {
-    z-index: 3; /* 宇宙船の上 */
-    pointer-events: none; /* 爆破エフェクトはクリックを遮断しない */
-}
-
-/* 爆破アニメーション */
-.explosion {
-    position: absolute; /* 爆破コンテナ（viewportと同じサイズ）の中での相対位置 */
-    width: 80px; height: 80px;
-    background: url('img/bomb.png');
-    background-size: 320px 160px; /* stepsアニメーション用に切り出し */
-    z-index: 10; /* ムービーの中で最前面 */
-    display: none; /* 初期状態は非表示、bomb-playクラスで表示 */
-}
-
-/* 爆破再生用クラス (Version 11.4) */
-.bomb-play {
-    display: block !important;
-    animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards;
-}
+#prologue-ship { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 150px; z-index: 2; filter: drop-shadow(0 0 10px var(--neon-blue)); display: block; }
+#exp-container { z-index: 3; pointer-events: none; }
+.explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 10; display: none; }
+.bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
 @keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
 @keyframes bomb-y { from { background-position-y: 0px; } to { background-position-y: -160px; } }
 
-/* 会話・アドベンチャーシーン演出 */
-#adventure-viewport { width: 340px; height: 220px; background: #000; z-index: 5; margin: 0 auto; position: relative; border: 4px solid var(--neon-blue); border-radius: 12px 12px 0 0; }
-#adv-bg {
-    position: absolute; inset: 0;
-    background-repeat: no-repeat !important;
-    background-size: cover !important;
-    background-position: center !important;
-    opacity: 0.7 !important;
-    z-index: 1;
+/* アドベンチャーシーン演出共通 (Version 11.5 修正版) */
+#adventure-viewport { 
+    width: 340px; 
+    /* 立ち絵の高さを 210px に変更 */
+    height: 210px; 
+    background: #000; z-index: 5; margin: 0 auto; position: relative; border: 4px solid var(--neon-blue); border-radius: 12px 12px 0 0; 
 }
+#adv-bg { position: absolute; inset: 0; background-repeat: no-repeat !important; background-size: cover !important; background-position: center !important; opacity: 0.7 !important; z-index: 1; }
 
-/* 立ち絵 (Version 11.4 70%サイズ設定) */
-.character { position: absolute; bottom: 0; width: 126px; height: 140px; z-index: 20; background-repeat: no-repeat !important; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); }
-.character-bit { left: 0; background: url('img/bit.png'); background-size: 378px 252px; /* 126*3, 126*2 */ }
-.character-girl { right: 0; background: url('img/girl.png'); background-size: 378px 378px; /* 126*3, 126*3 */ }
+/* 立ち絵 (Version 11.5 修正版：元のタイル300px * 0.7 = 210x210px 正方形) */
+.character { 
+    position: absolute; bottom: 0; 
+    /* 窓のサイズを 210x210px に固定 */
+    width: 210px; height: 210px; 
+    z-index: 20; 
+    background-repeat: no-repeat !important; /* リピート禁止 */
+    filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); 
+}
+.character-bit { 
+    left: 0; 
+    background: url('img/bit.png'); 
+    /* 画像全体を 900px * 0.7 = 630x630px に縮小 */
+    background-size: 630px 630px; 
+}
+.character-girl { 
+    right: 0; 
+    background: url('img/girl.png'); 
+    /* 画像全体を 900px * 0.7 = 630x630px に縮小 */
+    background-size: 630px 630px; 
+    /* パルスを手前に表示 (中央で80px重なる) */
+    z-index: 21; 
+}
 
 /* 名前タグと尻尾 (位置固定) */
-#speaker-label {
-    position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-    z-index: 150 !important; /* 最前面 */
-    border: 2px solid #000; padding: 4px 16px;
-}
-#speaker-tail {
-    position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg);
-    z-index: 140;
-}
+#speaker-label { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); z-index: 150 !important; border: 2px solid #000; padding: 4px 16px; font-weight: bold; color: black; border-radius: 999px; text-transform: uppercase; text-align: center; font-size: 11px; }
+#speaker-tail { position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); z-index: 140; width: 0; height: 0; border-l-8px; border-l-transparent; border-r-8px; border-r-transparent; border-t-12px; border-t-[var(--neon-blue)]; transition: border-top-color 0.2s; }
 
-/* パズルUI (Version 11.4 修正版) */
-#game-viewport {
-    position: relative;
-    width: 340px;
-    /* 高さ固定を廃止し、max-height と min-height で画面サイズに合わせる */
-    max-height: 45vh; /* 画面高さの45%を上限に */
-    min-height: 250px; /* 最小高さを確保 */
-    overflow: hidden;
-    border-radius: 8px;
-    border: 2px solid #1a1a2e;
-    margin: 0 auto;
-}
-#game-container {
-    width: 100%; height: 100%; overflow: auto; scrollbar-width: none;
-}
+/* オーバーレイ */
+#black-out-overlay { position: absolute; inset: 0; background: #000; z-index: 100; opacity: 0; pointer-events: none; }
+#interior-alert-overlay { position: absolute; inset: 0; background: rgba(255,0,0,0.6); z-index: 25; display: none; }
+
+/* パズルUI */
+#game-viewport { position: relative; width: 340px; max-height: 45vh; min-height: 250px; overflow: hidden; border-radius: 8px; border: 2px solid #1a1a2e; margin: 0 auto; }
+#game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
 #game-container::-webkit-scrollbar { display: none; }
 .tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; }
 .tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
 .tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
 .tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
-.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
-.edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
