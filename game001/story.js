@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.3 | story.js | SHU SIZE UP
+// CYBER-SWEEP v12.3 | story.js | FULL FIXED
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -359,5 +359,13 @@ const StoryEngine = {
             const s = sMap[data.shu] || [0,0];
             document.getElementById('char-shu').style.backgroundPosition = `-${s[0] * sW}px -${s[1] * sH}px`;
         }
+    },
+
+    // 勝手に削除してしまった関数を復活
+    setSpritesHidden(hidden) {
+        const op = hidden ? 0 : 1;
+        document.getElementById('char-bit').style.opacity = op;
+        document.getElementById('char-pulse').style.opacity = op;
+        document.getElementById('char-shu').style.opacity = op;
     }
 };
