@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v12.0 [STABLE]</title>
+    <title>Cyber-Sweep v12.2 [ENDING]</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=12.0">
+    <link rel="stylesheet" href="style.css?v=12.2">
 </head>
 <body class="scan-effect bg-black text-white overflow-hidden">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <div class="mb-10 text-center">
             <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] mb-2">CYBER-SWEEP</h1>
-            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v12.0</p>
+            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v12.2</p>
         </div>
         <div class="flex flex-col gap-4 w-full max-w-xs">
             <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 text-lg transition-all">START MISSION</button>
@@ -40,8 +40,11 @@
         <div id="adventure-viewport">
             <div id="adv-bg" class="brightness-100"></div>
             <div id="warp-container" class="absolute inset-0 z-30 hidden pointer-events-none"></div>
+            
             <div id="char-bit" class="character character-bit"></div>
+            <div id="char-shu" class="character character-shu opacity-0"></div>
             <div id="char-pulse" class="character character-girl"></div>
+            
             <div id="black-out-overlay" class="absolute inset-0 bg-black z-[100] opacity-0 pointer-events-none"></div>
             <div id="interior-alert-overlay" class="absolute inset-0 z-40 hidden background-alert pointer-events-none"></div>
             <button id="adv-skip-btn" class="absolute top-2 right-2 z-[110] text-[9px] text-[var(--neon-blue)] border border-gray-700 px-3 py-1.5 rounded bg-black/80 uppercase active:scale-90">SKIP >></button>
@@ -99,9 +102,19 @@
     </div>
     <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 bg-[var(--neon-blue)] text-black px-4 py-2 rounded-full font-bold text-[10px] opacity-0 transition-opacity pointer-events-none z-[210] uppercase shadow-xl tracking-widest"></div>
 
-    <script src="audio.js?v=12.0"></script>
-    <script src="game.js?v=12.0"></script>
-    <script src="story.js?v=12.0"></script>
-    <script src="main.js?v=12.0"></script>
+    <div id="scene-ending" class="scene flex flex-col items-center justify-center p-4 bg-black hidden">
+        <h2 class="text-4xl font-orbitron font-bold text-[var(--neon-pink)] mb-4 uppercase tracking-widest text-center">MISSION<br>ACCOMPLISHED</h2>
+        <p class="text-xs text-gray-300 mb-12 tracking-widest">Thank you for playing.</p>
+        <div class="flex flex-col gap-4 w-full max-w-xs px-2">
+            <button id="end-retry-btn" class="cyber-panel py-3 rounded-xl font-bold text-center active:scale-95 text-[var(--neon-blue)] uppercase">Retry (Sector 01)</button>
+            <button id="end-select-btn" class="cyber-panel py-3 rounded-xl font-bold text-center active:scale-95 text-[var(--neon-yellow)] uppercase">Select Sector</button>
+            <button id="end-title-btn" class="cyber-panel py-3 rounded-xl font-bold text-center active:scale-95 text-gray-400 uppercase">Back to Title</button>
+        </div>
+    </div>
+
+    <script src="audio.js?v=12.2"></script>
+    <script src="game.js?v=12.2"></script>
+    <script src="story.js?v=12.2"></script>
+    <script src="main.js?v=12.2"></script>
 </body>
 </html>
