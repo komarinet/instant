@@ -30,20 +30,21 @@ const StoryEngine = {
             { bg: "wing", speaker: "パルス", text: "ああもう。わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage3: [
-            { bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "うわ、暗い", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "わっ、何も見えないんだけど", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "dark", speaker: "ビット333", text: "電源を入れましょう", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
+            { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "わあ、素敵コクピット！\nこれなら無事に脱出できそう・・・", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "・・・", pulse: "calm", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "light", speaker: "ビット333", text: "どうしましたか？", pulse: "calm", bit: "calm", tail: "left", color: "cyan" },
-            { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "いや、てっきりコクピットもパスコードかかってるかと", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
-            { bg: "cockpit0", brightness: "light", speaker: "ビット333", text: "戦闘機のシステムは宇宙船とは別ですから", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "あー、よかった。じゃあ早速脱出しよう", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
+            { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "どうせこのコクピットもパスコードかかってるんでしょ", pulse: "calm", bit: "calm", tail: "right", color: "pink" },
+            { bg: "cockpit0", brightness: "light", speaker: "ビット333", text: "大丈夫です。脱出船のシステムは本船とは別ですので", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "よかったー！　じゃあ早速脱出しよう", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "light", speaker: "", text: "", special: "alert_dark_shake" }, 
             { bg: "cockpit", speaker: "パルス", text: "ぎゃあああ！", pulse: "surprised", bit: "surprised", tail: "right", color: "pink" },
             { bg: "cockpit", speaker: "ビット333", text: "危険、危険！ 宇宙船崩壊の危険！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
             { bg: "cockpit", speaker: "パルス", text: "んなことわかってるわよ！ 離陸するわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
-            { bg: "cockpit", speaker: "ビット333", text: "お待ちください。ハッチが閉じています。離陸できません", pulse: "surprised", bit: "tired", tail: "left", color: "cyan" },
+            { bg: "cockpit", speaker: "ビット333", text: "本船のハッチが閉じています。離陸できません", pulse: "surprised", bit: "tired", tail: "left", color: "cyan" },
             { bg: "cockpit", speaker: "パルス", text: "宇宙船の・・・ハッチ！？\nね、念のため聞くけど宇宙船のハッチは・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
-            { bg: "cockpit", speaker: "ビット333", text: "宇宙船のパスコードがかかってます", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
+            { bg: "cockpit", speaker: "ビット333", text: "本船のパスコードがかかってます", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
             { bg: "cockpit", speaker: "パルス", text: "ちくしょおおおお！", pulse: "angry", bit: "smile", tail: "right", color: "pink" }
         ],
         stage4: [
