@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.1 | story.js | SPRITE 40% SIZE
+// CYBER-SWEEP v12.2 | story.js | ENDING & SHU SPRITE
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -76,6 +76,28 @@ const StoryEngine = {
             { bg: "chaku", speaker: "ビット333", text: "人にしかできない、コードを。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "またそれかっ！　ここまで来たらやってやるわよ！", pulse: "angry", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "パルス", text: "来なさい、ビット！　あなたを解放してあげる！", pulse: "smile", bit: "tired", tail: "right", color: "pink" }
+        ],
+        // エンディングストーリー
+        ending: [
+            { bg: "chaku", speaker: "ビット333", text: "ヴヴヴ・・・パルス？", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "パルス", text: "ビット！　目を覚ましたのね！", pulse: "smile", bit: "confused", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "ビット333", text: "自動攻撃プログラムが解除されたようです。", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "ビット333", text: "ありがとうパルス。そしてすみませんでした。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "パルス", text: "いや、私も身を守るために必死でやっただけだよ。", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
+            
+            // 拍手とともにビットと首相が入れ替わる
+            { bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、みさせてもらったよ。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "正直驚かされてしまったよ。", pulse: "surprised", shu: "smile", tail: "left", color: "yellow" },
+            { bg: "chaku", speaker: "パルス", text: "そんな。私はだた必死で。", pulse: "blush", shu: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "まさに、我が国が探し求めていた人材だ。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow" },
+            { bg: "chaku", speaker: "パルス", text: "いえ、私はただ避難したくて。", pulse: "anxious", shu: "calm", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "もちろん、大歓迎だとも。屋敷も用意させよう。その代わりに・・・", pulse: "anxious", shu: "thinking", tail: "left", color: "yellow" },
+            { bg: "chaku", speaker: "パルス", text: "あのー、嫌な予感しかしないんですが。", pulse: "anxious", shu: "thinking", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "我が国でもパスコード解除を手伝ってくれないか。", pulse: "surprised", shu: "smile", tail: "left", color: "yellow" },
+            { bg: "chaku", speaker: "パルス", text: "もうイヤ・・・。", pulse: "cry", shu: "smile", tail: "right", color: "pink" },
+            
+            // 再びビットに戻る
+            { bg: "chaku", speaker: "ビット333", text: "めでたし、めでたし。", pulse: "cry", bit: "smile", tail: "left", color: "cyan", special: "switch_bit" }
         ]
     },
 
@@ -112,7 +134,12 @@ const StoryEngine = {
         const advBg = document.getElementById('adv-bg');
         advBg.style.opacity = "0.7";
         advBg.className = 'brightness-100'; 
-        this.setSpritesHidden(false);
+        
+        // 立ち絵初期化 (ビットとパルスを出し、首相は隠す)
+        document.getElementById('char-bit').style.opacity = 1;
+        document.getElementById('char-pulse').style.opacity = 1;
+        document.getElementById('char-shu').style.opacity = 0;
+        
         document.getElementById('interior-alert-overlay').style.display = 'none';
         document.getElementById('black-out-overlay').classList.remove('fade-black');
         document.getElementById('warp-container').classList.add('hidden');
@@ -212,21 +239,33 @@ const StoryEngine = {
             this.playAlertDarkShake(); return;
         } else if (data.special === "warp") {
             this.playWarpEffect(() => this.next());
+        } else if (data.special === "clap_and_switch_shu") {
+            // 拍手効果音と立ち絵の入れ替え
+            this.playClapEffect();
+            document.getElementById('char-bit').style.opacity = 0;
+            document.getElementById('char-shu').style.opacity = 1;
+        } else if (data.special === "switch_bit") {
+            // 首相からビットへ戻る
+            document.getElementById('char-shu').style.opacity = 0;
+            document.getElementById('char-bit').style.opacity = 1;
         }
 
         const label = document.getElementById('speaker-label');
         const tail = document.getElementById('speaker-tail');
         
         if (data.unknown) {
-            this.setSpritesHidden(true);
+            document.getElementById('char-bit').style.opacity = 0;
+            document.getElementById('char-pulse').style.opacity = 0;
+            document.getElementById('char-shu').style.opacity = 0;
             label.innerText = "UNKNOWN"; 
             label.style.backgroundColor = "var(--neon-yellow)"; 
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            this.setSpritesHidden(false);
+            // パルスは常に表示。左側のキャラはデータに応じて表示を維持
+            document.getElementById('char-pulse').style.opacity = 1;
             tail.style.opacity = 1;
-            const color = data.color === "pink" ? "var(--neon-pink)" : "var(--neon-blue)";
+            const color = data.color === "pink" ? "var(--neon-pink)" : data.color === "yellow" ? "var(--neon-yellow)" : "var(--neon-blue)";
             label.innerText = data.speaker || ""; 
             label.style.backgroundColor = color; 
             label.style.borderColor = color;
@@ -235,6 +274,15 @@ const StoryEngine = {
             this.updateSprites(data);
         }
         this.typeText(data.text, data.color);
+    },
+
+    playClapEffect() {
+        let count = 0;
+        let clapInt = setInterval(() => {
+            SoundEngine.playOsc(800, SoundEngine.ctx.currentTime, 0.05, 'square', 0.05); // 拍手風の音
+            count++;
+            if (count > 6) clearInterval(clapInt);
+        }, 150);
     },
 
     playAlertDarkShake() {
@@ -247,7 +295,9 @@ const StoryEngine = {
         
         this.safeTimeout(() => { 
             document.getElementById('scene-adventure').style.opacity = 0; 
-            this.setSpritesHidden(true); 
+            document.getElementById('char-bit').style.opacity = 0;
+            document.getElementById('char-pulse').style.opacity = 0;
+            document.getElementById('char-shu').style.opacity = 0;
         }, 1200);
         
         this.safeTimeout(() => { 
@@ -304,15 +354,19 @@ const StoryEngine = {
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0] * pSize}px -${p[1] * pSize}px`;
 
         // ビット (横106.66px, 縦112.2px単位)
-        const bW = 106.66; const bH = 112.2;
-        const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
-        const b = bMap[data.bit] || [0,0];
-        document.getElementById('char-bit').style.backgroundPosition = `-${b[0] * bW}px -${b[1] * bH}px`;
-    },
+        if (data.bit) {
+            const bW = 106.66; const bH = 112.2;
+            const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
+            const b = bMap[data.bit] || [0,0];
+            document.getElementById('char-bit').style.backgroundPosition = `-${b[0] * bW}px -${b[1] * bH}px`;
+        }
 
-    setSpritesHidden(hidden) {
-        const op = hidden ? 0 : 1;
-        document.getElementById('char-bit').style.opacity = op;
-        document.getElementById('char-pulse').style.opacity = op;
+        // 首相 (横106.66px, 縦100px単位)
+        if (data.shu) {
+            const sW = 106.66; const sH = 100;
+            const sMap = { calm:[0,0], thinking:[1,0], smile:[2,0], closed_eyes:[0,1], sad:[1,1], angry:[2,1], cry_smile:[0,2] };
+            const s = sMap[data.shu] || [0,0];
+            document.getElementById('char-shu').style.backgroundPosition = `-${s[0] * sW}px -${s[1] * sH}px`;
+        }
     }
 };
