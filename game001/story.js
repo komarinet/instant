@@ -8,25 +8,26 @@ const StoryEngine = {
             { bg: "inship", speaker: "ビット333", text: "脱出を推奨します。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
             { bg: "inship", speaker: "パルス", text: "す、推奨って・・・\nもし脱出しなかったら？", pulse: "anxious", bit: "confused", tail: "right", color: "pink" },
             { bg: "inship", speaker: "ビット333", text: "生命存続不能の可能性、100%。", pulse: "surprised", bit: "calm", tail: "left", color: "cyan" },
-            { bg: "inship", speaker: "パルス", text: "ダメじゃない！逃げなきゃ！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
-            { bg: "door", speaker: "ビット333", text: "脱出機のある部屋はコチラです。\n・・・あれ？", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
+            { bg: "inship", speaker: "パルス", text: "ダメじゃない！　逃げなきゃ！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bg: "door", speaker: "ビット333", text: "脱出船のある部屋はコチラです。\n・・・あれ？", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
             { bg: "door", speaker: "パルス", text: "どうしたの？", pulse: "anxious", bit: "confused", tail: "right", color: "pink" },
-            { bg: "door", speaker: "ビット333", text: "扉が開きません。", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
-            { bg: "door", speaker: "パルス", text: "あんたねぇ！AIなんでしょ？", pulse: "angry", bit: "confused", tail: "right", color: "pink" },
-            { bg: "door", speaker: "ビット333", text: "人が回答する形式のみ受け付けているようです。", pulse: "anxious", bit: "calm", tail: "left", color: "cyan" },
+            { bg: "door", speaker: "ビット333", text: "扉が開きません。開錠不能", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
+            { bg: "door", speaker: "パルス", text: "あんたねぇ！　AIなんでしょ？", pulse: "angry", bit: "confused", tail: "right", color: "pink" },
+            { bg: "door", speaker: "ビット333", text: "こちらの扉は人が回答する形式のみ\n受け付けているようです。", pulse: "anxious", bit: "calm", tail: "left", color: "cyan" },
             { bg: "door", speaker: "パルス", text: "なんて面倒な仕様なの！", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "door", speaker: "ビット333", text: "宇宙船の崩壊、進行中。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan", special: "shake" },
-            { bg: "door", speaker: "パルス", text: "あー、やるしかないか。", pulse: "anxious", bit: "confused", tail: "right", color: "pink" }
+            { bg: "door", speaker: "パルス", text: "やるしかない・・・ってことね", pulse: "anxious", bit: "confused", tail: "right", color: "pink" }
         ],
         stage2: [
-            { bg: "wing", speaker: "パルス", text: "よかった、脱出機は無事ね！", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
-            { bg: "wing", speaker: "ビット333", text: "真ん中のO-559が燃料も入ってます。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "wing", speaker: "パルス", text: "さっすがビット！ よおし・・・\n・・・コクピット、開かないんだけど。", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bg: "wing", speaker: "パルス", text: "よかった、脱出船は無事ね！", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
+            { bg: "wing", speaker: "ビット333", text: "真ん中のO-559がいいでしょう。\n燃料も充分に入っています。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "wing", speaker: "パルス", text: "さっすがビット！ よおし乗り込むわよ・・・", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bg: "wing", speaker: "パルス", text: "・・・コクピット、開かないんだけど。", pulse: "anxious", bit: "calm", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "どうやらパスコードが設定されているようです。", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
             { bg: "wing", speaker: "ビット333", text: "宇宙船崩壊まであと5分。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan", special: "shake" },
             { bg: "wing", speaker: "パルス", text: "わわっ！ 早く開けてよ！", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "非常に申し訳ないのですが、これも・・・", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
-            { bg: "wing", speaker: "パルス", text: "ああもう, わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
+            { bg: "wing", speaker: "パルス", text: "ああもう。わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage3: [
             { bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "うわ、暗い", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
