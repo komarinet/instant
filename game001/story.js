@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.3 | story.js | FULL FIXED
+// CYBER-SWEEP v12.4 | story.js | BIT VISIBILITY FIX
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -256,7 +256,13 @@ const StoryEngine = {
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
+            // パルスは常に表示
             document.getElementById('char-pulse').style.opacity = 1;
+            
+            // 【修正部分】データが存在すれば、非表示から復帰させる（暗転で消えたままになるのを防ぐ）
+            if (data.bit) document.getElementById('char-bit').style.opacity = 1;
+            if (data.shu) document.getElementById('char-shu').style.opacity = 1;
+
             tail.style.opacity = 1;
             const color = data.color === "pink" ? "var(--neon-pink)" : data.color === "yellow" ? "var(--neon-yellow)" : "var(--neon-blue)";
             label.innerText = data.speaker || ""; 
@@ -363,7 +369,6 @@ const StoryEngine = {
         }
     },
 
-    // 勝手に削除してしまった関数を復活
     setSpritesHidden(hidden) {
         const op = hidden ? 0 : 1;
         document.getElementById('char-bit').style.opacity = op;
