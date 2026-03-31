@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.0 | main.js | STABILITY FIXES
+// CYBER-SWEEP v12.2 | main.js | ENDING HANDLER
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -9,23 +9,23 @@ const MainController = {
     },
 
     init() {
-        console.log("System Initialization v12.0...");
-        
         const startBtn = document.getElementById('start-btn');
         const selectBtn = document.getElementById('select-scene-btn');
         const backTitleBtn = document.getElementById('back-to-title-btn');
         
         if(startBtn) startBtn.onclick = () => this.handleStart();
-        if(selectBtn) selectBtn.onclick = () => {
-            this.createStageSelect();
-            this.showScene('scene-select');
-        };
+        if(selectBtn) selectBtn.onclick = () => { this.createStageSelect(); this.showScene('scene-select'); };
         if(backTitleBtn) backTitleBtn.onclick = () => this.showScene('scene-title');
 
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
         document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
         
+        // エンディング画面のボタン
+        document.getElementById('end-retry-btn').onclick = () => this.startStageSequence(1);
+        document.getElementById('end-select-btn').onclick = () => { this.createStageSelect(); this.showScene('scene-select'); };
+        document.getElementById('end-title-btn').onclick = () => this.showScene('scene-title');
+
         this.createStageSelect();
         StoryEngine.init();
     },
@@ -34,36 +34,26 @@ const MainController = {
         const btn = document.getElementById('start-btn');
         btn.disabled = true; btn.innerText = "LOADING...";
         try {
-            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png']);
+            await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png','img/shu.png']);
             this.startStageSequence(1);
-        } catch(e) { 
-            console.error("Asset load ignored:", e);
-            this.startStageSequence(1); 
-        }
+        } catch(e) { this.startStageSequence(1); }
         finally { btn.disabled = false; btn.innerText = "START MISSION"; }
     },
 
     async preload(urls) {
         const ps = urls.map(u => new Promise(res => {
             const i = new Image(); i.src = u;
-            // エラー時もフリーズさせずに進める
             i.onload = () => i.decode ? i.decode().then(res).catch(res) : res();
-            i.onerror = () => { console.warn("Missing:", u); res(); };
+            i.onerror = () => { res(); };
         }));
         return Promise.all(ps);
     },
 
     showScene(id) {
         const scenes = document.querySelectorAll('.scene');
-        scenes.forEach(s => {
-            s.classList.add('hidden');
-            s.classList.remove('scene-show');
-        });
+        scenes.forEach(s => { s.classList.add('hidden'); s.classList.remove('scene-show'); });
         const target = document.getElementById(id);
-        if (target) {
-            target.classList.remove('hidden');
-            target.classList.add('scene-show');
-        }
+        if (target) { target.classList.remove('hidden'); target.classList.add('scene-show'); }
     },
 
     startStageSequence(lvl) {
@@ -112,7 +102,6 @@ const MainController = {
         document.getElementById('game-title-text').innerText = theme.name;
         document.getElementById('level-display').innerText = `LVL.0${lvl}`;
         
-        // ★危険度:中のバグ修正 (ボタン状態の完全リセット)
         const fBtn = document.getElementById('flag-mode-btn');
         fBtn.style.backgroundColor = ""; fBtn.style.color = "";
         const sBtn = document.getElementById('scan-btn');
@@ -140,7 +129,6 @@ const MainController = {
         const btn = document.getElementById('flag-mode-btn');
         btn.style.backgroundColor = GameLogic.state.flagMode ? "var(--neon-pink)" : "";
         btn.style.color = GameLogic.state.flagMode ? "black" : "";
-        this.showToast(GameLogic.state.flagMode ? "MARK ON" : "MARK OFF");
     },
 
     toggleScan() {
@@ -152,20 +140,37 @@ const MainController = {
         }
     },
 
-    showModal(isWin) {
-        const modal = document.getElementById('modal');
-        document.getElementById('modal-title').innerText = isWin ? "DECRYPTED" : "HALT";
-        document.getElementById('modal-desc').innerText = isWin ? "Advanced matrix break success." : "Critical error detected.";
-        document.getElementById('modal-btn-main').onclick = () => {
-            modal.classList.add('hidden');
-            this.startStageSequence(isWin ? GameLogic.state.level + 1 : GameLogic.state.level);
-        };
-        modal.classList.remove('hidden');
+    toggleAudio() {
+        const m = SoundEngine.toggleMute();
+        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
     },
 
-    showToast(msg) {
-        const t = document.getElementById('toast');
-        if (t) { t.innerText = msg; t.style.opacity = '1'; setTimeout(() => t.style.opacity = '0', 1500); }
+    // モーダルとクリア後の進行分岐
+    showModal(isWin) {
+        const modal = document.getElementById('modal');
+        const modalBtn = document.getElementById('modal-btn-main');
+        
+        if (isWin) {
+            document.getElementById('modal-title').innerText = "DECRYPTED";
+            document.getElementById('modal-desc').innerText = "Advanced matrix break success.";
+            modalBtn.innerText = "CONTINUE CONNECTION";
+            modalBtn.onclick = () => {
+                modal.classList.add('hidden');
+                // ステージ5をクリアしたらエンディングストーリーへ
+                if (GameLogic.state.level === 5) {
+                    this.showScene('scene-adventure');
+                    StoryEngine.play('ending', () => this.showScene('scene-ending'));
+                } else {
+                    this.startStageSequence(GameLogic.state.level + 1);
+                }
+            };
+        } else {
+            document.getElementById('modal-title').innerText = "CRITICAL FAIL";
+            document.getElementById('modal-desc').innerText = "Matrix lock active. Resetting connection.";
+            modalBtn.innerText = "REBOOT MATRIX";
+            modalBtn.onclick = () => { modal.classList.add('hidden'); this.launchGame(GameLogic.state.level); };
+        }
+        modal.classList.remove('hidden');
     }
 };
 window.onload = () => MainController.init();
