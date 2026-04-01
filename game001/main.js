@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.6 | main.js | SCENE BGM STOP FIX
+// CYBER-SWEEP v14.1 | main.js | FULL RESTORE & INTEGRATION
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -9,6 +9,8 @@ const MainController = {
     },
 
     init() {
+        console.log("System Initialization v14.1...");
+        
         const startBtn = document.getElementById('start-btn');
         const selectBtn = document.getElementById('select-scene-btn');
         const backTitleBtn = document.getElementById('back-to-title-btn');
@@ -18,7 +20,7 @@ const MainController = {
             this.createStageSelect();
             this.showScene('scene-select');
         };
-        // タイトルに戻る時はテーマとBGMをリセット
+        
         if(backTitleBtn) backTitleBtn.onclick = () => {
             this.resetTheme();
             SoundEngine.setStoryMusic('stop');
@@ -47,8 +49,10 @@ const MainController = {
 
         this.createStageSelect();
         StoryEngine.init();
+        this.setupScrollSync(); // 復活させた関数
     },
 
+    // テーマカラーのリセット (爆破ムービーへの影響対策)
     resetTheme() {
         document.documentElement.style.setProperty('--neon-blue', '#00f3ff');
         document.documentElement.style.setProperty('--neon-pink', '#ff00ff');
@@ -77,15 +81,9 @@ const MainController = {
 
     showScene(id) {
         const scenes = document.querySelectorAll('.scene');
-        scenes.forEach(s => {
-            s.classList.add('hidden');
-            s.classList.remove('scene-show');
-        });
+        scenes.forEach(s => { s.classList.add('hidden'); s.classList.remove('scene-show'); });
         const target = document.getElementById(id);
-        if (target) {
-            target.classList.remove('hidden');
-            target.classList.add('scene-show');
-        }
+        if (target) { target.classList.remove('hidden'); target.classList.add('scene-show'); }
     },
 
     startStageSequence(lvl) {
@@ -108,7 +106,7 @@ const MainController = {
     startExteriorPrologue(callback) {
         this.resetTheme();
         SoundEngine.init();
-        SoundEngine.setStoryMusic('calm'); // プロローグBGM
+        SoundEngine.setStoryMusic('calm'); 
         this.showScene('scene-prologue');
         let count = 0;
         const interval = setInterval(() => {
@@ -152,7 +150,6 @@ const MainController = {
         const container = document.getElementById('stage-buttons');
         if (!container) return;
         container.innerHTML = '';
-        
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
@@ -173,6 +170,7 @@ const MainController = {
         const btn = document.getElementById('flag-mode-btn');
         btn.style.backgroundColor = GameLogic.state.flagMode ? "var(--neon-pink)" : "";
         btn.style.color = GameLogic.state.flagMode ? "black" : "";
+        this.showToast(GameLogic.state.flagMode ? "MARK ON" : "MARK OFF");
     },
 
     toggleScan() {
@@ -184,15 +182,22 @@ const MainController = {
         }
     },
 
-    toggleAudio() {
-        const m = SoundEngine.toggleMute();
-        document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
+    // 復活させた関数：スクロール同期
+    setupScrollSync() {
+        const cont = document.getElementById('game-container');
+        if (!cont) return;
+        cont.onscroll = () => {
+            const th = 5;
+            const edgeTop = document.getElementById('edge-top');
+            const edgeBottom = document.getElementById('edge-bottom');
+            if (edgeTop) edgeTop.classList.toggle('edge-active', cont.scrollTop > th);
+            if (edgeBottom) edgeBottom.classList.toggle('edge-active', cont.scrollTop + cont.clientHeight < cont.scrollHeight - th);
+        };
     },
 
     showModal(isWin) {
         const modal = document.getElementById('modal');
         const modalBtn = document.getElementById('modal-btn-main');
-        
         if (isWin) {
             document.getElementById('modal-title').innerText = "DECRYPTED";
             document.getElementById('modal-desc').innerText = "Advanced matrix break success.";
@@ -213,6 +218,16 @@ const MainController = {
             modalBtn.onclick = () => { modal.classList.add('hidden'); this.launchGame(GameLogic.state.level); };
         }
         modal.classList.remove('hidden');
+    },
+
+    // 復活させた関数：トースト表示
+    showToast(msg) {
+        const t = document.getElementById('toast');
+        if (t) { 
+            t.innerText = msg; 
+            t.style.opacity = '1'; 
+            setTimeout(() => t.style.opacity = '0', 1500); 
+        }
     }
 };
 window.onload = () => MainController.init();
