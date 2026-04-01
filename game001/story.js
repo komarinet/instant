@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.4 | story.js | BIT VISIBILITY FIX
+// CYBER-SWEEP v12.5 | story.js | SCENARIO SYNTAX FIXED
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -62,7 +62,8 @@ const StoryEngine = {
             { bg: "waku", speaker: "unknown", unknown: true, text: "わかった。だが、そちらが敵性AIでないことを示してほしい。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "わ、私は人間です！ 敵性なんてありません！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠が欲しい。", color: "yellow" },
-            { bg: "waku", speaker: "パルス", text: "・・・それってまさか", pulse: "anxious", bit: "calm", tail: "right", color: "pink" }
+            // ★ ここにあったカンマ抜けを修正しました！
+            { bg: "waku", speaker: "パルス", text: "・・・それってまさか", pulse: "anxious", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "パスコードを解いてもらおうか。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "だと思った。", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
@@ -258,10 +259,8 @@ const StoryEngine = {
             label.style.borderColor = "var(--neon-yellow)";
             tail.style.opacity = 0;
         } else {
-            // パルスは常に表示
             document.getElementById('char-pulse').style.opacity = 1;
             
-            // 【修正部分】データが存在すれば、非表示から復帰させる（暗転で消えたままになるのを防ぐ）
             if (data.bit) document.getElementById('char-bit').style.opacity = 1;
             if (data.shu) document.getElementById('char-shu').style.opacity = 1;
 
