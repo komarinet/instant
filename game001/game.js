@@ -1,120 +1,145 @@
-// CYBER-SWEEP v5.3 | game.js
+// CYBER-SWEEP v12.6 | game.js | DIFFICULTY LADDER FIX
 const GameLogic = {
-    config: { rows: 15, cols: 15, minesInit: 25, minesInc: 8, maxHp: 100, damage: 35, energyPerTile: 5, scanCost: 100 },
-    state: { grid: [], gameOver: false, hp: 100, energy: 0, revealedCount: 0, level: 1, isScanning: false, flagMode: false },
-    
-    init(level) {
-        this.state.level = level;
-        this.state.gameOver = false; this.state.hp = this.config.maxHp; this.state.energy = 0;
-        this.state.revealedCount = 0; this.state.isScanning = false; this.state.flagMode = false;
+    config: { scanCost: 30 },
+    state: { grid: [], revealed: [], flags: [], level: 1, size: 5, mines: 4, energy: 0, hp: 100, flagMode: false, isScanning: false, gameOver: false },
+
+    init(lvl) {
+        this.state.level = lvl;
         
-        const mines = this.config.minesInit + (level - 1) * this.config.minesInc;
-        this.createGrid(mines);
-        SoundEngine.generateStageMusic(level);
-        this.updateUI();
-    },
-
-    createGrid(minesCount) {
+        // 難易度ラダーの設定 (Lv1〜Lv5)
+        const sizes = [5, 6, 7, 8, 8];
+        const minesCount = [4, 6, 10, 14, 18];
+        
+        this.state.size = sizes[lvl - 1] || 8;
+        this.state.mines = minesCount[lvl - 1] || 18;
+        
+        this.state.hp = 100; this.state.energy = 0;
+        this.state.gameOver = false; this.state.flagMode = false; this.state.isScanning = false;
+        this.state.grid = Array(this.state.size * this.state.size).fill(0);
+        this.state.revealed = Array(this.state.size * this.state.size).fill(false);
+        this.state.flags = Array(this.state.size * this.state.size).fill(false);
+        
         const gridEl = document.getElementById('grid');
-        gridEl.innerHTML = '';
-        gridEl.style.gridTemplateColumns = `repeat(${this.config.cols}, 1fr)`;
-        this.state.grid = [];
-        for (let r = 0; r < this.config.rows; r++) {
-            this.state.grid[r] = [];
-            for (let c = 0; c < this.config.cols; c++) {
-                const tile = { r, c, isMine: false, isRevealed: false, isFlagged: false, element: document.createElement('div') };
-                tile.element.className = 'tile tile-hidden flex items-center justify-center font-bold text-sm rounded';
-                tile.element.onclick = () => this.state.flagMode ? this.handleRightClick(r,c) : this.handleTileClick(r,c);
-                tile.element.oncontextmenu = (e) => { e.preventDefault(); this.handleRightClick(r,c); };
-                gridEl.appendChild(tile.element); this.state.grid[r][c] = tile;
-            }
-        }
-        let p = 0; while (p < minesCount) {
-            let r = Math.floor(Math.random()*this.config.rows), c = Math.floor(Math.random()*this.config.cols);
-            if(!this.state.grid[r][c].isMine) { this.state.grid[r][c].isMine = true; p++; }
-        }
-        for (let r=0; r<this.config.rows; r++) {
-            for (let c=0; c<this.config.cols; c++) {
-                if(this.state.grid[r][c].isMine) continue;
-                this.state.grid[r][c].neighborMines = this.getNeighbors(r,c).filter(n => n.isMine).length;
-            }
-        }
-    },
-
-    getNeighbors(r, c) {
-        const n = [];
-        for(let dr=-1; dr<=1; dr++) for(let dc=-1; dc<=1; dc++) {
-            if(dr===0 && dc===0) continue;
-            let nr=r+dr, nc=c+dc;
-            if(nr>=0 && nr<this.config.rows && nc>=0 && nc<this.config.cols) n.push(this.state.grid[nr][nc]);
-        }
-        return n;
-    },
-
-    handleTileClick(r, c) {
-        if(this.state.gameOver) return;
-        const tile = this.state.grid[r][c];
-        if(tile.isRevealed || tile.isFlagged) return;
-        if(this.state.isScanning) { this.useScan(r,c); return; }
-        this.revealTile(r, c);
-    },
-
-    handleRightClick(r, c) {
-        const tile = this.state.grid[r][c];
-        if(tile.isRevealed || this.state.gameOver) return;
-        tile.isFlagged = !tile.isFlagged;
-        tile.element.innerHTML = tile.isFlagged ? '<span style="color:var(--neon-pink)">▲</span>' : '';
-        SoundEngine.playSFX('flag');
-    },
-
-    revealTile(r, c) {
-        const tile = this.state.grid[r][c];
-        if(tile.isRevealed) return;
-        tile.isRevealed = true;
-        tile.element.classList.replace('tile-hidden', 'tile-revealed');
-        this.state.revealedCount++;
-        if(tile.isMine) {
-            tile.element.classList.add('tile-mine'); tile.element.innerHTML = '⚡';
-            this.state.hp -= this.config.damage;
-            SoundEngine.playSFX('damage');
-            if(this.state.hp <= 0) { this.state.hp = 0; this.endGame(false); }
-        } else {
-            this.state.energy = Math.min(this.config.scanCost, this.state.energy + this.config.energyPerTile);
-            if(tile.neighborMines > 0) {
-                tile.element.innerText = tile.neighborMines;
-                tile.element.classList.add(`count-${tile.neighborMines}`);
-            } else this.getNeighbors(r,c).forEach(n => this.revealTile(n.r, n.c));
-        }
-        this.updateUI(); this.checkWin();
-    },
-
-    useScan(r, c) {
-        this.state.energy = 0; this.state.isScanning = false;
-        document.getElementById('scan-btn').classList.remove('active-mode');
-        SoundEngine.playSFX('scan');
-        const area = [...this.getNeighbors(r,c), this.state.grid[r][c]];
-        area.forEach(t => { if(!t.isRevealed) {
-            t.element.style.boxShadow = `inset 0 0 10px ${t.isMine ? 'var(--neon-pink)' : 'var(--neon-blue)'}`;
-            setTimeout(() => t.element.style.boxShadow = '', 2000);
-        }});
+        gridEl.style.gridTemplateColumns = `repeat(${this.state.size}, 1fr)`;
+        
+        this.placeMines();
+        this.calculateNumbers();
+        this.render();
         this.updateUI();
+        SoundEngine.generateStageMusic(lvl); // ゲーム用BGMを生成・再生
     },
 
-    updateUI() {
-        document.getElementById('hp-bar').style.width = `${this.state.hp}%`;
-        document.getElementById('hp-text').innerText = `${Math.ceil(this.state.hp)}%`;
-        document.getElementById('energy-bar').style.width = `${(this.state.energy / this.config.scanCost)*100}%`;
-        const sBtn = document.getElementById('scan-btn');
-        sBtn.disabled = this.state.energy < this.config.scanCost;
-        sBtn.classList.toggle('opacity-50', sBtn.disabled);
+    placeMines() {
+        let placed = 0;
+        while(placed < this.state.mines) {
+            const idx = Math.floor(Math.random() * this.state.grid.length);
+            if(this.state.grid[idx] !== -1) { this.state.grid[idx] = -1; placed++; }
+        }
+    },
+
+    calculateNumbers() {
+        for(let i=0; i<this.state.grid.length; i++) {
+            if(this.state.grid[i] === -1) continue;
+            let count = 0;
+            this.getNeighbors(i).forEach(n => { if(this.state.grid[n] === -1) count++; });
+            this.state.grid[i] = count;
+        }
+    },
+
+    getNeighbors(idx) {
+        const res = []; const s = this.state.size;
+        const x = idx % s; const y = Math.floor(idx / s);
+        for(let dy=-1; dy<=1; dy++) {
+            for(let dx=-1; dx<=1; dx++) {
+                if(dx===0 && dy===0) continue;
+                const nx = x + dx; const ny = y + dy;
+                if(nx>=0 && nx<s && ny>=0 && ny<s) res.push(ny * s + nx);
+            }
+        }
+        return res;
+    },
+
+    handleTileClick(idx) {
+        if(this.state.gameOver || this.state.revealed[idx]) return;
+        if(this.state.flagMode) return this.toggleFlag(idx);
+        if(this.state.isScanning) return this.performScan(idx);
+
+        if(this.state.grid[idx] === -1) {
+            this.state.hp -= 25;
+            this.state.revealed[idx] = true;
+            SoundEngine.playSFX('damage');
+            if(this.state.hp <= 0) this.endGame(false);
+        } else {
+            this.revealTile(idx);
+            this.state.energy = Math.min(100, this.state.energy + 8); // ゲージを溜まりやすく
+            SoundEngine.playSFX('flag');
+        }
+        this.checkWin(); this.render(); this.updateUI();
+    },
+
+    revealTile(idx) {
+        if(this.state.revealed[idx]) return;
+        this.state.revealed[idx] = true;
+        if(this.state.grid[idx] === 0) {
+            this.getNeighbors(idx).forEach(n => this.revealTile(n));
+        }
+    },
+
+    toggleFlag(idx) {
+        this.state.flags[idx] = !this.state.flags[idx];
+        SoundEngine.playSFX('flag');
+        this.render();
+    },
+
+    performScan(idx) {
+        this.state.energy -= this.config.scanCost;
+        this.state.isScanning = false;
+        MainController.toggleScan(); // UI側のボタントグル解除
+        this.getNeighbors(idx).concat(idx).forEach(n => {
+            if(this.state.grid[n] === -1) this.state.flags[n] = true;
+            else this.revealTile(n);
+        });
+        SoundEngine.playSFX('scan');
+        this.render(); this.updateUI();
     },
 
     checkWin() {
-        const mCount = this.config.minesInit + (this.state.level-1)*this.config.minesInc;
-        if(this.state.revealedCount + mCount === this.config.rows*this.config.cols) this.endGame(true);
+        const win = this.state.grid.every((val, i) => val === -1 || this.state.revealed[i]);
+        if(win) this.endGame(true);
     },
 
-    endGame(isWin) {
-        this.state.gameOver = true; MainController.showModal(isWin);
+    endGame(win) {
+        this.state.gameOver = true;
+        MainController.showModal(win);
+    },
+
+    render() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        this.state.grid.forEach((val, i) => {
+            const tile = document.createElement('div');
+            tile.className = `tile flex items-center justify-center text-xs font-bold ${this.state.revealed[i] ? 'tile-revealed' : 'tile-hidden'}`;
+            if(this.state.revealed[i]) {
+                if(val === -1) { tile.innerHTML = '×'; tile.classList.add('tile-mine'); }
+                else if(val > 0) {
+                    tile.innerText = val;
+                    tile.style.color = ['#00f3ff','#00ff41','#ffff00','#ff3300'][val-1] || '#ff00ff';
+                }
+            } else if(this.state.flags[i]) {
+                tile.innerHTML = '!'; tile.style.color = 'var(--neon-pink)';
+            }
+            tile.onclick = () => this.handleTileClick(i);
+            gridEl.appendChild(tile);
+        });
+    },
+
+    updateUI() {
+        document.getElementById('hp-bar').style.width = `${Math.max(0, this.state.hp)}%`;
+        document.getElementById('hp-text').innerText = `${Math.max(0, this.state.hp)}%`;
+        document.getElementById('energy-bar').style.width = `${this.state.energy}%`;
+        document.getElementById('energy-text').innerText = `${this.state.energy}%`;
+        const sBtn = document.getElementById('scan-btn');
+        sBtn.disabled = this.state.energy < this.config.scanCost;
+        sBtn.style.opacity = sBtn.disabled ? '0.3' : '1';
     }
 };
