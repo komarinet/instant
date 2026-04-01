@@ -9,7 +9,7 @@
             --neon-blue: #00f3ff;
             --neon-pink: #ff00ff;
             --bg-dark: #0a0a0f;
-            --panel-bg: rgba(20, 20, 30, 0.9);
+            --panel-bg: rgba(20, 20, 30, 0.95);
         }
 
         body {
@@ -50,29 +50,72 @@
             max-width: 500px;
         }
 
-        /* ゲームカード形式 */
+        /* ゲームカード */
         .game-section {
             background: var(--panel-bg);
+            border: 1px solid rgba(0, 243, 255, 0.2);
             border-left: 4px solid var(--neon-blue);
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
 
         .game-title {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             color: var(--neon-pink);
-            margin: 0 0 10px 0;
+            margin: 0 0 15px 0;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
+        /* スクショギャラリー：2枚並べる */
+        .screenshot-gallery {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .screenshot-box {
+            position: relative;
+            aspect-ratio: 3 / 4; /* スマホの縦長画面に合わせる */
+            background: #111;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .screenshot-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+
+        .screenshot-box:hover img {
+            transform: scale(1.1);
+        }
+
+        .screenshot-label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.7);
+            font-size: 0.6rem;
+            padding: 4px;
+            text-align: center;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
         .game-desc {
             font-size: 0.9rem;
             line-height: 1.6;
-            color: #ccc;
+            color: #eee;
             margin-bottom: 15px;
         }
 
@@ -80,36 +123,40 @@
             display: inline-block;
             background: rgba(0, 243, 255, 0.1);
             color: var(--neon-blue);
-            font-size: 0.75rem;
-            padding: 2px 8px;
+            font-size: 0.7rem;
+            padding: 3px 8px;
             border-radius: 4px;
             margin-right: 5px;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             border: 1px solid rgba(0, 243, 255, 0.3);
+            font-weight: bold;
         }
 
         .play-button {
             display: block;
             width: 100%;
-            background: var(--neon-blue);
+            background: linear-gradient(135deg, var(--neon-blue), #00a2ff);
             color: black;
             text-align: center;
             text-decoration: none;
             font-weight: bold;
-            padding: 12px;
-            border-radius: 6px;
-            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
             transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4);
+            font-size: 1.1rem;
         }
 
         .play-button:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
             filter: brightness(1.2);
         }
 
         .coming-soon {
-            opacity: 0.5;
-            border-left-color: #444;
+            opacity: 0.6;
+            border-left-color: #555;
+            background: rgba(15, 15, 20, 0.8);
         }
 
         footer {
@@ -126,7 +173,7 @@
             color: var(--neon-pink);
             text-decoration: none;
             border: 1px solid var(--neon-pink);
-            padding: 6px 16px;
+            padding: 6px 18px;
             border-radius: 20px;
             transition: 0.3s;
         }
@@ -148,21 +195,37 @@
         
         <div class="game-section">
             <h2 class="game-title">🕹️ Cyber-Sweep</h2>
-            <div class="game-desc">
-                タクティカル・マインスイーパー。地雷原を解析し、システムを無力化せよ。
+            
+            <div class="screenshot-gallery">
+                <div class="screenshot-box">
+                    <img src="game001/img/sc01.jpg" alt="Adventure Part">
+                    <div class="screenshot-label">Story Mode</div>
+                </div>
+                <div class="screenshot-box">
+                    <img src="game001/img/sc02.jpg" alt="Game Part">
+                    <div class="screenshot-label">Puzzle Mode</div>
+                </div>
             </div>
+
+            <div class="game-desc">
+                <strong>「パスコードを解除せよ。命が惜しければ」</strong><br>
+                宇宙船崩壊の危機から脱出を試みるパルスとAIのビット。行く手を阻むのは複雑なデータ地雷原。全5ステージの物語を経て、スカネイラ惑星の真実へ到達せよ。
+            </div>
+            
             <div>
-                <span class="rule-tag">HP制（1回ミスOK）</span>
-                <span class="rule-tag">エネルギーを貯めてスキャン</span>
+                <span class="rule-tag">シナリオ連動型</span>
+                <span class="rule-tag">自動生成BGM</span>
+                <span class="rule-tag">スキャン機能搭載</span>
                 <span class="rule-tag">スマホ最適化</span>
             </div>
-            <a href="game001/index.html" class="play-button">システムに接続する</a>
+
+            <a href="game001/index.html" class="play-button">ミッションを開始する</a>
         </div>
 
         <div class="game-section coming-soon">
-            <h2 class="game-title">🦖 Coming Soon...</h2>
+            <h2 class="game-title">🦖 Next Project</h2>
             <div class="game-desc">
-                次なる暇つぶしゲームを開発中。
+                次なる物語が進行中。「Zon-Rika」に関連した新しいウェブゲームを鋭意開発しています。
             </div>
         </div>
 
