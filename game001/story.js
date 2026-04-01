@@ -51,7 +51,7 @@ const StoryEngine = {
             { bg: "uni", speaker: "パルス", text: "し、死んだかと思ったわ・・・", pulse: "cry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "私もです。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "ビット333", text: "AIなのに死というのはいささか妙ですが。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわよ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
+            { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "スカネイラ惑星が近いですね。ワープしますか？", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "いいわ、行ってくれる？", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "かしこまりました。", pulse: "smile", bit: "smile", tail: "left", color: "cyan", special: "warp" },
@@ -61,11 +61,13 @@ const StoryEngine = {
             { bg: "waku", speaker: "ビット333", text: "こちら、O-559。緊急避難中。着陸許可を求む。", pulse: "anxious", bit: "calm", tail: "left", color: "cyan" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "わかった。だが、そちらが敵性AIでないことを示してほしい。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "わ、私は人間です！ 敵性なんてありません！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
-            { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠、パスコードを解いてもらおう。", color: "yellow" },
-            { bg: "waku", speaker: "パルス", text: "やりますよ！ やればいいんでしょ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
+            { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠が欲しい。", color: "yellow" },
+            { bg: "waku", speaker: "パルス", text: "・・・それってまさか", pulse: "anxious", bit: "calm", tail: "right", color: "pink" }
+            { bg: "waku", speaker: "unknown", unknown: true, text: "パスコードを解いてもらおうか。", color: "yellow" },
+            { bg: "waku", speaker: "パルス", text: "だと思った。", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage5: [
-            { bg: "chaku", speaker: "パルス", text: "ふわー、やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "ヴヴ・・・！　ヴヴヴ！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan", special: "shake" },
             { bg: "chaku", speaker: "パルス", text: "ビット！？　どうしたの！？", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "他の惑星に機密を持ち込む可能性を検知しました。", pulse: "surprised", bit: "angry", tail: "left", color: "cyan" },
@@ -75,7 +77,7 @@ const StoryEngine = {
             { bg: "chaku", speaker: "ビット333", text: "私はあなたを・・・排除しようとしている！", pulse: "cry", bit: "cry", tail: "left", color: "cyan", special: "shake" },
             { bg: "chaku", speaker: "パルス", text: "そんなことできるわけないじゃない。どうしよう。", pulse: "cry", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "マスターコードの書き換えを・・・。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
-            { bg: "chaku", speaker: "パルス", text: "マスターコードの書き換え！？　それってまさか・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "コードの書き換え！？　それってまさか・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "人にしかできない、コードを。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "またそれかっ！　ここまで来たらやってやるわよ！", pulse: "angry", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "パルス", text: "来なさい、ビット！　あなたを解放してあげる！", pulse: "smile", bit: "tired", tail: "right", color: "pink" }
@@ -83,18 +85,17 @@ const StoryEngine = {
         ending: [
             { bg: "chaku", speaker: "ビット333", text: "ヴヴヴ・・・パルス？", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "ビット！　目を覚ましたのね！", pulse: "smile", bit: "confused", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "ビット333", text: "自動攻撃プログラムが解除されたようです。", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "ビット333", text: "攻撃プログラムが解除されたようです。", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "ビット333", text: "ありがとうパルス。そしてすみませんでした。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "chaku", speaker: "パルス", text: "いや、私も身を守るために必死でやっただけだよ。", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、みさせてもらったよ。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
-            { bg: "chaku", speaker: "スカネイラ首相", text: "正直驚かされてしまったよ。", pulse: "surprised", shu: "smile", tail: "left", color: "yellow" },
-            { bg: "chaku", speaker: "パルス", text: "そんな。私はだた必死で。", pulse: "blush", shu: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "いいのよ。私も身を守るために必死でやっただけだから。", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、見事であった。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
+            { bg: "chaku", speaker: "パルス", text: "そんなそんな。私はだた必死で。", pulse: "blush", shu: "smile", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "スカネイラ首相", text: "まさに、我が国が探し求めていた人材だ。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow" },
-            { bg: "chaku", speaker: "パルス", text: "いえ、私はただ避難したくて。", pulse: "anxious", shu: "calm", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "スカネイラ首相", text: "もちろん、大歓迎だとも。屋敷も用意させよう。その代わりに・・・", pulse: "anxious", shu: "thinking", tail: "left", color: "yellow" },
-            { bg: "chaku", speaker: "パルス", text: "あのー、嫌な予感しかしないんですが。", pulse: "anxious", shu: "thinking", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "へっ？　私はただ避難してきただけなんですけど。", pulse: "anxious", shu: "calm", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "スカネイラ首相", text: "もちろん、大歓迎だとも。屋敷も用意させる。\nその代わりと言ってはなんだが・・・", pulse: "anxious", shu: "thinking", tail: "left", color: "yellow" },
+            { bg: "chaku", speaker: "パルス", text: "嫌な予感しかしないんですが。", pulse: "anxious", shu: "thinking", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "スカネイラ首相", text: "我が国でもパスコード解除を手伝ってくれないか。", pulse: "surprised", shu: "smile", tail: "left", color: "yellow" },
-            { bg: "chaku", speaker: "パルス", text: "もうイヤ・・・。", pulse: "cry", shu: "smile", tail: "right", color: "pink" },
+            { bg: "chaku", speaker: "パルス", text: "やっぱりそうなるのね・・・。", pulse: "cry", shu: "smile", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "めでたし、めでたし。", pulse: "cry", bit: "smile", tail: "left", color: "cyan", special: "switch_bit" }
         ]
     },
