@@ -1,4 +1,4 @@
-/* CYBER-SWEEP v12.3 | style.css | SHU SIZE UP */
+/* CYBER-SWEEP v14.2 | style.css | SCROLL FIX */
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
 
 :root {
@@ -29,41 +29,45 @@ body { background: #000; color: #fff; font-family: 'JetBrains Mono', monospace; 
 .brightness-20 { filter: brightness(0.2) !important; }
 .brightness-100 { filter: brightness(1.0) !important; }
 
-/* 立ち絵 (サイズ計算済み) */
+/* 立ち絵 */
 .character { position: absolute; bottom: 0; background-repeat: no-repeat !important; filter: drop-shadow(0 0 8px rgba(0,0,0,0.9)); pointer-events: none; transition: opacity 0.3s; }
-
-/* ビット (1コマ 106.66 x 112.2) */
 .character-bit { left: 10px; width: 106.66px; height: 112.2px; background: url('img/bit.png'); background-size: 320px 224.4px; z-index: 20; }
-
-/* パルス (1コマ 120 x 120) */
 .character-girl { right: 10px; width: 120px; height: 120px; background: url('img/girl.png'); background-size: 360px 360px; z-index: 21; }
+.character-shu { left: -5px; width: 138.66px; height: 130px; background: url('img/shu.png'); background-size: 416px 390px; z-index: 20; }
 
-/* 首相 (52%縮小 | 800x750 -> 416x390 | 1コマ 138.66 x 130) */
-.character-shu { left: -5px; /* 少し大きいので左に寄せる */ width: 138.66px; height: 130px; background: url('img/shu.png'); background-size: 416px 390px; z-index: 20; }
-
-/* 名前タグと尻尾 */
 #speaker-label { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); z-index: 150 !important; border: 2px solid #000; padding: 4px 16px; font-weight: bold; border-radius: 999px; font-size: 11px; color: black; }
 #speaker-tail { position: absolute; top: -28px; left: 50%; transform: translateX(-50%) rotate(180deg); z-index: 140; width: 0; height: 0; border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid var(--neon-blue); transition: left 0.2s, border-top-color 0.2s; }
 
-/* 特殊演出用 */
+/* パズル領域 (Version 14.2 修正) */
+#game-viewport { position: relative; width: 340px; max-height: 50vh; min-height: 250px; overflow: hidden; border-radius: 8px; border: 2.5px solid #1a1a2e; margin: 0 auto; background: #05050a; }
+#game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; -ms-overflow-style: none; }
+#game-container::-webkit-scrollbar { display: none; }
+
+/* グリッドを内容物に合わせて固定 */
+#grid { 
+    display: grid; 
+    width: max-content; 
+    margin: 0 auto; 
+    padding: 20px; 
+    box-sizing: border-box; 
+    min-width: 100%; 
+}
+
+.tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: all 0.2s; }
+.tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
+.tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
+.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
+
+/* スクロールインジケーター */
+.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; pointer-events: none; }
+.edge-active { opacity: 0.6; box-shadow: 0 0 10px var(--neon-blue); }
+
+/* 特殊演出・爆破・ワープ・揺れ (省略なし) */
 .background-alert { background: rgba(255,0,0,0.6); }
 #black-out-overlay { position: absolute; inset: 0; background: #000; z-index: 200; opacity: 0; transition: opacity 0.3s; }
 .fade-black { opacity: 1 !important; }
 .alert-blink-red { animation: alert-blink 0.2s infinite; display: block !important; }
 @keyframes alert-blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
-
-/* ゲームUI */
-#game-viewport { position: relative; width: 340px; max-height: 45vh; min-height: 250px; overflow: hidden; border-radius: 8px; border: 2.5px solid #1a1a2e; margin: 0 auto; background: #05050a; }
-#game-container { width: 100%; height: 100%; overflow: auto; scrollbar-width: none; }
-#game-container::-webkit-scrollbar { display: none; }
-.tile { width: 44px; height: 44px; border-radius: 4px; flex-shrink: 0; cursor: pointer; transition: all 0.2s; }
-.tile-hidden { background: #1a1a2e; border: 1px solid #2d2d44; }
-.tile-revealed { background: #05050a; border: 1px solid #1a1a2e; }
-.tile-mine { background: #4a0000 !important; border-color: var(--neon-pink) !important; box-shadow: inset 0 0 10px rgba(255,0,0,0.5); }
-.edge-bar { position: absolute; z-index: 30; background: var(--neon-blue); opacity: 0; transition: opacity 0.3s; }
-.edge-active { opacity: 1; box-shadow: 0 0 10px var(--neon-blue); }
-
-/* 爆破・ワープ・揺れ */
 .explosion { position: absolute; width: 80px; height: 80px; background: url('img/bomb.png'); background-size: 320px 160px; z-index: 100; display: none; }
 .bomb-play { display: block !important; animation: bomb-x 0.6s steps(4) 1, bomb-y 0.6s steps(2) 1 forwards; }
 @keyframes bomb-x { from { background-position-x: 0px; } to { background-position-x: -320px; } }
