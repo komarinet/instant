@@ -1,33 +1,34 @@
-// CYBER-SWEEP v14.0 | game.js | LADDER & SCAN FIX
+// CYBER-SWEEP v14.3 | game.js | STRUCTURE RESTORED & LADDER FIX
 const GameLogic = {
     config: { maxHp: 100, damage: 35, energyPerTile: 6, scanCost: 35 },
     state: { grid: [], revealed: [], flags: [], level: 1, size: 7, mines: 7, energy: 0, hp: 100, flagMode: false, isScanning: false, gameOver: false },
-    
-    init(level) {
-        this.state.level = level;
-        this.state.gameOver = false; this.state.hp = this.config.maxHp; this.state.energy = 0;
-        this.state.isScanning = false; this.state.flagMode = false;
+
+    init(lvl) {
+        this.state.level = lvl;
         
-        // ユーザー指定の難易度ラダー (7, 7, 8, 8, 9)
+        // 7, 7, 8, 8, 9 の難易度ラダー
         const sizes = [7, 7, 8, 8, 9];
-        const minesCount = [7, 9, 13, 16, 22]; // 密度 15%〜27%
+        const minesCount = [7, 9, 13, 16, 22];
         
-        this.state.size = sizes[level - 1] || 9;
-        this.state.mines = minesCount[level - 1] || 22;
+        this.state.size = sizes[lvl - 1] || 9;
+        this.state.mines = minesCount[lvl - 1] || 22;
         
+        this.state.hp = 100; this.state.energy = 0;
+        this.state.gameOver = false; this.state.flagMode = false; this.state.isScanning = false;
+        
+        // 状態管理配列の初期化 (ここを削除してしまっていました)
         this.state.grid = Array(this.state.size * this.state.size).fill(0);
         this.state.revealed = Array(this.state.size * this.state.size).fill(false);
         this.state.flags = Array(this.state.size * this.state.size).fill(false);
         
         const gridEl = document.getElementById('grid');
-        gridEl.innerHTML = '';
-        gridEl.style.gridTemplateColumns = `repeat(${this.state.size}, 1fr)`;
+        gridEl.style.gridTemplateColumns = `repeat(${this.state.size}, 44px)`; // 44px固定でスクロール確保
         
         this.placeMines();
         this.calculateNumbers();
         this.render();
         this.updateUI();
-        SoundEngine.generateStageMusic(level);
+        SoundEngine.generateStageMusic(lvl);
     },
 
     placeMines() {
@@ -52,7 +53,7 @@ const GameLogic = {
         const x = idx % s; const y = Math.floor(idx / s);
         for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++) {
             if(dx===0 && dy===0) continue;
-            const nx = x + dx, ny = y + dy;
+            const nx = x + dx; const ny = y + dy;
             if(nx>=0 && nx<s && ny>=0 && ny<s) res.push(ny * s + nx);
         }
         return res;
@@ -94,7 +95,7 @@ const GameLogic = {
     performScan(idx) {
         this.state.energy -= this.config.scanCost;
         this.state.isScanning = false;
-        MainController.toggleScan(); // UIリセット
+        MainController.toggleScan(); 
         SoundEngine.playSFX('scan');
         const area = [...this.getNeighbors(idx), idx];
         area.forEach(n => {
@@ -109,7 +110,7 @@ const GameLogic = {
     },
 
     checkWin() {
-        // 全パネルから地雷を除いた数が、開いた数と一致するか厳密にチェック
+        // ステージ5クリアバグ対策：地雷以外の全てのタイルが「開いている」かチェック
         const isWin = this.state.grid.every((val, i) => val === -1 || this.state.revealed[i]);
         if(isWin) this.endGame(true);
     },
@@ -119,6 +120,7 @@ const GameLogic = {
         MainController.showModal(win);
     },
 
+    // 復活させた関数：UIの再描画
     render() {
         const gridEl = document.getElementById('grid');
         gridEl.innerHTML = '';
@@ -126,7 +128,7 @@ const GameLogic = {
             const tile = document.createElement('div');
             tile.className = `tile flex items-center justify-center font-bold ${this.state.revealed[i] ? 'tile-revealed' : 'tile-hidden'}`;
             if(this.state.revealed[i]) {
-                if(val === -1) { tile.innerHTML = '×'; tile.style.color = 'var(--neon-pink)'; }
+                if(val === -1) { tile.innerHTML = '×'; tile.classList.add('tile-mine'); }
                 else if(val > 0) {
                     tile.innerText = val;
                     tile.style.color = ['#00f3ff','#00ff41','#ffff00','#ff3300','#ff00ff'][val-1] || '#fff';
