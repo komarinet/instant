@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.2 | main.js | ENDING HANDLER
+// CYBER-SWEEP v12.5 | main.js | THEME RESET & ENDING PREVIEW
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -9,13 +9,22 @@ const MainController = {
     },
 
     init() {
+        console.log("System Initialization v12.5...");
+        
         const startBtn = document.getElementById('start-btn');
         const selectBtn = document.getElementById('select-scene-btn');
         const backTitleBtn = document.getElementById('back-to-title-btn');
         
         if(startBtn) startBtn.onclick = () => this.handleStart();
-        if(selectBtn) selectBtn.onclick = () => { this.createStageSelect(); this.showScene('scene-select'); };
-        if(backTitleBtn) backTitleBtn.onclick = () => this.showScene('scene-title');
+        if(selectBtn) selectBtn.onclick = () => {
+            this.createStageSelect();
+            this.showScene('scene-select');
+        };
+        // タイトルに戻る時はテーマカラーをリセットする
+        if(backTitleBtn) backTitleBtn.onclick = () => {
+            this.resetTheme();
+            this.showScene('scene-title');
+        };
 
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
@@ -23,11 +32,23 @@ const MainController = {
         
         // エンディング画面のボタン
         document.getElementById('end-retry-btn').onclick = () => this.startStageSequence(1);
-        document.getElementById('end-select-btn').onclick = () => { this.createStageSelect(); this.showScene('scene-select'); };
-        document.getElementById('end-title-btn').onclick = () => this.showScene('scene-title');
+        document.getElementById('end-select-btn').onclick = () => { 
+            this.createStageSelect(); 
+            this.showScene('scene-select'); 
+        };
+        document.getElementById('end-title-btn').onclick = () => {
+            this.resetTheme();
+            this.showScene('scene-title');
+        };
 
         this.createStageSelect();
         StoryEngine.init();
+    },
+
+    // テーマカラーをデフォルト（初期の青とピンク）に戻す
+    resetTheme() {
+        document.documentElement.style.setProperty('--neon-blue', '#00f3ff');
+        document.documentElement.style.setProperty('--neon-pink', '#ff00ff');
     },
 
     async handleStart() {
@@ -36,7 +57,10 @@ const MainController = {
         try {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png','img/shu.png']);
             this.startStageSequence(1);
-        } catch(e) { this.startStageSequence(1); }
+        } catch(e) { 
+            console.error("Asset load ignored:", e);
+            this.startStageSequence(1); 
+        }
         finally { btn.disabled = false; btn.innerText = "START MISSION"; }
     },
 
@@ -44,16 +68,22 @@ const MainController = {
         const ps = urls.map(u => new Promise(res => {
             const i = new Image(); i.src = u;
             i.onload = () => i.decode ? i.decode().then(res).catch(res) : res();
-            i.onerror = () => { res(); };
+            i.onerror = () => { console.warn("Missing:", u); res(); };
         }));
         return Promise.all(ps);
     },
 
     showScene(id) {
         const scenes = document.querySelectorAll('.scene');
-        scenes.forEach(s => { s.classList.add('hidden'); s.classList.remove('scene-show'); });
+        scenes.forEach(s => {
+            s.classList.add('hidden');
+            s.classList.remove('scene-show');
+        });
         const target = document.getElementById(id);
-        if (target) { target.classList.remove('hidden'); target.classList.add('scene-show'); }
+        if (target) {
+            target.classList.remove('hidden');
+            target.classList.add('scene-show');
+        }
     },
 
     startStageSequence(lvl) {
@@ -65,12 +95,18 @@ const MainController = {
         } else if (lvl >= 2 && lvl <= 5) {
             this.showScene('scene-adventure');
             StoryEngine.play(`stage${lvl}`, () => this.launchGame(lvl));
+        } else if (lvl === 99) {
+            // テスト用：エンディング直行
+            this.showScene('scene-adventure');
+            StoryEngine.play('ending', () => this.showScene('scene-ending'));
         } else {
             this.showScene('scene-select');
         }
     },
 
     startExteriorPrologue(callback) {
+        // プロローグに入った時も念のため色をリセット
+        this.resetTheme();
         SoundEngine.init();
         this.showScene('scene-prologue');
         let count = 0;
@@ -115,6 +151,8 @@ const MainController = {
         const container = document.getElementById('stage-buttons');
         if (!container) return;
         container.innerHTML = '';
+        
+        // 通常ステージボタンの生成
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
@@ -122,6 +160,13 @@ const MainController = {
             btn.onclick = () => this.startStageSequence(parseInt(lvl));
             container.appendChild(btn);
         });
+
+        // デバッグ・確認用：エンディング直行ボタンを一番下に追加
+        const endBtn = document.createElement('button');
+        endBtn.className = 'cyber-panel p-3 mt-4 rounded-xl font-bold text-center active:scale-95 transition-all border-dashed border-[var(--neon-yellow)] text-[var(--neon-yellow)]';
+        endBtn.innerHTML = `<span class="text-xs uppercase">[DEBUG] View Ending</span>`;
+        endBtn.onclick = () => this.startStageSequence(99); // 99をエンディングフラグとして使用
+        container.appendChild(endBtn);
     },
 
     toggleFlag() {
@@ -145,7 +190,6 @@ const MainController = {
         document.getElementById('audio-toggle-btn').innerText = `Sound: ${m ? 'OFF' : 'ON'}`;
     },
 
-    // モーダルとクリア後の進行分岐
     showModal(isWin) {
         const modal = document.getElementById('modal');
         const modalBtn = document.getElementById('modal-btn-main');
@@ -156,7 +200,6 @@ const MainController = {
             modalBtn.innerText = "CONTINUE CONNECTION";
             modalBtn.onclick = () => {
                 modal.classList.add('hidden');
-                // ステージ5をクリアしたらエンディングストーリーへ
                 if (GameLogic.state.level === 5) {
                     this.showScene('scene-adventure');
                     StoryEngine.play('ending', () => this.showScene('scene-ending'));
