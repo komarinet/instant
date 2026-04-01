@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.5 | main.js | THEME RESET & ENDING PREVIEW
+// CYBER-SWEEP v12.6 | main.js | SCENE BGM STOP FIX
 const MainController = {
     themes: {
         1: { blue: '#00f3ff', pink: '#ff00ff', name: "ALPHA SECTOR" },
@@ -9,8 +9,6 @@ const MainController = {
     },
 
     init() {
-        console.log("System Initialization v12.5...");
-        
         const startBtn = document.getElementById('start-btn');
         const selectBtn = document.getElementById('select-scene-btn');
         const backTitleBtn = document.getElementById('back-to-title-btn');
@@ -20,24 +18,30 @@ const MainController = {
             this.createStageSelect();
             this.showScene('scene-select');
         };
-        // タイトルに戻る時はテーマカラーをリセットする
+        // タイトルに戻る時はテーマとBGMをリセット
         if(backTitleBtn) backTitleBtn.onclick = () => {
             this.resetTheme();
+            SoundEngine.setStoryMusic('stop');
             this.showScene('scene-title');
         };
 
         document.getElementById('flag-mode-btn').onclick = () => this.toggleFlag();
         document.getElementById('scan-btn').onclick = () => this.toggleScan();
-        document.getElementById('back-to-menu-btn').onclick = () => this.showScene('scene-select');
+        document.getElementById('back-to-menu-btn').onclick = () => {
+            SoundEngine.setStoryMusic('stop');
+            this.showScene('scene-select');
+        };
         
         // エンディング画面のボタン
         document.getElementById('end-retry-btn').onclick = () => this.startStageSequence(1);
         document.getElementById('end-select-btn').onclick = () => { 
+            SoundEngine.setStoryMusic('stop');
             this.createStageSelect(); 
             this.showScene('scene-select'); 
         };
         document.getElementById('end-title-btn').onclick = () => {
             this.resetTheme();
+            SoundEngine.setStoryMusic('stop');
             this.showScene('scene-title');
         };
 
@@ -45,7 +49,6 @@ const MainController = {
         StoryEngine.init();
     },
 
-    // テーマカラーをデフォルト（初期の青とピンク）に戻す
     resetTheme() {
         document.documentElement.style.setProperty('--neon-blue', '#00f3ff');
         document.documentElement.style.setProperty('--neon-pink', '#ff00ff');
@@ -58,7 +61,6 @@ const MainController = {
             await this.preload(['img/ship.png','img/space02.png','img/bomb.png','img/bit.png','img/girl.png','img/inship.png','img/door.png','img/wing.png','img/cockpit0.png','img/cockpit.png','img/uni.png','img/waku.png','img/chaku.png','img/shu.png']);
             this.startStageSequence(1);
         } catch(e) { 
-            console.error("Asset load ignored:", e);
             this.startStageSequence(1); 
         }
         finally { btn.disabled = false; btn.innerText = "START MISSION"; }
@@ -68,7 +70,7 @@ const MainController = {
         const ps = urls.map(u => new Promise(res => {
             const i = new Image(); i.src = u;
             i.onload = () => i.decode ? i.decode().then(res).catch(res) : res();
-            i.onerror = () => { console.warn("Missing:", u); res(); };
+            i.onerror = () => { res(); };
         }));
         return Promise.all(ps);
     },
@@ -96,7 +98,6 @@ const MainController = {
             this.showScene('scene-adventure');
             StoryEngine.play(`stage${lvl}`, () => this.launchGame(lvl));
         } else if (lvl === 99) {
-            // テスト用：エンディング直行
             this.showScene('scene-adventure');
             StoryEngine.play('ending', () => this.showScene('scene-ending'));
         } else {
@@ -105,9 +106,9 @@ const MainController = {
     },
 
     startExteriorPrologue(callback) {
-        // プロローグに入った時も念のため色をリセット
         this.resetTheme();
         SoundEngine.init();
+        SoundEngine.setStoryMusic('calm'); // プロローグBGM
         this.showScene('scene-prologue');
         let count = 0;
         const interval = setInterval(() => {
@@ -152,7 +153,6 @@ const MainController = {
         if (!container) return;
         container.innerHTML = '';
         
-        // 通常ステージボタンの生成
         Object.entries(this.themes).forEach(([lvl, data]) => {
             const btn = document.createElement('button');
             btn.className = 'cyber-panel p-5 rounded-xl font-bold text-left active:scale-95 transition-all';
@@ -161,11 +161,10 @@ const MainController = {
             container.appendChild(btn);
         });
 
-        // デバッグ・確認用：エンディング直行ボタンを一番下に追加
         const endBtn = document.createElement('button');
         endBtn.className = 'cyber-panel p-3 mt-4 rounded-xl font-bold text-center active:scale-95 transition-all border-dashed border-[var(--neon-yellow)] text-[var(--neon-yellow)]';
         endBtn.innerHTML = `<span class="text-xs uppercase">[DEBUG] View Ending</span>`;
-        endBtn.onclick = () => this.startStageSequence(99); // 99をエンディングフラグとして使用
+        endBtn.onclick = () => this.startStageSequence(99); 
         container.appendChild(endBtn);
     },
 
