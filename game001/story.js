@@ -1,4 +1,4 @@
-// CYBER-SWEEP v14.0 | story.js | SCENARIO & BGM COMPLETE
+// CYBER-SWEEP v14.3 | story.js | FULL COMPLETE CODE
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -86,7 +86,7 @@ const StoryEngine = {
             { bgm: "calm", bg: "chaku", speaker: "ビット333", text: "ヴヴヴ・・・パルス？", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "ビット！　目を覚ましたのね！", pulse: "smile", bit: "confused", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "攻撃プログラムが解除されたようです。", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
-            { bg: "chaku", speaker: "ビット333", text: "ありがとうパルス。そしてすみませんでした。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
+            { bg: "chaku", speaker: "ビット333", text: "ありがとうパルス. そしてすみませんでした。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "いいのよ。私も身を守るために必死でやっただけだから。", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
             { bgm: "ending", bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、見事であった。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
             { bg: "chaku", speaker: "パルス", text: "そんなそんな。私はだた必死で。", pulse: "blush", shu: "smile", tail: "right", color: "pink" },
@@ -133,6 +133,8 @@ const StoryEngine = {
         const advBg = document.getElementById('adv-bg');
         advBg.style.opacity = "0.7";
         advBg.className = 'brightness-100'; 
+        
+        this.setSpritesHidden(false); 
         
         document.getElementById('char-bit').style.opacity = 1;
         document.getElementById('char-pulse').style.opacity = 1;
@@ -260,6 +262,7 @@ const StoryEngine = {
             tail.style.opacity = 0;
         } else {
             document.getElementById('char-pulse').style.opacity = 1;
+            
             if (data.bit) document.getElementById('char-bit').style.opacity = 1;
             if (data.shu) document.getElementById('char-shu').style.opacity = 1;
 
