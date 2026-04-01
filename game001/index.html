@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cyber-Sweep v14.2 [STABLE]</title>
+    <title>Cyber-Sweep v14.3 [STABLE]</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css?v=14.2">
+    <link rel="stylesheet" href="style.css?v=14.3">
 </head>
 <body class="scan-effect bg-black text-white overflow-hidden">
 
     <div id="scene-title" class="scene flex flex-col items-center justify-center p-4">
         <div class="mb-10 text-center">
             <h1 class="text-5xl font-bold font-orbitron text-[var(--neon-blue)] mb-2">CYBER-SWEEP</h1>
-            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v14.2</p>
+            <p class="text-[10px] text-gray-500 uppercase tracking-[0.4em]">Tactical Overload v14.3</p>
         </div>
         <div class="flex flex-col gap-4 w-full max-w-xs">
             <button id="start-btn" class="cyber-panel py-4 rounded-lg font-bold text-[var(--neon-blue)] active:scale-95 text-lg transition-all">START MISSION</button>
@@ -75,11 +75,11 @@
             <div class="cyber-panel p-3 rounded-lg grid grid-cols-2 gap-4 shadow-inner bg-[#05050a]">
                 <div class="space-y-1">
                     <div class="flex justify-between text-[9px] font-bold text-gray-400"><span>HULL</span><span id="hp-text">100%</span></div>
-                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="hp-bar" class="h-full bg-[var(--neon-pink)] transition-all"></div></div>
+                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="hp-bar" class="h-full bg-[var(--neon-pink)] transition-all w-full"></div></div>
                 </div>
                 <div class="space-y-1">
                     <div class="flex justify-between text-[9px] font-bold text-gray-400"><span>ENERGY</span><span id="energy-text">0%</span></div>
-                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="energy-bar" class="h-full bg-[var(--neon-blue)] transition-all"></div></div>
+                    <div class="h-1 bg-gray-900 rounded-full overflow-hidden border border-gray-800"><div id="energy-bar" class="h-full bg-[var(--neon-blue)] transition-all w-0"></div></div>
                 </div>
             </div>
         </div>
@@ -119,9 +119,9 @@
         </div>
     </div>
 
-    <script src="audio.js?v=14.2"></script>
-    <script src="game.js?v=14.2"></script>
-    <script src="story.js?v=14.2"></script>
-    <script src="main.js?v=14.2"></script>
+    <script src="audio.js?v=14.3"></script>
+    <script src="game.js?v=14.3"></script>
+    <script src="story.js?v=14.3"></script>
+    <script src="main.js?v=14.3"></script>
 </body>
 </html>
