@@ -1,32 +1,33 @@
-// CYBER-SWEEP v12.6 | game.js | DIFFICULTY LADDER FIX
+// CYBER-SWEEP v14.0 | game.js | LADDER & SCAN FIX
 const GameLogic = {
-    config: { scanCost: 30 },
-    state: { grid: [], revealed: [], flags: [], level: 1, size: 5, mines: 4, energy: 0, hp: 100, flagMode: false, isScanning: false, gameOver: false },
-
-    init(lvl) {
-        this.state.level = lvl;
+    config: { maxHp: 100, damage: 35, energyPerTile: 6, scanCost: 35 },
+    state: { grid: [], revealed: [], flags: [], level: 1, size: 7, mines: 7, energy: 0, hp: 100, flagMode: false, isScanning: false, gameOver: false },
+    
+    init(level) {
+        this.state.level = level;
+        this.state.gameOver = false; this.state.hp = this.config.maxHp; this.state.energy = 0;
+        this.state.isScanning = false; this.state.flagMode = false;
         
-        // 難易度ラダーの設定 (Lv1〜Lv5)
-        const sizes = [5, 6, 7, 8, 8];
-        const minesCount = [4, 6, 10, 14, 18];
+        // ユーザー指定の難易度ラダー (7, 7, 8, 8, 9)
+        const sizes = [7, 7, 8, 8, 9];
+        const minesCount = [7, 9, 13, 16, 22]; // 密度 15%〜27%
         
-        this.state.size = sizes[lvl - 1] || 8;
-        this.state.mines = minesCount[lvl - 1] || 18;
+        this.state.size = sizes[level - 1] || 9;
+        this.state.mines = minesCount[level - 1] || 22;
         
-        this.state.hp = 100; this.state.energy = 0;
-        this.state.gameOver = false; this.state.flagMode = false; this.state.isScanning = false;
         this.state.grid = Array(this.state.size * this.state.size).fill(0);
         this.state.revealed = Array(this.state.size * this.state.size).fill(false);
         this.state.flags = Array(this.state.size * this.state.size).fill(false);
         
         const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
         gridEl.style.gridTemplateColumns = `repeat(${this.state.size}, 1fr)`;
         
         this.placeMines();
         this.calculateNumbers();
         this.render();
         this.updateUI();
-        SoundEngine.generateStageMusic(lvl); // ゲーム用BGMを生成・再生
+        SoundEngine.generateStageMusic(level);
     },
 
     placeMines() {
@@ -49,12 +50,10 @@ const GameLogic = {
     getNeighbors(idx) {
         const res = []; const s = this.state.size;
         const x = idx % s; const y = Math.floor(idx / s);
-        for(let dy=-1; dy<=1; dy++) {
-            for(let dx=-1; dx<=1; dx++) {
-                if(dx===0 && dy===0) continue;
-                const nx = x + dx; const ny = y + dy;
-                if(nx>=0 && nx<s && ny>=0 && ny<s) res.push(ny * s + nx);
-            }
+        for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++) {
+            if(dx===0 && dy===0) continue;
+            const nx = x + dx, ny = y + dy;
+            if(nx>=0 && nx<s && ny>=0 && ny<s) res.push(ny * s + nx);
         }
         return res;
     },
@@ -65,13 +64,13 @@ const GameLogic = {
         if(this.state.isScanning) return this.performScan(idx);
 
         if(this.state.grid[idx] === -1) {
-            this.state.hp -= 25;
+            this.state.hp -= this.config.damage;
             this.state.revealed[idx] = true;
             SoundEngine.playSFX('damage');
-            if(this.state.hp <= 0) this.endGame(false);
+            if(this.state.hp <= 0) { this.state.hp = 0; this.endGame(false); }
         } else {
             this.revealTile(idx);
-            this.state.energy = Math.min(100, this.state.energy + 8); // ゲージを溜まりやすく
+            this.state.energy = Math.min(100, this.state.energy + this.config.energyPerTile);
             SoundEngine.playSFX('flag');
         }
         this.checkWin(); this.render(); this.updateUI();
@@ -91,21 +90,28 @@ const GameLogic = {
         this.render();
     },
 
+    // スキャン機能：のぞき見だけを行う（タイルは開かない）
     performScan(idx) {
         this.state.energy -= this.config.scanCost;
         this.state.isScanning = false;
-        MainController.toggleScan(); // UI側のボタントグル解除
-        this.getNeighbors(idx).concat(idx).forEach(n => {
-            if(this.state.grid[n] === -1) this.state.flags[n] = true;
-            else this.revealTile(n);
-        });
+        MainController.toggleScan(); // UIリセット
         SoundEngine.playSFX('scan');
-        this.render(); this.updateUI();
+        const area = [...this.getNeighbors(idx), idx];
+        area.forEach(n => {
+            if(!this.state.revealed[n]) {
+                const isMine = this.state.grid[n] === -1;
+                const el = document.getElementById('grid').children[n];
+                el.style.boxShadow = `inset 0 0 15px ${isMine ? 'var(--neon-pink)' : 'var(--neon-blue)'}`;
+                setTimeout(() => el.style.boxShadow = '', 2000);
+            }
+        });
+        this.updateUI();
     },
 
     checkWin() {
-        const win = this.state.grid.every((val, i) => val === -1 || this.state.revealed[i]);
-        if(win) this.endGame(true);
+        // 全パネルから地雷を除いた数が、開いた数と一致するか厳密にチェック
+        const isWin = this.state.grid.every((val, i) => val === -1 || this.state.revealed[i]);
+        if(isWin) this.endGame(true);
     },
 
     endGame(win) {
@@ -118,12 +124,12 @@ const GameLogic = {
         gridEl.innerHTML = '';
         this.state.grid.forEach((val, i) => {
             const tile = document.createElement('div');
-            tile.className = `tile flex items-center justify-center text-xs font-bold ${this.state.revealed[i] ? 'tile-revealed' : 'tile-hidden'}`;
+            tile.className = `tile flex items-center justify-center font-bold ${this.state.revealed[i] ? 'tile-revealed' : 'tile-hidden'}`;
             if(this.state.revealed[i]) {
-                if(val === -1) { tile.innerHTML = '×'; tile.classList.add('tile-mine'); }
+                if(val === -1) { tile.innerHTML = '×'; tile.style.color = 'var(--neon-pink)'; }
                 else if(val > 0) {
                     tile.innerText = val;
-                    tile.style.color = ['#00f3ff','#00ff41','#ffff00','#ff3300'][val-1] || '#ff00ff';
+                    tile.style.color = ['#00f3ff','#00ff41','#ffff00','#ff3300','#ff00ff'][val-1] || '#fff';
                 }
             } else if(this.state.flags[i]) {
                 tile.innerHTML = '!'; tile.style.color = 'var(--neon-pink)';
@@ -134,8 +140,8 @@ const GameLogic = {
     },
 
     updateUI() {
-        document.getElementById('hp-bar').style.width = `${Math.max(0, this.state.hp)}%`;
-        document.getElementById('hp-text').innerText = `${Math.max(0, this.state.hp)}%`;
+        document.getElementById('hp-bar').style.width = `${this.state.hp}%`;
+        document.getElementById('hp-text').innerText = `${Math.ceil(this.state.hp)}%`;
         document.getElementById('energy-bar').style.width = `${this.state.energy}%`;
         document.getElementById('energy-text').innerText = `${this.state.energy}%`;
         const sBtn = document.getElementById('scan-btn');
