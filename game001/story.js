@@ -1,10 +1,10 @@
-// CYBER-SWEEP v12.5 | story.js | SCENARIO SYNTAX FIXED
+// CYBER-SWEEP v12.6 | story.js | BGM CONTROL ADDED
 const StoryEngine = {
     scripts: {
         stage1: [
-            { bg: "inship", speaker: "パルス", text: "わっ、なになに？", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bgm: "calm", bg: "inship", speaker: "パルス", text: "わっ、なになに？", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "inship", speaker: "ビット333", text: "宇宙船が小惑星にあたりました。", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
-            { bg: "inship", speaker: "パルス", text: "えっ！？大変じゃない！\nどうするの！？", pulse: "cry", bit: "confused", tail: "right", color: "pink" },
+            { bgm: "tense", bg: "inship", speaker: "パルス", text: "えっ！？大変じゃない！\nどうするの！？", pulse: "cry", bit: "confused", tail: "right", color: "pink" },
             { bg: "inship", speaker: "ビット333", text: "脱出を推奨します。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
             { bg: "inship", speaker: "パルス", text: "す、推奨って・・・\nもし脱出しなかったら？", pulse: "anxious", bit: "confused", tail: "right", color: "pink" },
             { bg: "inship", speaker: "ビット333", text: "生命存続不能の可能性、100%。", pulse: "surprised", bit: "calm", tail: "left", color: "cyan" },
@@ -19,18 +19,18 @@ const StoryEngine = {
             { bg: "door", speaker: "パルス", text: "やるしかない・・・ってことね", pulse: "anxious", bit: "confused", tail: "right", color: "pink" }
         ],
         stage2: [
-            { bg: "wing", speaker: "パルス", text: "よかった、脱出船は無事ね！", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
+            { bgm: "calm", bg: "wing", speaker: "パルス", text: "よかった、脱出船は無事ね！", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "真ん中のO-559がいいでしょう。\n燃料も充分に入っています。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "wing", speaker: "パルス", text: "さっすがビット！ よおし乗り込むわよ・・・", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "wing", speaker: "パルス", text: "・・・コクピット、開かないんだけど。", pulse: "anxious", bit: "calm", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "どうやらパスコードが設定されているようです。", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
-            { bg: "wing", speaker: "ビット333", text: "宇宙船崩壊まであと5分。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan", special: "shake" },
+            { bgm: "tense", bg: "wing", speaker: "ビット333", text: "宇宙船崩壊まであと5分。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan", special: "shake" },
             { bg: "wing", speaker: "パルス", text: "わわっ！ 早く開けてよ！", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
             { bg: "wing", speaker: "ビット333", text: "非常に申し訳ないのですが、これも・・・", pulse: "cry", bit: "confused", tail: "left", color: "cyan" },
             { bg: "wing", speaker: "パルス", text: "ああもう。わかったわよ、いくわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage3: [
-            { bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "わっ、何も見えないんだけど", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
+            { bgm: "calm", bg: "cockpit0", brightness: "dark", speaker: "パルス", text: "わっ、何も見えないんだけど", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "dark", speaker: "ビット333", text: "電源を入れましょう", pulse: "anxious", bit: "confused", tail: "left", color: "cyan" },
             { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "わあ、素敵コクピット！\nこれなら無事に脱出できそう・・・", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "・・・", pulse: "calm", bit: "calm", tail: "right", color: "pink" },
@@ -38,7 +38,7 @@ const StoryEngine = {
             { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "どうせこのコクピットもパスコードかかってるんでしょ", pulse: "calm", bit: "calm", tail: "right", color: "pink" },
             { bg: "cockpit0", brightness: "light", speaker: "ビット333", text: "大丈夫です。脱出船のシステムは本船とは別ですので", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
             { bg: "cockpit0", brightness: "light", speaker: "パルス", text: "よかったー！　じゃあ早速脱出しよう", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
-            { bg: "cockpit0", brightness: "light", speaker: "", text: "", special: "alert_dark_shake" }, 
+            { bgm: "tense", bg: "cockpit0", brightness: "light", speaker: "", text: "", special: "alert_dark_shake" }, 
             { bg: "cockpit", speaker: "パルス", text: "ぎゃあああ！", pulse: "surprised", bit: "surprised", tail: "right", color: "pink" },
             { bg: "cockpit", speaker: "ビット333", text: "危険、危険！ 宇宙船崩壊の危険！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
             { bg: "cockpit", speaker: "パルス", text: "んなことわかってるわよ！ 離陸するわよ！", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
@@ -48,48 +48,47 @@ const StoryEngine = {
             { bg: "cockpit", speaker: "パルス", text: "ちくしょおおおお！", pulse: "angry", bit: "smile", tail: "right", color: "pink" }
         ],
         stage4: [
-            { bg: "uni", speaker: "パルス", text: "し、死んだかと思ったわ・・・", pulse: "cry", bit: "calm", tail: "right", color: "pink" },
+            { bgm: "sad", bg: "uni", speaker: "パルス", text: "し、死んだかと思ったわ・・・", pulse: "cry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "私もです。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "ビット333", text: "AIなのに死というのはいささか妙ですが。", pulse: "anxious", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
+            { bgm: "calm", bg: "uni", speaker: "パルス", text: "自分で突っ込んでれば世話ないわ。\nさてと、最寄りの惑星に向かいましょう。", pulse: "angry", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "スカネイラ惑星が近いですね。ワープしますか？", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "uni", speaker: "パルス", text: "いいわ、行ってくれる？", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "uni", speaker: "ビット333", text: "かしこまりました。", pulse: "smile", bit: "smile", tail: "left", color: "cyan", special: "warp" },
             { bg: "waku", speaker: "パルス", text: "わあ、素敵。", pulse: "smile", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "ビット333", text: "スカネイラ惑星は植物資源で有名な惑星です。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
-            { bg: "waku", speaker: "unknown", unknown: true, text: "不明機、応答せよ。", color: "yellow" },
+            { bgm: "tense", bg: "waku", speaker: "unknown", unknown: true, text: "不明機、応答せよ。", color: "yellow" },
             { bg: "waku", speaker: "ビット333", text: "こちら、O-559。緊急避難中。着陸許可を求む。", pulse: "anxious", bit: "calm", tail: "left", color: "cyan" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "わかった。だが、そちらが敵性AIでないことを示してほしい。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "わ、私は人間です！ 敵性なんてありません！", pulse: "surprised", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "残念ながらAIはみんなそう言うんだ。\n君が人間であるという証拠が欲しい。", color: "yellow" },
-            // ★ ここにあったカンマ抜けを修正しました！
             { bg: "waku", speaker: "パルス", text: "・・・それってまさか", pulse: "anxious", bit: "calm", tail: "right", color: "pink" },
             { bg: "waku", speaker: "unknown", unknown: true, text: "パスコードを解いてもらおうか。", color: "yellow" },
             { bg: "waku", speaker: "パルス", text: "だと思った。", pulse: "angry", bit: "calm", tail: "right", color: "pink" }
         ],
         stage5: [
-            { bg: "chaku", speaker: "パルス", text: "やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "ビット333", text: "ヴヴ・・・！　ヴヴヴ！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan", special: "shake" },
+            { bgm: "calm", bg: "chaku", speaker: "パルス", text: "やっと惑星に入れたー！", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
+            { bgm: "tense", bg: "chaku", speaker: "ビット333", text: "ヴヴ・・・！　ヴヴヴ！", pulse: "surprised", bit: "confused", tail: "left", color: "cyan", special: "shake" },
             { bg: "chaku", speaker: "パルス", text: "ビット！？　どうしたの！？", pulse: "surprised", bit: "confused", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "他の惑星に機密を持ち込む可能性を検知しました。", pulse: "surprised", bit: "angry", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "ビット333", text: "あなたを企業スパイと認定します。", pulse: "surprised", bit: "angry", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "ちょっと！　しっかりしてよ、ビット！", pulse: "angry", bit: "angry", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "ビット333", text: "パルス、私を破壊して・・・下さい。", pulse: "anxious", bit: "cry", tail: "left", color: "cyan" },
+            { bgm: "sad", bg: "chaku", speaker: "ビット333", text: "パルス、私を破壊して・・・下さい。", pulse: "anxious", bit: "cry", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "ビット333", text: "私はあなたを・・・排除しようとしている！", pulse: "cry", bit: "cry", tail: "left", color: "cyan", special: "shake" },
             { bg: "chaku", speaker: "パルス", text: "そんなことできるわけないじゃない。どうしよう。", pulse: "cry", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "マスターコードの書き換えを・・・。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
-            { bg: "chaku", speaker: "パルス", text: "コードの書き換え！？　それってまさか・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
+            { bgm: "tense", bg: "chaku", speaker: "パルス", text: "コードの書き換え！？　それってまさか・・・", pulse: "surprised", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "人にしかできない、コードを。", pulse: "anxious", bit: "tired", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "またそれかっ！　ここまで来たらやってやるわよ！", pulse: "angry", bit: "tired", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "パルス", text: "来なさい、ビット！　あなたを解放してあげる！", pulse: "smile", bit: "tired", tail: "right", color: "pink" }
         ],
         ending: [
-            { bg: "chaku", speaker: "ビット333", text: "ヴヴヴ・・・パルス？", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
+            { bgm: "calm", bg: "chaku", speaker: "ビット333", text: "ヴヴヴ・・・パルス？", pulse: "surprised", bit: "confused", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "ビット！　目を覚ましたのね！", pulse: "smile", bit: "confused", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "ビット333", text: "攻撃プログラムが解除されたようです。", pulse: "smile", bit: "calm", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "ビット333", text: "ありがとうパルス。そしてすみませんでした。", pulse: "smile", bit: "smile", tail: "left", color: "cyan" },
             { bg: "chaku", speaker: "パルス", text: "いいのよ。私も身を守るために必死でやっただけだから。", pulse: "smile", bit: "smile", tail: "right", color: "pink" },
-            { bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、見事であった。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
+            { bgm: "ending", bg: "chaku", speaker: "スカネイラ首相", text: "ようこそ、スカネイラへ。先ほどのパスコード解除、見事であった。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow", special: "clap_and_switch_shu" },
             { bg: "chaku", speaker: "パルス", text: "そんなそんな。私はだた必死で。", pulse: "blush", shu: "smile", tail: "right", color: "pink" },
             { bg: "chaku", speaker: "スカネイラ首相", text: "まさに、我が国が探し求めていた人材だ。", pulse: "surprised", shu: "calm", tail: "left", color: "yellow" },
             { bg: "chaku", speaker: "パルス", text: "へっ？　私はただ避難してきただけなんですけど。", pulse: "anxious", shu: "calm", tail: "right", color: "pink" },
@@ -226,10 +225,14 @@ const StoryEngine = {
         document.getElementById('warp-container').classList.add('hidden');
         document.getElementById('adventure-viewport').classList.remove('shake-scene', 'shake-scene-heavy');
         
+        SoundEngine.setStoryMusic('stop'); // スキップ時にBGMを停止
         if(this.onComplete) this.onComplete(); 
     },
 
     updateUI(data) {
+        // BGMの切り替え指定があれば発動
+        if (data.bgm) { SoundEngine.setStoryMusic(data.bgm); }
+
         if (data.special === "shake") {
             const win = document.getElementById('adventure-viewport');
             win.classList.add('shake-scene'); SoundEngine.playSFX('damage');
@@ -260,7 +263,6 @@ const StoryEngine = {
             tail.style.opacity = 0;
         } else {
             document.getElementById('char-pulse').style.opacity = 1;
-            
             if (data.bit) document.getElementById('char-bit').style.opacity = 1;
             if (data.shu) document.getElementById('char-shu').style.opacity = 1;
 
@@ -347,13 +349,11 @@ const StoryEngine = {
     updateSprites(data) {
         if (data.unknown) return;
 
-        // パルス (120px単位)
         const pSize = 120;
         const pMap = { calm:[0,0], anxious:[1,0], angry:[2,0], cry:[0,1], smile:[1,1], blush:[2,1], surprised:[0,2] };
         const p = pMap[data.pulse] || [0,0];
         document.getElementById('char-pulse').style.backgroundPosition = `-${p[0] * pSize}px -${p[1] * pSize}px`;
 
-        // ビット (横106.66px, 縦112.2px単位)
         if (data.bit) {
             const bW = 106.66; const bH = 112.2;
             const bMap = { calm:[0,0], smile:[1,0], angry:[2,0], confused:[0,1], tired:[1,1], surprised:[2,1], cry:[0,1] };
@@ -361,7 +361,6 @@ const StoryEngine = {
             document.getElementById('char-bit').style.backgroundPosition = `-${b[0] * bW}px -${b[1] * bH}px`;
         }
 
-        // 首相 (横138.66px, 縦130px単位)
         if (data.shu) {
             const sW = 138.66; const sH = 130;
             const sMap = { calm:[0,0], thinking:[1,0], smile:[2,0], closed_eyes:[0,1], sad:[1,1], angry:[2,1], cry_smile:[0,2] };
