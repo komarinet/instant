@@ -1,4 +1,4 @@
-// CYBER-SWEEP v12.6 | story.js | BGM CONTROL ADDED
+// CYBER-SWEEP v14.0 | story.js | SCENARIO & BGM COMPLETE
 const StoryEngine = {
     scripts: {
         stage1: [
@@ -225,14 +225,11 @@ const StoryEngine = {
         document.getElementById('warp-container').classList.add('hidden');
         document.getElementById('adventure-viewport').classList.remove('shake-scene', 'shake-scene-heavy');
         
-        SoundEngine.setStoryMusic('stop'); // スキップ時にBGMを停止
         if(this.onComplete) this.onComplete(); 
     },
 
     updateUI(data) {
-        // BGMの切り替え指定があれば発動
         if (data.bgm) { SoundEngine.setStoryMusic(data.bgm); }
-
         if (data.special === "shake") {
             const win = document.getElementById('adventure-viewport');
             win.classList.add('shake-scene'); SoundEngine.playSFX('damage');
