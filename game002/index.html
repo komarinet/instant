@@ -19,6 +19,17 @@
         .char-btn.selected { background: #00ffff; color: #000; }
         #char-preview { margin-top: 20px; padding: 15px; border: 1px solid #333; width: 80%; max-width: 350px; text-align: center; height: 120px; }
         #stage-list button { border-color: #ffaa00; width: 100%; margin: 5px 0;}
+        
+        /* バージョン情報用CSS（右下にひっそりと配置） */
+        .version-info {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: #555;
+            letter-spacing: 1px;
+            pointer-events: none; /* タップの邪魔にならないように */
+        }
     </style>
 </head>
 <body>
@@ -27,6 +38,7 @@
     <div id="title-screen" class="screen">
         <h1>RE:CAUSES</h1>
         <button onclick="changeScreen('char-select-screen')">START GAME</button>
+        <div class="version-info">ver 0.1.0</div>
     </div>
 
     <div id="char-select-screen" class="screen hidden">
@@ -62,9 +74,9 @@
     </div>
 </div>
 
-<script src="js/data.js"></script>
-<script src="js/adv.js"></script>
-<script src="js/stg.js"></script>
-<script src="js/main.js"></script>
+<script src="js/data.js?v=0.1.0"></script>
+<script src="js/adv.js?v=0.1.0"></script>
+<script src="js/stg.js?v=0.1.0"></script>
+<script src="js/main.js?v=0.1.0"></script>
 </body>
 </html>
