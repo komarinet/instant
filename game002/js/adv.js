@@ -30,9 +30,14 @@ class ADVManager {
         if (!this.isActive) return;
         const currentMsg = this.currentScenario[this.index];
         
-        const boxHeight = 150;
-        const padding = 15;
-        const boxY = canvas.height - boxHeight - 20;
+        // スマホ画面で見切れないための安全マージン設定
+        const marginX = 20; // 左右の余白
+        const marginBottom = 40; // 下部の余白（ナビゲーションバー対策で広めに）
+        const padding = 15; // ボックス内の余白
+        
+        const boxHeight = 140;
+        const boxWidth = canvas.width - (marginX * 2);
+        const boxY = canvas.height - boxHeight - marginBottom;
         
         // RPG風の角が丸い太めの白枠ボックス
         ctx.fillStyle = 'rgba(10, 10, 25, 0.85)';
@@ -41,11 +46,10 @@ class ADVManager {
         ctx.lineJoin = "round";
         
         ctx.beginPath();
-        // HTML5 CanvasのroundRect対応
         if(ctx.roundRect) {
-            ctx.roundRect(10, boxY, canvas.width - 20, boxHeight, 15);
+            ctx.roundRect(marginX, boxY, boxWidth, boxHeight, 15);
         } else {
-            ctx.rect(10, boxY, canvas.width - 20, boxHeight);
+            ctx.rect(marginX, boxY, boxWidth, boxHeight);
         }
         ctx.fill();
         ctx.stroke();
@@ -53,17 +57,17 @@ class ADVManager {
         // 話者名
         ctx.fillStyle = currentMsg.speaker === '猪狩' ? '#ff3366' : '#00ffff';
         ctx.font = 'bold 18px "Segoe UI", sans-serif';
-        ctx.fillText(currentMsg.speaker, 10 + padding, boxY + 30);
+        ctx.fillText(currentMsg.speaker, marginX + padding, boxY + 30);
 
         // テキスト（スマホ向けに自動折り返し）
         ctx.fillStyle = '#fff';
         ctx.font = '16px "Segoe UI", sans-serif';
-        const maxWidth = canvas.width - 20 - (padding * 2);
-        this.wrapText(ctx, currentMsg.text, 10 + padding, boxY + 65, maxWidth, 24);
+        const maxWidth = boxWidth - (padding * 2);
+        this.wrapText(ctx, currentMsg.text, marginX + padding, boxY + 65, maxWidth, 24);
 
-        // タップを促すアイコン（X座標を -45 にして、確実にはみ出しを防止）
+        // タップを促すアイコン（ボックスの右下内側に固定）
         ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
-        ctx.fillText('▼', canvas.width - 45, boxY + boxHeight - 15);
+        ctx.fillText('▼', marginX + boxWidth - 30, boxY + boxHeight - 15);
     }
 
     // 日本語の1文字ずつの折り返し処理
