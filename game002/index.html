@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RE:CAUSES</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; /* スマホでのスクロール防止 */
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        /* UI共通スタイル */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 10;
+        }
+        .hidden { display: none !important; }
+        h1 { font-size: 2.5rem; color: #ff3366; text-shadow: 0 0 10px #ff3366; margin-bottom: 10px; text-align: center;}
+        h2 { font-size: 1.5rem; border-bottom: 1px solid #555; padding-bottom: 5px; margin-bottom: 15px;}
+        button {
+            background: transparent;
+            color: #fff;
+            border: 1px solid #ff3366;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            margin: 10px;
+            cursor: pointer;
+            width: 80%;
+            max-width: 300px;
+            transition: all 0.2s;
+        }
+        button:active { background: #ff3366; color: #000; }
+        
+        /* キャラクター選択画面用 */
+        #char-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .char-btn {
+            padding: 10px;
+            width: calc(50% - 15px);
+            font-size: 1rem;
+            border-color: #00ffff;
+        }
+        .char-btn.selected { background: #00ffff; color: #000; }
+        #char-preview {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #333;
+            width: 80%;
+            max-width: 350px;
+            text-align: center;
+            height: 120px;
+        }
+        .preview-canvas { width: 100px; height: 100px; background: #111; margin-top: 10px;}
+        
+        /* ステージ選択用 */
+        #stage-list button { border-color: #ffaa00; width: 100%; margin: 5px 0;}
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="title-screen" class="screen">
+        <h1>RE:CAUSES</h1>
+        <p style="margin-bottom: 40px; color: #aaa;">- 異世界保険組合 査定報告書 -</p>
+        <button onclick="changeScreen('char-select-screen')">START GAME</button>
+    </div>
+
+    <div id="char-select-screen" class="screen hidden">
+        <h2>AGENT SELECT</h2>
+        <div id="char-list">
+            </div>
+        <div id="char-preview">
+            <div id="preview-name" style="font-weight: bold; color: #00ffff;"></div>
+            <div id="preview-desc" style="font-size: 0.8rem; margin: 5px 0; color: #aaa;"></div>
+            <div id="preview-weapon" style="font-size: 0.9rem; color: #ff3366;"></div>
+        </div>
+        <button style="margin-top:20px; border-color:#fff;" onclick="goToStageSelect()">DECIDE</button>
+        <button style="border:none; text-decoration:underline; padding:5px;" onclick="changeScreen('title-screen')">Back</button>
+    </div>
+
+    <div id="stage-select-screen" class="screen hidden">
+        <h2>STAGE SELECT</h2>
+        <div id="stage-list" style="width: 80%; max-width: 300px;">
+            <button onclick="startGame(1)">Stage 1: The Auditor</button>
+            <button onclick="startGame(2)">Stage 2: Witch Ghost</button>
+            <button onclick="startGame(3)">Stage 3: Chronos Mask</button>
+            <button onclick="startGame(4)">Stage 4: Nano Monarch</button>
+            <button onclick="startGame(5)">Stage 5: Asset-Ash</button>
+            <button onclick="startGame(6)" style="border-color:#ff3366">Final Stage: The Commander</button>
+        </div>
+        <button style="margin-top:20px; border:none; text-decoration:underline; padding:5px;" onclick="changeScreen('char-select-screen')">Back</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="result-screen" class="screen hidden" style="background: rgba(0,0,0,0.7);">
+        <h1 id="result-title">GAME OVER</h1>
+        <button onclick="changeScreen('char-select-screen')">BACK TO MENU</button>
+    </div>
+</div>
+
+<script>
+    // --- データ定義 ---
+    const characters = [
+        { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー(Lv1)' },
+        { id: 'shiina', name: '椎名 護', color: '#33ccff', desc: '時間操作。周囲の時間をスローにする（未実装）。', weapon: 'Weapon: クロノス・レーザー' },
+        { id: 'chika', name: '柊 千華', color: '#cc33ff', desc: '因果の残響。低速移動で弾を透過する（未実装）。', weapon: 'Weapon: 執着の怨炎' },
+        { id: 'kagami', name: '各務 栞', color: '#33ff33', desc: '規約執行。画面内の弾を資源に変換する（未実装）。', weapon: 'Weapon: 監査ビーム' },
+        { id: 'godai', name: 'G・O・D・A・I', color: '#aaaaaa', desc: '全兵装展開。理不尽な命令で暴走する（未実装）。', weapon: 'Weapon: アセット・ミサイル' },
+        { id: 'jinguji', name: '神宮寺 恒成', color: '#ffcc00', desc: 'ナノマシン。アイテムを強欲に吸い寄せる（未実装）。', weapon: 'Weapon: 札束弾幕' }
+    ];
+
+    let selectedCharId = 'igari';
+
+    // --- UI ロジック ---
+    function initCharSelect() {
+        const list = document.getElementById('char-list');
+        list.innerHTML = '';
+        characters.forEach(char => {
+            const btn = document.createElement('button');
+            btn.className = `char-btn ${char.id === selectedCharId ? 'selected' : ''}`;
+            btn.innerText = char.name;
+            btn.onclick = () => selectChar(char.id);
+            list.appendChild(btn);
+        });
+        updatePreview();
+    }
+
+    function selectChar(id) {
+        selectedCharId = id;
+        document.querySelectorAll('.char-btn').forEach(btn => btn.classList.remove('selected'));
+        event.target.classList.add('selected');
+        updatePreview();
+    }
+
+    function updatePreview() {
+        const char = characters.find(c => c.id === selectedCharId);
+        document.getElementById('preview-name').innerText = char.name;
+        document.getElementById('preview-name').style.color = char.color;
+        document.getElementById('preview-desc').innerText = char.desc;
+        document.getElementById('preview-weapon').innerText = char.weapon;
+    }
+
+    function changeScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        if(screenId) document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function goToStageSelect() {
+        changeScreen('stage-select-screen');
+    }
+
+    // 初期化実行
+    initCharSelect();
+
+    // --- ゲームエンジン（キャンバス） ---
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    // キャンバスのリサイズ
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // ゲーム状態
+    let gameLoop;
+    let isPlaying = false;
+    let player, bullets, enemies, enemyBullets, particles;
+
+    // --- 相対座標コントローラー（スマホ用） ---
+    let touchX = 0;
+    let touchY = 0;
+    let isTouching = false;
+
+    canvas.addEventListener('touchstart', e => {
+        if (!isPlaying) return;
+        e.preventDefault();
+        isTouching = true;
+        touchX = e.touches[0].clientX;
+        touchY = e.touches[0].clientY;
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', e => {
+        if (!isPlaying || !isTouching) return;
+        e.preventDefault();
+        const currentX = e.touches[0].clientX;
+        const currentY = e.touches[0].clientY;
+        
+        // 移動量（Delta）を自機に加算（1.2倍の感度）
+        player.x += (currentX - touchX) * 1.2;
+        player.y += (currentY - touchY) * 1.2;
+        
+        // 画面外に出ないようにクランプ
+        player.x = Math.max(10, Math.min(canvas.width - 10, player.x));
+        player.y = Math.max(10, Math.min(canvas.height - 10, player.y));
+
+        touchX = currentX;
+        touchY = currentY;
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', e => {
+        isTouching = false;
+    });
+
+    // --- ゲーム開始 ---
+    function startGame(stageNum) {
+        changeScreen(''); // 全UIを隠す
+        isPlaying = true;
+        
+        // プレイヤー初期化（猪狩ベース）
+        const charData = characters.find(c => c.id === selectedCharId);
+        player = {
+            x: canvas.width / 2,
+            y: canvas.height * 0.8,
+            color: charData.color,
+            baseFireRate: 15, // 基本連射間隔（フレーム）
+            fireTimer: 0
+        };
+
+        bullets = [];
+        enemies = [];
+        enemyBullets = [];
+        particles = [];
+
+        // テスト用：敵を定期的に生成するインターバル
+        setInterval(spawnEnemy, 2000);
+
+        // ゲームループ開始
+        cancelAnimationFrame(gameLoop);
+        loop();
+    }
+
+    function spawnEnemy() {
+        if(!isPlaying) return;
+        enemies.push({
+            x: Math.random() * (canvas.width - 40) + 20,
+            y: -20,
+            hp: 50,
+            fireTimer: 0
+        });
+    }
+
+    function gameOver() {
+        isPlaying = false;
+        document.getElementById('result-title').innerText = "GAME OVER";
+        document.getElementById('result-title').style.color = "#ff3366";
+        changeScreen('result-screen');
+    }
+
+    // --- メインループ ---
+    function loop() {
+        if (!isPlaying) return;
+
+        // 画面クリア
+        ctx.fillStyle = '#111';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // --- 猪狩のシステム：接近連射加速（グレイズ判定） ---
+        let currentFireRate = player.baseFireRate;
+        let isGrazing = false;
+
+        for (let i = 0; i < enemyBullets.length; i++) {
+            const eb = enemyBullets[i];
+            const dx = player.x - eb.x;
+            const dy = player.y - eb.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            // 被弾判定（自機中心の3pxのみ）
+            if (dist < 3 + eb.radius) {
+                gameOver();
+                return;
+            }
+            
+            // 接近加速判定（30px以内）
+            if (dist < 30) {
+                isGrazing = true;
+                currentFireRate = 4; // 連射速度が劇的にアップ
+                // グレイズエフェクト（火花）
+                if (Math.random() > 0.5) {
+                    particles.push({x: player.x, y: player.y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 10});
+                }
+            }
+        }
+
+        // --- プレイヤーショット生成 ---
+        player.fireTimer++;
+        if (player.fireTimer >= currentFireRate) {
+            player.fireTimer = 0;
+            // リボルバーの弾（今回は直線）
+            bullets.push({ x: player.x, y: player.y - 10, speed: 15 });
+        }
+
+        // --- 描画と更新処理 ---
+        
+        // プレイヤー弾
+        ctx.fillStyle = player.color;
+        for (let i = bullets.length - 1; i >= 0; i--) {
+            let b = bullets[i];
+            b.y -= b.speed;
+            ctx.fillRect(b.x - 2, b.y, 4, 15);
+            if (b.y < 0) bullets.splice(i, 1);
+        }
+
+        // 敵
+        ctx.fillStyle = '#ffaa00';
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            let e = enemies[i];
+            e.y += 1; // ゆっくり下がる
+            ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
+            
+            // 敵の弾幕発射
+            e.fireTimer++;
+            if(e.fireTimer > 60) {
+                e.fireTimer = 0;
+                // プレイヤーを狙う弾
+                const angle = Math.atan2(player.y - e.y, player.x - e.x);
+                enemyBullets.push({
+                    x: e.x, y: e.y, 
+                    vx: Math.cos(angle) * 4, vy: Math.sin(angle) * 4, 
+                    radius: 4
+                });
+            }
+
+            // 当たり判定（プレイヤーの弾 vs 敵）
+            for (let j = bullets.length - 1; j >= 0; j--) {
+                let b = bullets[j];
+                if (b.x > e.x - 15 && b.x < e.x + 15 && b.y > e.y - 15 && b.y < e.y + 15) {
+                    e.hp -= 10;
+                    bullets.splice(j, 1);
+                    particles.push({x: b.x, y: b.y, vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, life: 5});
+                }
+            }
+            if (e.hp <= 0) enemies.splice(i, 1);
+        }
+
+        // 敵弾
+        ctx.fillStyle = '#ff3366';
+        ctx.beginPath();
+        for (let i = enemyBullets.length - 1; i >= 0; i--) {
+            let eb = enemyBullets[i];
+            eb.x += eb.vx;
+            eb.y += eb.vy;
+            ctx.moveTo(eb.x, eb.y);
+            ctx.arc(eb.x, eb.y, eb.radius, 0, Math.PI * 2);
+            if (eb.x < 0 || eb.x > canvas.width || eb.y > canvas.height) enemyBullets.splice(i, 1);
+        }
+        ctx.fill();
+
+        // エフェクト（パーティクル）
+        ctx.fillStyle = '#fff';
+        for (let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx; p.y += p.vy; p.life--;
+            ctx.fillRect(p.x, p.y, 2, 2);
+            if(p.life <= 0) particles.splice(i, 1);
+        }
+
+        // プレイヤー描画
+        // オーラ（グレイズ中）
+        if (isGrazing) {
+            ctx.strokeStyle = player.color;
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 15, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+        // 自機本体
+        ctx.fillStyle = '#aaa';
+        ctx.beginPath();
+        ctx.moveTo(player.x, player.y - 15);
+        ctx.lineTo(player.x - 10, player.y + 10);
+        ctx.lineTo(player.x + 10, player.y + 10);
+        ctx.fill();
+        // 当たり判定（1点）
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(player.x - 1, player.y - 1, 3, 3);
+
+        gameLoop = requestAnimationFrame(loop);
+    }
+</script>
+</body>
+</html>
