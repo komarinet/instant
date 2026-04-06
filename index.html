@@ -61,6 +61,12 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.6);
         }
 
+        /* RE:CAUSES用のピンクアクセント */
+        .game-section.re-causes {
+            border-left-color: var(--neon-pink);
+            border-right: 1px solid rgba(255, 0, 255, 0.2);
+        }
+
         .game-title {
             font-size: 1.6rem;
             color: var(--neon-pink);
@@ -68,6 +74,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
+        }
+
+        .re-causes .game-title {
+            color: var(--neon-blue);
         }
 
         /* スクショギャラリー：2枚並べる */
@@ -112,6 +122,10 @@
             letter-spacing: 1px;
         }
 
+        .re-causes .screenshot-label {
+            color: var(--neon-pink);
+        }
+
         .game-desc {
             font-size: 0.9rem;
             line-height: 1.6;
@@ -132,6 +146,12 @@
             font-weight: bold;
         }
 
+        .re-causes .rule-tag {
+            background: rgba(255, 0, 255, 0.1);
+            color: var(--neon-pink);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+        }
+
         .play-button {
             display: block;
             width: 100%;
@@ -146,6 +166,11 @@
             transition: 0.3s;
             box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4);
             font-size: 1.1rem;
+        }
+
+        .re-causes .play-button {
+            background: linear-gradient(135deg, var(--neon-pink), #b300ff);
+            box-shadow: 0 4px 15px rgba(255, 0, 255, 0.4);
         }
 
         .play-button:active {
@@ -220,6 +245,34 @@
             </div>
 
             <a href="game001/index.html" class="play-button">ミッションを開始する</a>
+        </div>
+
+        <div class="game-section re-causes">
+            <h2 class="game-title">🔫 RE:CAUSES</h2>
+            
+            <div class="screenshot-gallery">
+                <div class="screenshot-box">
+                    <img src="img/re01.jpg" alt="STG Part">
+                    <div class="screenshot-label">Bullet Hell</div>
+                </div>
+                <div class="screenshot-box">
+                    <img src="img/re02.jpg" alt="System Part">
+                    <div class="screenshot-label">Re-Construct</div>
+                </div>
+            </div>
+
+            <div class="game-desc">
+                <strong>「異世界保険組合 査定報告書」</strong><br>
+                爆死した婚約者を救うため、365日前の過去へ。転生者の息子・猪狩俊基を操り、迫りくる因果（弾幕）を再構築せよ。
+            </div>
+            
+            <div>
+                <span class="rule-tag">タイムリープSTG</span>
+                <span class="rule-tag">弾幕接近強化型</span>
+                <span class="rule-tag">マルチストーリー</span>
+            </div>
+
+            <a href="game002/index.html" class="play-button">物語を開始する</a>
         </div>
 
         <div class="game-section coming-soon">
