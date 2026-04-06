@@ -1,7 +1,5 @@
 let selectedCharId = 'igari';
 let currentStage = 1;
-
-// 状態管理: 'UI', 'ADV', 'PRE_STG_DIALOGUE', 'STG_ENTER', 'STG_PLAY', 'POST_STG_DIALOGUE'
 let gameState = 'UI'; 
 
 const canvas = document.getElementById('gameCanvas');
@@ -11,7 +9,6 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// --- UI操作系 ---
 function initCharSelect() {
     const list = document.getElementById('char-list');
     list.innerHTML = '';
@@ -47,31 +44,26 @@ function goToStageSelect() { changeScreen('stage-select-screen'); }
 
 initCharSelect();
 
-// キャンバスリサイズ
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// --- ゲーム進行フロー ---
 function startGame(stageNum) {
     currentStage = stageNum;
-    changeScreen(''); // 全UIを隠す
+    changeScreen(''); 
     
     const charData = characters.find(c => c.id === selectedCharId);
     stgManager = new STGManager(canvas, charData);
     
-    // ステージ1のみ、STG背景無しのADVからスタート
     if (stageNum === 1) {
         gameState = 'ADV';
         advManager.start(scenarios[currentStage].adv, () => {
-            // ADVが終わったらSTG背景での会話へ
             gameState = 'PRE_STG_DIALOGUE';
             advManager.start(scenarios[currentStage].pre_stg, () => {
-                gameState = 'STG_ENTER'; // 会話が終わったら自機入場
+                gameState = 'STG_ENTER';
             });
         });
     } else {
-        // ステージ2以降は最初からSTG背景で会話
         gameState = 'PRE_STG_DIALOGUE';
         advManager.start(scenarios[currentStage].pre_stg, () => {
             gameState = 'STG_ENTER';
@@ -82,17 +74,14 @@ function startGame(stageNum) {
     loop();
 }
 
-// --- 入力制御（スマホタッチ） ---
 let touchX = 0, touchY = 0, isTouching = false;
 
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    // ADVや会話中ならテキストを進める
     if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE') {
         advManager.next();
         return;
     }
-    // STG中なら自機移動の起点セット
     if (gameState === 'STG_PLAY') {
         isTouching = true;
         touchX = e.touches[0].clientX;
@@ -115,7 +104,6 @@ canvas.addEventListener('touchmove', e => {
 
 canvas.addEventListener('touchend', e => { isTouching = false; });
 
-// --- メインループ ---
 function loop() {
     if (gameState === 'UI') return;
 
@@ -123,23 +111,22 @@ function loop() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === 'ADV') {
-        // 真っ暗な背景でアドベンチャーパート
+        // ADV専用の適当な背景（時間旅行風のグラデーション）
+        let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        grad.addColorStop(0, '#001133');
+        grad.addColorStop(1, '#000000');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         advManager.draw(ctx, canvas);
     } 
     else if (gameState === 'PRE_STG_DIALOGUE') {
-        // STG背景を描画した上で会話
         stgManager.draw(ctx);
         advManager.draw(ctx, canvas);
     }
     else if (gameState === 'STG_ENTER') {
         stgManager.draw(ctx);
-        const isEntered = stgManager.updateEntrance();
-        if (isEntered) {
+        if (stgManager.updateEntrance()) {
             gameState = 'STG_PLAY';
-            // テスト用：敵を生成開始
-            setInterval(() => {
-                if(gameState === 'STG_PLAY') stgManager.enemies.push({x: Math.random()*(canvas.width-40)+20, y:-20, hp:50, fireTimer:0});
-            }, 2000);
         }
     }
     else if (gameState === 'STG_PLAY') {
@@ -151,7 +138,32 @@ function loop() {
             document.getElementById('result-title').innerText = "GAME OVER";
             changeScreen('result-screen');
             return;
+        } else if (status === 'STAGE_CLEAR') {
+            // ボス撃破で事後会話へ
+            gameState = 'POST_STG_DIALOGUE';
+            advManager.start(scenarios[currentStage].post_stg, () => {
+                currentStage++;
+                if (scenarios[currentStage]) {
+                    // 次のステージのSTG環境を再構築して会話スタート
+                    stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
+                    gameState = 'PRE_STG_DIALOGUE';
+                    advManager.start(scenarios[currentStage].pre_stg, () => {
+                        gameState = 'STG_ENTER';
+                    });
+                } else {
+                    // 全ステージクリア
+                    gameState = 'UI';
+                    document.getElementById('result-title').innerText = "ALL CLEAR!";
+                    document.getElementById('result-title').style.color = "#00ffff";
+                    changeScreen('result-screen');
+                    return;
+                }
+            });
         }
+    }
+    else if (gameState === 'POST_STG_DIALOGUE') {
+        stgManager.draw(ctx); // STG背景のまま描画
+        advManager.draw(ctx, canvas);
     }
 
     gameLoopId = requestAnimationFrame(loop);
