@@ -1,6 +1,9 @@
 let selectedCharId = 'igari';
 let currentStage = 1;
+
+// ステート管理にテロップとフェードを追加
 let gameState = 'UI'; 
+let transitionTimer = 0; // テロップや暗転の時間を計るタイマー
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -55,18 +58,21 @@ function startGame(stageNum) {
     const charData = characters.find(c => c.id === selectedCharId);
     stgManager = new STGManager(canvas, charData);
     
+    // フロー定義：ADV -> 会話 -> STARTテロップ -> 自機入場
     if (stageNum === 1) {
         gameState = 'ADV';
         advManager.start(scenarios[currentStage].adv, () => {
             gameState = 'PRE_STG_DIALOGUE';
             advManager.start(scenarios[currentStage].pre_stg, () => {
-                gameState = 'STG_ENTER';
+                gameState = 'STAGE_START_TEXT';
+                transitionTimer = 90; // 1.5秒間表示
             });
         });
     } else {
         gameState = 'PRE_STG_DIALOGUE';
         advManager.start(scenarios[currentStage].pre_stg, () => {
-            gameState = 'STG_ENTER';
+            gameState = 'STAGE_START_TEXT';
+            transitionTimer = 90;
         });
     }
 
@@ -111,7 +117,6 @@ function loop() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === 'ADV') {
-        // ADV専用の適当な背景（時間旅行風のグラデーション）
         let grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
         grad.addColorStop(0, '#001133');
         grad.addColorStop(1, '#000000');
@@ -122,6 +127,21 @@ function loop() {
     else if (gameState === 'PRE_STG_DIALOGUE') {
         stgManager.draw(ctx);
         advManager.draw(ctx, canvas);
+    }
+    else if (gameState === 'STAGE_START_TEXT') {
+        // スタート時のテロップ
+        stgManager.draw(ctx);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+        
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 30px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`STAGE ${currentStage} START`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.textAlign = 'left';
+
+        transitionTimer--;
+        if(transitionTimer <= 0) gameState = 'STG_ENTER';
     }
     else if (gameState === 'STG_ENTER') {
         stgManager.draw(ctx);
@@ -142,28 +162,58 @@ function loop() {
             // ボス撃破で事後会話へ
             gameState = 'POST_STG_DIALOGUE';
             advManager.start(scenarios[currentStage].post_stg, () => {
-                currentStage++;
-                if (scenarios[currentStage]) {
-                    // 次のステージのSTG環境を再構築して会話スタート
-                    stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
-                    gameState = 'PRE_STG_DIALOGUE';
-                    advManager.start(scenarios[currentStage].pre_stg, () => {
-                        gameState = 'STG_ENTER';
-                    });
-                } else {
-                    // 全ステージクリア
-                    gameState = 'UI';
-                    document.getElementById('result-title').innerText = "ALL CLEAR!";
-                    document.getElementById('result-title').style.color = "#00ffff";
-                    changeScreen('result-screen');
-                    return;
-                }
+                gameState = 'STAGE_CLEAR_TEXT';
+                transitionTimer = 90; // クリアテロップ表示時間
             });
         }
     }
     else if (gameState === 'POST_STG_DIALOGUE') {
-        stgManager.draw(ctx); // STG背景のまま描画
+        stgManager.draw(ctx); 
         advManager.draw(ctx, canvas);
+    }
+    else if (gameState === 'STAGE_CLEAR_TEXT') {
+        // クリア時のテロップ
+        stgManager.draw(ctx);
+        ctx.fillStyle = 'rgba(0,0,0,0.6)';
+        ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+        
+        ctx.fillStyle = '#00ffff';
+        ctx.font = 'bold 30px "Segoe UI", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(`STAGE ${currentStage} CLEAR`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.textAlign = 'left';
+
+        transitionTimer--;
+        if(transitionTimer <= 0) {
+            gameState = 'TRANSITION_FADE';
+            transitionTimer = 60; // 暗転時間（1秒）
+        }
+    }
+    else if (gameState === 'TRANSITION_FADE') {
+        // 暗転
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        transitionTimer--;
+        if(transitionTimer <= 0) {
+            currentStage++;
+            if (scenarios[currentStage]) {
+                // 次のステージへ
+                stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
+                gameState = 'PRE_STG_DIALOGUE';
+                advManager.start(scenarios[currentStage].pre_stg, () => {
+                    gameState = 'STAGE_START_TEXT';
+                    transitionTimer = 90;
+                });
+            } else {
+                // 全クリア
+                gameState = 'UI';
+                document.getElementById('result-title').innerText = "ALL CLEAR!";
+                document.getElementById('result-title').style.color = "#00ffff";
+                changeScreen('result-screen');
+                return;
+            }
+        }
     }
 
     gameLoopId = requestAnimationFrame(loop);
