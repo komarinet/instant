@@ -41,7 +41,6 @@ class ADVManager {
         ctx.lineJoin = "round";
         
         ctx.beginPath();
-        // HTML5 CanvasのroundRect対応
         if(ctx.roundRect) {
             ctx.roundRect(10, boxY, canvas.width - 20, boxHeight, 15);
         } else {
@@ -55,18 +54,17 @@ class ADVManager {
         ctx.font = 'bold 18px "Segoe UI", sans-serif';
         ctx.fillText(currentMsg.speaker, 10 + padding, boxY + 30);
 
-        // テキスト（スマホ向けに自動折り返し）
+        // テキスト
         ctx.fillStyle = '#fff';
         ctx.font = '16px "Segoe UI", sans-serif';
         const maxWidth = canvas.width - 20 - (padding * 2);
         this.wrapText(ctx, currentMsg.text, 10 + padding, boxY + 65, maxWidth, 24);
 
-        // タップを促すアイコン
+        // タップを促すアイコン（▼の位置を微調整してはみ出し防止）
         ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
-        ctx.fillText('▼', canvas.width - 30, boxY + boxHeight - 15);
+        ctx.fillText('▼', canvas.width - 35, boxY + boxHeight - 15);
     }
 
-    // 日本語の1文字ずつの折り返し処理
     wrapText(ctx, text, x, y, maxWidth, lineHeight) {
         let words = text.split('');
         let line = '';
