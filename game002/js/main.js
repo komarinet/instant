@@ -1,11 +1,11 @@
 // js/main.js
+const VER_MAIN = "0.1.2"; // main.js自身のバージョン
 
 let selectedCharId = 'igari';
 let currentStage = 1;
 
-// ステート管理にテロップとフェードを追加
 let gameState = 'UI'; 
-let transitionTimer = 0; // テロップや暗転の時間を計るタイマー
+let transitionTimer = 0; 
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
@@ -14,7 +14,6 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// 画像アセットのプリロード（シルエット画像を削除）
 const imagesToPreload = [
     'airport.png', 'igari.png', 'hiragi.png'
 ];
@@ -54,25 +53,57 @@ function goToStageSelect() { changeScreen('stage-select-screen'); }
 
 initCharSelect();
 
+// --- バージョン情報の収集と表示ロジック ---
+function showVersions() {
+    const titleScreen = document.getElementById('title-screen');
+    
+    // index.htmlに直書きされた古いバージョン表記があれば消去
+    const oldVerText = document.querySelector('.version-info');
+    if (oldVerText) oldVerText.innerHTML = '';
+
+    const verDiv = document.createElement('div');
+    verDiv.style.position = 'absolute';
+    verDiv.style.bottom = '15px';
+    verDiv.style.right = '20px';
+    verDiv.style.fontSize = '0.75rem';
+    verDiv.style.color = 'rgba(255, 255, 255, 0.4)'; // 目立たない半透明の白
+    verDiv.style.textAlign = 'right';
+    verDiv.style.pointerEvents = 'none';
+    verDiv.style.lineHeight = '1.2';
+    verDiv.style.fontFamily = 'monospace'; // コードっぽくする
+
+    // 各ファイルから変数を取得（読み込まれていなければエラーを防ぐために'---'にする）
+    const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
+    const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
+    const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
+
+    verDiv.innerHTML = `
+        data : v${dVer}<br>
+        adv  : v${aVer}<br>
+        stg  : v${sVer}<br>
+        main : v${VER_MAIN}
+    `;
+    titleScreen.appendChild(verDiv);
+}
+// 実行
+showVersions();
+// ------------------------------------------
+
+
 function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// プリロード完了後にゲーム開始。ステージ選択から呼ばれる
 function goToGameStart() {
-    changeScreen(''); // 全UIを隠す
+    changeScreen(''); 
     
-    // 画像アセットのプリロード
     advManager.preload(imagesToPreload, () => {
-        // プリロード完了後にオープニングシナリオを開始
         gameState = 'ADV';
         advManager.start(scenarios['opening'], () => {
-            // オープニングが終わったらステージ1を開始
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
             stgManager = new STGManager(canvas, charData);
             
-            // ステージ1のADV背景無しのADVからスタート。システムアナウンスは立ち絵なし。
             gameState = 'ADV';
             advManager.start(scenarios[currentStage].adv, () => {
                 gameState = 'PRE_STG_DIALOGUE';
@@ -88,12 +119,10 @@ function goToGameStart() {
     });
 }
 
-// ステージ選択画面から呼ばれる関数。startGameからgoToGameStartへリネーム
 function startGame(stageNum) {
     if (stageNum === 1) {
         goToGameStart();
     } else {
-        // ステージ2以降。プリロードは完了している前提
         currentStage = stageNum;
         changeScreen(''); 
         const charData = characters.find(c => c.id === selectedCharId);
@@ -146,7 +175,6 @@ function loop() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     if (gameState === 'ADV') {
-        // ADV専用の背景指定がある場合はそれ。ない場合はグラデーション背景
         advManager.draw(ctx, canvas);
     } 
     else if (gameState === 'PRE_STG_DIALOGUE') {
@@ -208,7 +236,7 @@ function loop() {
         transitionTimer--;
         if(transitionTimer <= 0) {
             gameState = 'TRANSITION_FADE';
-            transitionTimer = 60; // 暗転時間（1秒）
+            transitionTimer = 60; 
         }
     }
     else if (gameState === 'TRANSITION_FADE') {
