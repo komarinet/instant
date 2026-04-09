@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.3"; // バージョン更新
+const VER_MAIN = "0.1.4"; // バージョン更新
 
 let selectedCharId = 'igari';
 let currentStage = 1;
@@ -55,8 +55,6 @@ initCharSelect();
 // --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
-    
-    // index.htmlに直書きされた古いバージョン表記があれば消去
     const oldVerText = document.querySelector('.version-info');
     if (oldVerText) oldVerText.innerHTML = '';
 
@@ -86,26 +84,30 @@ function showVersions() {
 showVersions();
 // ------------------------------------------
 
-// ★解像度対策：DPR（Device Pixel Ratio）を考慮したリサイズロジック★
+// ★解像度対策と100vh対策の強化★
 let dpr = 1;
 function resizeCanvas() {
-    dpr = window.devicePixelRatio || 1; // 100vh問題と解像度対策
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
     
-    // Canvasの論理サイズを設定（ CSSで指定されるサイズ ）
+    // html, bodyから物理ピクセル数を取得
+    const width = document.documentElement.clientWidth;
+    const height = document.documentElement.clientHeight;
+    
+    // Canvasの論理サイズ（CSSピクセル）を設定
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     
-    // Canvasの物理ピクセル数を設定（ DPRを掛ける ）
+    // Canvasの物理ピクセル数を設定
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     
     // DPRに合わせて描画コンテキストをスケール
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+// イベントハンドラを整理
+window.addEventListener('resize', () => { requestAnimationFrame(resizeCanvas); });
+window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 300); });
+resizeCanvas(); // 初期実行
 
 function goToGameStart() {
     changeScreen(''); 
@@ -149,7 +151,7 @@ function startGame(stageNum) {
     }
 }
 
-// 相対座標コントローラー（DPRに対応）
+// 相対座標コントローラー（そのまま）
 let touchX = 0, touchY = 0, isTouching = false;
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
@@ -159,7 +161,6 @@ canvas.addEventListener('touchstart', e => {
     }
     if (gameState === 'STG_PLAY') {
         isTouching = true;
-        // DPRで割ることで、CSSピクセル単位の相対座標を取得
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
     }
@@ -172,9 +173,6 @@ canvas.addEventListener('touchmove', e => {
         const currentY = e.touches[0].clientY;
         stgManager.player.x += (currentX - touchX) * 1.2;
         stgManager.player.y += (currentY - touchY) * 1.2;
-        
-        // 画面外クランプ処理もDPR考慮が必要になるが、STGManager内で完結させる
-        
         touchX = currentX; touchY = currentY;
     }
 }, { passive: false });
@@ -184,10 +182,9 @@ canvas.addEventListener('touchend', e => { isTouching = false; });
 function loop() {
     if (gameState === 'UI') return;
     
-    // 全画面クリア（物理ピクセル指定）
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // リセット
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // スケールをリセットしてクリア
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); // CSSピクセル指定で描画
+    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
     if (gameState === 'ADV') {
         advManager.draw(ctx, canvas);
