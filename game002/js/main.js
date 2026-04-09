@@ -1,5 +1,6 @@
-const VER_MAIN = "0.1.4"; // バージョン更新
+const VER_MAIN = "0.1.11"; // バージョン更新
 
+// --- グローバル変数 ---
 let selectedCharId = 'igari';
 let currentStage = 1;
 
@@ -13,10 +14,12 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
+// 画像アセットのプリロード（ファイル名を変更）
 const imagesToPreload = [
-    'airport.png', 'igari.png', 'hiragi.png'
+    'airport.png', 'igari01.png', 'hiragi01.png'
 ];
 
+// --- UI操作系 ---
 function initCharSelect() {
     const list = document.getElementById('char-list');
     list.innerHTML = '';
@@ -48,13 +51,18 @@ function changeScreen(screenId) {
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
 }
 
-function goToStageSelect() { changeScreen('stage-select-screen'); }
+function goToStageSelect() { 
+    changeScreen('stage-select-screen'); 
+}
 
+// 初期化実行
 initCharSelect();
 
 // --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
+    
+    // index.htmlに直書きされた古いバージョン表記があれば消去
     const oldVerText = document.querySelector('.version-info');
     if (oldVerText) oldVerText.innerHTML = '';
 
@@ -82,35 +90,33 @@ function showVersions() {
     titleScreen.appendChild(verDiv);
 }
 showVersions();
-// ------------------------------------------
 
-// ★解像度対策と100vh対策の強化★
+
+// --- 解像度対策と100vh対策 ---
 let dpr = 1;
 function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
     
-    // html, bodyから物理ピクセル数を取得
     const width = document.documentElement.clientWidth;
     const height = document.documentElement.clientHeight;
     
-    // Canvasの論理サイズ（CSSピクセル）を設定
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     
-    // Canvasの物理ピクセル数を設定
     canvas.width = width * dpr;
     canvas.height = height * dpr;
     
-    // DPRに合わせて描画コンテキストをスケール
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-// イベントハンドラを整理
 window.addEventListener('resize', () => { requestAnimationFrame(resizeCanvas); });
 window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 300); });
-resizeCanvas(); // 初期実行
+resizeCanvas(); 
 
+
+// --- ゲーム進行フロー ---
 function goToGameStart() {
     changeScreen(''); 
+    
     advManager.preload(imagesToPreload, () => {
         gameState = 'ADV';
         advManager.start(scenarios['opening'], () => {
@@ -151,8 +157,10 @@ function startGame(stageNum) {
     }
 }
 
-// 相対座標コントローラー（そのまま）
+
+// --- 入力制御（スマホタッチ） ---
 let touchX = 0, touchY = 0, isTouching = false;
+
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE') {
@@ -179,10 +187,12 @@ canvas.addEventListener('touchmove', e => {
 
 canvas.addEventListener('touchend', e => { isTouching = false; });
 
+
+// --- メインループ ---
 function loop() {
     if (gameState === 'UI') return;
     
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // スケールをリセットしてクリア
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
