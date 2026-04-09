@@ -14,10 +14,9 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// 画像アセットのプリロード
+// 画像アセットのプリロード（シルエット画像を削除）
 const imagesToPreload = [
-    'airport.png', 'igari.png', 'hiragi.png',
-    'igari_silhouette.png', 'hiragi_silhouette.png'
+    'airport.png', 'igari.png', 'hiragi.png'
 ];
 
 function initCharSelect() {
