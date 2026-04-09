@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.9"; // バージョン更新
+const VER_ADV = "0.1.10"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -87,8 +87,8 @@ class ADVManager {
         const dialogueY = gameY + gameHeight - dynamicHeight; // 下部基準で巨大化
         const visualAreaHeight = gameHeight - dynamicHeight; // ビジュアルウインドウは残りの上部すべて
 
-        // ★修正：真っ黒バグ回避のため、一番最初に余白デザインを描画★
-        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time);
+        // ★修正：真っ黒バグ回避のため、一番最初に余白デザインを描画★（境界線描画のためにvisualAreaHeightも渡す）
+        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time, visualAreaHeight);
 
         // B. ゲーム領域（ビジュアルウインドウと台詞ウインドウ）の描画
         // ここをクリッピングして、余白にはみ出さないようにする
@@ -194,17 +194,14 @@ class ADVManager {
                 // 解像度対策：Nearest Neighborで拡大して描画★
                 ctx.imageSmoothingEnabled = false;
 
-                // ★リクエスト：キャラクター、やや右、やや左に★
-                // 猪狩（igari.png）を左、柊（hiragi.png）を右に配置
-                const isLeft = currentMsg.character === 'igari.png';
-                // ★修正：ビジュアル画面の高さに合わせる★
-                const targetCharHeight = cssHeight * 0.5; // キャラクターを画面の縦幅半分くらいになるように
+                // ★リクエスト：キャラクターを画面の縦幅半分(0.5)くらいになるように★
+                const targetCharHeight = cssHeight * 0.50;
                 const baseScale = targetCharHeight / spriteHeight; 
-                // 解像度を落とさず（ピクセル感を残して）大きく表示。頭が切れないよう少しだけ余裕を(0.95)
-                const drawHeight = spriteHeight * baseScale; // 余裕(0.95)は外して指定サイズに
+                const drawHeight = targetCharHeight;
                 const drawWidth = spriteWidth * baseScale;
 
                 // 左右中央配置（左右対称、中央からのオフセット）
+                const isLeft = currentMsg.character === 'igari.png';
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
                 const drawX = isLeft ? paddingLeft : paddingRight;
@@ -272,22 +269,25 @@ class ADVManager {
     }
 
     // ★リクエスト：情報表記の修正とサイバーな余白のデザイン★
-    drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText) {
-        // 余白全体をサイバーブルーの薄いグリッドで埋める
+    drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight) {
+        // 余白全体を黒で塗りつぶす
         ctx.fillStyle = '#0a0a0f';
         ctx.fillRect(0, 0, cssWidth, cssHeight);
         
-        ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        const gridSize = 40;
-        for (let i = 0; i < cssWidth; i += gridSize) {
-            ctx.moveTo(i, 0); ctx.lineTo(i, cssHeight);
+        // ★v0.1.4で実装していた「データの羅列（ラインみたいなの）」を完全復元★
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.1)';
+        ctx.font = '8px "Courier New"';
+        const gridSizeX = 100;
+        const gridSizeY = 15;
+        for (let i = 0; i < cssWidth; i += gridSizeX) {
+            for (let j = 0; j < cssHeight; j += gridSizeY) {
+                // ランダムにHex値を羅列し、マトリックス風の演出を作る
+                if (Math.random() > 0.3) {
+                    const randomHex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase();
+                    ctx.fillText(`${i.toString(16)}:${j.toString(16)} [${randomHex}]`, i, j);
+                }
+            }
         }
-        for (let j = 0; j < cssHeight; j += gridSize) {
-            ctx.moveTo(0, j); ctx.lineTo(cssWidth, j);
-        }
-        ctx.stroke();
 
         // ゲーム領域の枠（太めのサイバーパンク風、ネオン効果）
         ctx.strokeStyle = '#00ffff';
@@ -298,8 +298,19 @@ class ADVManager {
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight);
         ctx.shadowBlur = 0; // リセット
         
-        // 余白（目立たない場所）にデータの羅列
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.2)';
+        // ★消えていたビジュアルと台詞の境界線のラインを復元★
+        if (visualAreaHeight) {
+            const borderY = gameY + visualAreaHeight;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(gameX, borderY);
+            ctx.lineTo(gameX + gameWidth, borderY);
+            ctx.stroke();
+        }
+
+        // 余白（目立たない場所）にシステムログ
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.3)';
         ctx.font = '10px "Courier New"';
         ctx.textAlign = 'left';
         ctx.fillText(`C:AUSES-REPORT:_${(new Date().toISOString())}`, 10, cssHeight - 10);
