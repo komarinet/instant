@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.7"; // バージョン更新
+const VER_ADV = "0.1.9"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -63,13 +63,13 @@ class ADVManager {
         // 中央の「ゲーム領域」を計算（100vh問題対策のためCSSピクセルで計算）
         // STGパートとADVパートが共通で使用するアスペクト比（例: 3:2）
         const gameAspectRatio = 3 / 2;
-        let gameHeight = cssHeight;
-        let gameWidth = gameHeight * gameAspectRatio;
+        let gameHeight = cssHeight * 0.7; // スマホ画面の7割くらいの縦幅にできる？
+        let gameWidth = cssWidth * 0.95;
         
         // 画面幅からはみ出す場合はクランプ
         if (gameWidth > cssWidth * 0.95) {
             gameWidth = cssWidth * 0.95;
-            gameHeight = gameWidth / gameAspectRatio;
+            // gameHeight = gameWidth / gameAspectRatio; // 縦幅固定のため無効化
         }
         
         // 中央配置のオフセット
@@ -82,7 +82,7 @@ class ADVManager {
         const dialogueX = gameX;
         // 文字量から必要な高さを計算（簡易）
         const lineCount = currentMsg.text.split('').length / (dialogueWidth / 24); // 1行10文字と仮定
-        const dynamicHeight = Math.max(gameHeight * 0.3, lineCount * 24 + padding * 2 + 35); // 最低でも下部3割
+        const dynamicHeight = Math.max(gameHeight * 0.2, lineCount * 24 + padding * 2 + 35); // 2割くらいを台詞ウインドウに
         
         const dialogueY = gameY + gameHeight - dynamicHeight; // 下部基準で巨大化
         const visualAreaHeight = gameHeight - dynamicHeight; // ビジュアルウインドウは残りの上部すべて
@@ -198,10 +198,11 @@ class ADVManager {
                 // 猪狩（igari.png）を左、柊（hiragi.png）を右に配置
                 const isLeft = currentMsg.character === 'igari.png';
                 // ★修正：ビジュアル画面の高さに合わせる★
-                const baseScale = visualAreaHeight / spriteHeight; 
+                const targetCharHeight = cssHeight * 0.5; // キャラクターを画面の縦幅半分くらいになるように
+                const baseScale = targetCharHeight / spriteHeight; 
                 // 解像度を落とさず（ピクセル感を残して）大きく表示。頭が切れないよう少しだけ余裕を(0.95)
-                const drawHeight = spriteHeight * baseScale * 0.95;
-                const drawWidth = spriteWidth * baseScale * 0.95;
+                const drawHeight = spriteHeight * baseScale; // 余裕(0.95)は外して指定サイズに
+                const drawWidth = spriteWidth * baseScale;
 
                 // 左右中央配置（左右対称、中央からのオフセット）
                 const paddingLeft = gameX + gameWidth * 0.05;
