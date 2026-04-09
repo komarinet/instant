@@ -1,3 +1,4 @@
+const VER_STG = "0.1.0";
 class STGManager {
     constructor(canvas, charData) {
         this.canvas = canvas;
