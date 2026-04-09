@@ -28,7 +28,7 @@ const scenarios = {
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari.png', spriteIndex: 1, speaker: '猪狩', text: 'ああ、気をつけて' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi.png', spriteIndex: 0, speaker: '柊', text: '・・・あのさ、俊基' },
         // 柊: キレる(7)
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi.png', spriteIndex: 7, speaker: '柊', text: '一ヶ月で浮気とかしたら魂ごと滅ボすから' },
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi.png', spriteIndex: 7, speaker: '柊', text: '一ヶ月で浮気とかしたら魂ごと滅ぼすから' },
         // 猪狩: 焦る(11 - igari.pngには焦るがないので驚愕にする)
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari.png', spriteIndex: 4, speaker: '猪狩', text: 'だ、大丈夫だって' }, 
         // 柊: 投げキッス(10)
