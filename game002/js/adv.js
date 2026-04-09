@@ -1,3 +1,4 @@
+const VER_ADV = "0.1.2";
 class ADVManager {
     constructor() {
         this.currentScenario = [];
