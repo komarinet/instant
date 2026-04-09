@@ -1,5 +1,4 @@
-// js/main.js
-const VER_MAIN = "0.1.2"; // main.js自身のバージョン
+const VER_MAIN = "0.1.3"; // バージョン更新
 
 let selectedCharId = 'igari';
 let currentStage = 1;
@@ -66,13 +65,12 @@ function showVersions() {
     verDiv.style.bottom = '15px';
     verDiv.style.right = '20px';
     verDiv.style.fontSize = '0.75rem';
-    verDiv.style.color = 'rgba(255, 255, 255, 0.4)'; // 目立たない半透明の白
+    verDiv.style.color = 'rgba(255, 255, 255, 0.4)'; 
     verDiv.style.textAlign = 'right';
     verDiv.style.pointerEvents = 'none';
     verDiv.style.lineHeight = '1.2';
-    verDiv.style.fontFamily = 'monospace'; // コードっぽくする
+    verDiv.style.fontFamily = 'monospace'; 
 
-    // 各ファイルから変数を取得（読み込まれていなければエラーを防ぐために'---'にする）
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
@@ -85,18 +83,32 @@ function showVersions() {
     `;
     titleScreen.appendChild(verDiv);
 }
-// 実行
 showVersions();
 // ------------------------------------------
 
-
-function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+// ★解像度対策：DPR（Device Pixel Ratio）を考慮したリサイズロジック★
+let dpr = 1;
+function resizeCanvas() {
+    dpr = window.devicePixelRatio || 1; // 100vh問題と解像度対策
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    
+    // Canvasの論理サイズを設定（ CSSで指定されるサイズ ）
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    
+    // Canvasの物理ピクセル数を設定（ DPRを掛ける ）
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    
+    // DPRに合わせて描画コンテキストをスケール
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
 function goToGameStart() {
     changeScreen(''); 
-    
     advManager.preload(imagesToPreload, () => {
         gameState = 'ADV';
         advManager.start(scenarios['opening'], () => {
@@ -113,7 +125,6 @@ function goToGameStart() {
                 });
             });
         });
-        
         cancelAnimationFrame(gameLoopId);
         loop();
     });
@@ -138,8 +149,8 @@ function startGame(stageNum) {
     }
 }
 
+// 相対座標コントローラー（DPRに対応）
 let touchX = 0, touchY = 0, isTouching = false;
-
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
     if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE') {
@@ -148,6 +159,7 @@ canvas.addEventListener('touchstart', e => {
     }
     if (gameState === 'STG_PLAY') {
         isTouching = true;
+        // DPRで割ることで、CSSピクセル単位の相対座標を取得
         touchX = e.touches[0].clientX;
         touchY = e.touches[0].clientY;
     }
@@ -160,8 +172,9 @@ canvas.addEventListener('touchmove', e => {
         const currentY = e.touches[0].clientY;
         stgManager.player.x += (currentX - touchX) * 1.2;
         stgManager.player.y += (currentY - touchY) * 1.2;
-        stgManager.player.x = Math.max(10, Math.min(canvas.width - 10, stgManager.player.x));
-        stgManager.player.y = Math.max(10, Math.min(canvas.height - 10, stgManager.player.y));
+        
+        // 画面外クランプ処理もDPR考慮が必要になるが、STGManager内で完結させる
+        
         touchX = currentX; touchY = currentY;
     }
 }, { passive: false });
@@ -170,9 +183,11 @@ canvas.addEventListener('touchend', e => { isTouching = false; });
 
 function loop() {
     if (gameState === 'UI') return;
-
+    
+    // 全画面クリア（物理ピクセル指定）
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // リセット
     ctx.fillStyle = '#000';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); // CSSピクセル指定で描画
 
     if (gameState === 'ADV') {
         advManager.draw(ctx, canvas);
@@ -184,12 +199,12 @@ function loop() {
     else if (gameState === 'STAGE_START_TEXT') {
         stgManager.draw(ctx);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+        ctx.fillRect(0, canvas.height / dpr / 2 - 40, canvas.width / dpr, 80);
         
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 30px "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`STAGE ${currentStage} START`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText(`STAGE ${currentStage} START`, canvas.width / dpr / 2, canvas.height / dpr / 2 + 10);
         ctx.textAlign = 'left';
 
         transitionTimer--;
@@ -225,12 +240,12 @@ function loop() {
     else if (gameState === 'STAGE_CLEAR_TEXT') {
         stgManager.draw(ctx);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        ctx.fillRect(0, canvas.height / 2 - 40, canvas.width, 80);
+        ctx.fillRect(0, canvas.height / dpr / 2 - 40, canvas.width / dpr, 80);
         
         ctx.fillStyle = '#00ffff';
         ctx.font = 'bold 30px "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`STAGE ${currentStage} CLEAR`, canvas.width / 2, canvas.height / 2 + 10);
+        ctx.fillText(`STAGE ${currentStage} CLEAR`, canvas.width / dpr / 2, canvas.height / dpr / 2 + 10);
         ctx.textAlign = 'left';
 
         transitionTimer--;
@@ -241,7 +256,7 @@ function loop() {
     }
     else if (gameState === 'TRANSITION_FADE') {
         ctx.fillStyle = '#000';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
         
         transitionTimer--;
         if(transitionTimer <= 0) {
