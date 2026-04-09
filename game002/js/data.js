@@ -24,36 +24,37 @@ const scenarios = {
         { bg: 'airport.png', character: 'igari.png', spriteIndex: 0, speaker: '猪狩', text: 'ああ、気をつけて' },
         { bg: 'airport.png', character: 'hiragi.png', spriteIndex: 0, speaker: '柊', text: '・・・あのさ、俊基' },
         { bg: 'airport.png', character: 'hiragi.png', spriteIndex: 7, speaker: '柊', text: '一ヶ月で浮気とかしたら魂ごと滅ぼすから' },
-        { bg: 'airport.png', character: 'igari.png', spriteIndex: 4, speaker: '猪狩', text: 'だ、大丈夫だって' }, // igari.pngに焦るがないので驚愕にする
+        { bg: 'airport.png', character: 'igari.png', spriteIndex: 4, speaker: '猪狩', text: 'だ、大丈夫だって' }, 
         { bg: 'airport.png', character: 'hiragi.png', spriteIndex: 10, speaker: '柊', text: '冗談よ。じゃねー' },
         { bg: 'airport.png', character: 'igari.png', spriteIndex: 7, speaker: '猪狩', text: '全く。あの嫉妬深いのは何とかならんのか' },
-        { bg: 'airport.png', effect: 'shake', text: 'ズガーン（画面揺れる）' } // 話者とテキストなし
+        { bg: 'airport.png', effect: 'shake', text: 'ズガーン（画面揺れる）' } 
     ],
     1: {
         adv: [
-            // システムアナウンスは立ち絵なし。背景指定は追加
             { bg: 'airport.png', text: 'タイムリープ・シークエンス起動……西暦2025年、目標座標への転送を完了しました。' },
-            { bg: 'airport.png', character: 'igari_silhouette.png', spriteIndex: 4, speaker: '猪狩', text: '……ここは。一年前の……俺たちがいた街か。' }, // シルエット。驚愕の表情。
+            // シルエットではなく、通常の立ち絵を指定
+            { bg: 'airport.png', character: 'igari.png', spriteIndex: 4, speaker: '猪狩', text: '……ここは。一年前の……俺たちがいた街か。' }, 
         ],
         pre_stg: [
-            { bg: 'airport.png', character: 'hiragi_silhouette.png', speaker: '各務', text: '優里様を助けるための実力、査定させていただきます。' }, // 各務のシルエット（柊の色違い）を追加。
-            { bg: 'airport.png', character: 'igari_silhouette.png', spriteIndex: 7, speaker: '猪狩', text: 'お前は……！勝手に飛ばしといて、査定だと！？ふざけるな！' }, // シルエット。
-            { bg: 'airport.png', character: 'hiragi_silhouette.png', speaker: '各務', text: 'はい。不合格なら即座に因果から消去（デリート）ですので。' } // 各務のシルエット（柊の色違い）を追加。
+            // 各務は立ち絵（character）指定を消して、声だけにする
+            { bg: 'airport.png', speaker: '各務', text: '優里様を助けるための実力、査定させていただきます。' }, 
+            { bg: 'airport.png', character: 'igari.png', spriteIndex: 7, speaker: '猪狩', text: 'お前は……！勝手に飛ばしといて、査定だと！？ふざけるな！' }, 
+            { bg: 'airport.png', speaker: '各務', text: 'はい。不合格なら即座に因果から消去（デリート）ですので。' } 
         ],
         post_stg: [
-            { bg: 'airport.png', character: 'hiragi_silhouette.png', speaker: '各務', text: '……めんどくさいですが、最低ラインはクリアですね。' }, // 各務のシルエット（柊の色違い）を追加。
-            { bg: 'airport.png', character: 'igari_silhouette.png', spriteIndex: 7, speaker: '猪狩', text: '千華は……千華はどこだ！' } // シルエット。
+            { bg: 'airport.png', speaker: '各務', text: '……めんどくさいですが、最低ラインはクリアですね。' }, 
+            { bg: 'airport.png', character: 'igari.png', spriteIndex: 7, speaker: '猪狩', text: '千華は……千華はどこだ！' } 
         ]
     },
     2: { 
         adv: [], 
         pre_stg: [
-            // ステージ2の背景はまだないので、airport.pngのままにする。
-            { bg: 'airport.png', character: 'hiragi_silhouette.png', spriteIndex: 11, speaker: '柊', text: 'としき君……みつけた……。どうして他の女の人といるの……？' }, // 柊（再生中）のシルエット。焦る表情。
-            { bg: 'airport.png', character: 'igari_silhouette.png', spriteIndex: 4, speaker: '猪狩', text: '千華！？お前、その体は一体……！' } // シルエット。驚愕の表情。
+            // ここも通常の立ち絵を使用
+            { bg: 'airport.png', character: 'hiragi.png', spriteIndex: 11, speaker: '柊', text: 'としき君……みつけた……。どうして他の女の人といるの……？' }, 
+            { bg: 'airport.png', character: 'igari.png', spriteIndex: 4, speaker: '猪狩', text: '千華！？お前、その体は一体……！' } 
         ], 
         post_stg: [
-            { bg: 'airport.png', character: 'hiragi_silhouette.png', spriteIndex: 3, speaker: '柊', text: '痛い……としき君……' } // 柊（再生中）のシルエット。泣く表情。
+            { bg: 'airport.png', character: 'hiragi.png', spriteIndex: 3, speaker: '柊', text: '痛い……としき君……' } 
         ] 
     }
 };
