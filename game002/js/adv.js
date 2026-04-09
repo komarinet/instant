@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.11"; // バージョン更新
+const VER_ADV = "0.1.12"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -37,7 +37,8 @@ class ADVManager {
         this.index = 0;
         this.isActive = true;
         this.onComplete = onCompleteCallback;
-        this.textIndex = 0; 
+        // 文字送り廃止のため不要
+        // this.textIndex = 0; 
         this.shakeTimer = 0; 
     }
 
@@ -48,7 +49,8 @@ class ADVManager {
             this.isActive = false;
             if (this.onComplete) this.onComplete();
         } else {
-            this.textIndex = 0;
+            // 文字送り廃止のため不要
+            // this.textIndex = 0; 
             this.shakeTimer = 0;
         }
     }
@@ -60,28 +62,34 @@ class ADVManager {
         const cssHeight = canvas.height / (window.devicePixelRatio || 1);
         
         // ★解像度対策：DPR（Device Pixel Ratio）を考慮してゲーム領域を計算★
+        // 中央の「ゲーム領域」を計算（100vh問題対策のためCSSピクセルで計算）
+        // STGパートとADVパートが共通で使用するアスペクト比（例: 3:2）
         const gameAspectRatio = 3 / 2;
         let gameHeight = cssHeight * 0.7; // スマホ画面の7割くらいの縦幅
         let gameWidth = cssWidth * 0.95;
         
-        // 中央配置のオフセット
         const gameX = (cssWidth - gameWidth) / 2;
         const gameY = (cssHeight - gameHeight) / 2;
 
-        // ★追加・修正：先に台詞ウインドウの高さを計算し、残りをビジュアル画面にする★
+        // ★修正：台詞ウインドウに2割を割り当て、残りをビジュアル画面にする★
         const padding = 15;
         const dialogueWidth = gameWidth;
         const dialogueX = gameX;
-        const lineCount = currentMsg.text.split('').length / (dialogueWidth / 24); 
-        const dynamicHeight = Math.max(gameHeight * 0.2, lineCount * 24 + padding * 2 + 35); // 2割くらいを台詞ウインドウに
+        // 文字送り廃止のため、常に全文で高さを計算
+        // 1行に入る文字数（フォントサイズ16px想定）
+        const charsPerLine = Math.max(10, Math.floor((dialogueWidth - padding * 2 - 10) / 16));
+        const lineCount = Math.ceil(currentMsg.text.length / charsPerLine) || 1;
         
-        const dialogueY = gameY + gameHeight - dynamicHeight; 
-        const visualAreaHeight = gameHeight - dynamicHeight; 
+        const dynamicHeight = Math.max(gameHeight * 0.20, lineCount * 24 + padding * 2 + 35); 
+        
+        const dialogueY = gameY + gameHeight - dynamicHeight; // 下部基準で巨大化
+        const visualAreaHeight = gameHeight - dynamicHeight; // ビジュアルウインドウは残りの上部すべて
 
         // ★修正：真っ黒バグ回避のため、一番最初に余白デザインを描画★
         this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time, visualAreaHeight);
 
         // B. ゲーム領域（ビジュアルウインドウと台詞ウインドウ）の描画
+        // ここをクリッピングして、余白にはみ出さないようにする
         ctx.save();
         ctx.beginPath();
         ctx.rect(gameX, gameY, gameWidth, gameHeight);
@@ -101,25 +109,26 @@ class ADVManager {
 
         // --- 描画処理 ---
 
-        // B-1. ビジュアルウインドウ（上部）
+        // B-1. ビジュアルウインドウ（上部全画面）
+        // 背景色
         ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(gameX, gameY, gameWidth, visualAreaHeight);
+        ctx.fillRect(gameX, gameY, gameWidth, visualAreaHeight); // 修正：ビジュアルエリアのみ塗りつぶし
         
         // 背景画像描画（Cover表示）
         if (currentMsg.bg) {
             const bgImg = this.assets[currentMsg.bg];
             if (bgImg) {
                 const bgRatio = bgImg.width / bgImg.height;
-                const visualRatio = gameWidth / visualAreaHeight; 
+                const visualRatio = gameWidth / visualAreaHeight; // 修正：ビジュアルエリアのアスペクト比
                 let drawW, drawH, drawX, drawY;
 
                 if (visualRatio > bgRatio) {
                     drawW = gameWidth;
                     drawH = gameWidth / bgRatio;
                     drawX = gameX;
-                    drawY = gameY + (visualAreaHeight - drawH) / 2; 
+                    drawY = gameY + (visualAreaHeight - drawH) / 2; // 修正：ビジュアルエリア内で中央配置
                 } else {
-                    drawW = visualAreaHeight * bgRatio; 
+                    drawW = visualAreaHeight * bgRatio; // 修正：ビジュアルエリア高さに合わせる
                     drawH = visualAreaHeight;
                     drawX = gameX + (gameWidth - drawW) / 2;
                     drawY = gameY;
@@ -128,30 +137,22 @@ class ADVManager {
             }
         }
 
-        // ★修正：新しい解像度の画像から動的にシルエットを生成するロジック★
+        // ★解像度対策：Nearest Neighborで拡大して描画★
+        // シルエット生成ロジックはv0.1.11で修正済み（オフスクリーンCanvas）
         const preloadSilhouettes = () => {
             const tempSilhouettes = {};
-            const charactersSrc = ['igari01.png', 'hiragi01.png'];
-            charactersSrc.forEach(src => {
+            // data.jsにシルエット画像の指定を戻す。
+            const silhouettesSrc = ['igari_silhouette.png', 'hiragi_silhouette.png'];
+            silhouettesSrc.forEach(src => {
                 const img = this.assets[src];
                 if (img) {
-                    // 全身のシルエットをオフスクリーンCanvasに生成
+                    // 色を各務カラーに変えたシルエットをオフスクリーンCanvasに生成
                     const offCanvas = document.createElement('canvas');
                     offCanvas.width = img.width; offCanvas.height = img.height;
                     const offCtx = offCanvas.getContext('2d');
                     offCtx.drawImage(img, 0, 0);
                     const imageData = offCtx.getImageData(0, 0, img.width, img.height);
                     const data = imageData.data;
-                    
-                    // まずアルファ値がある（透明でない）ピクセルを白くする（シルエット）
-                    for (let i = 0; i < data.length; i += 4) {
-                        if (data[i+3] > 0) {
-                            data[i] = 255; data[i+1] = 255; data[i+2] = 255;
-                        }
-                    }
-                    offCtx.putImageData(imageData, 0, 0);
-
-                    // 旧コードを復元：生成した白いシルエットの色を各務カラーに変える
                     for (let i = 0; i < data.length; i += 4) {
                         if (data[i] === 255 && data[i+1] === 255 && data[i+2] === 255 && data[i+3] > 0) {
                             // 各務のカラー（#33ff33）に変更
@@ -159,7 +160,7 @@ class ADVManager {
                         }
                     }
                     offCtx.putImageData(imageData, 0, 0);
-                    tempSilhouettes[src] = offCanvas; // キー名は立ち絵のファイル名にする
+                    tempSilhouettes[src] = offCanvas;
                 }
             });
             return tempSilhouettes;
@@ -167,16 +168,12 @@ class ADVManager {
 
         const silhouettes = preloadSilhouettes();
 
-        // 立ち絵描画（解像度対策と二人表示レイアウト）
+        // 立ち絵描画（解像度対策と★二人表示レイアウト★）
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
             if (charImg) {
-                // ★修正：高解像度画像（1333x1500）に合わせて整数値で切り出し計算をやり直し★
-                // 1333 / 4 = 333.25 となるが、小数点以下のピクセル滲みを防ぐため整数にする。
-                // 立ち絵描画はNearest Neighbor拡大を維持するため、小数点以下を整数ピクセルとして扱う。
-                const spriteWidth = 333; // 整数ピクセルで切り出す
-                const spriteHeight = 500; // 1500 / 3
-
+                const spriteWidth = charImg.width / 4;
+                const spriteHeight = charImg.height / 3;
                 const col = currentMsg.spriteIndex % 4;
                 const row = Math.floor(currentMsg.spriteIndex / 4);
                 
@@ -185,7 +182,7 @@ class ADVManager {
                 charCanvas.height = spriteHeight;
                 const charCtx = charCanvas.getContext('2d');
                 
-                // Nearest Neighborで切り出す（先生のドット感を大切にするため）
+                // Nearest Neighborで切り出す（ぼやけ防止）
                 charCtx.imageSmoothingEnabled = false;
                 charCtx.drawImage(
                     charImg,
@@ -197,18 +194,19 @@ class ADVManager {
                 ctx.imageSmoothingEnabled = false;
 
                 // ★リクエスト：キャラクターを画面の縦幅半分(0.5)くらいになるように★
+                // 猪狩（igari01.png）を右、柊（hiragi01.png）、各務、その他を左に配置
                 const targetCharHeight = cssHeight * 0.50;
                 const baseScale = targetCharHeight / spriteHeight; 
-                const drawHeight = targetCharHeight; // 小数点以下を維持して縮小描画（ぼやけ防止は Nearest Neighbor で）
+                const drawHeight = targetCharHeight;
                 const drawWidth = spriteWidth * baseScale;
 
-                // 左右中央配置（左右対称、中央からのオフセット）
-                const isLeft = currentMsg.character === 'igari01.png';
+                // 左右対称配置
+                const isIgari = currentMsg.character === 'igari01.png'; // 修正
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
-                const drawX = isLeft ? paddingLeft : paddingRight;
+                const drawX = isIgari ? paddingRight : paddingLeft; // 修正
 
-                // Y座標：ビジュアルウインドウの「底辺」にぴったり合わせる（セパレート完了）
+                // ★修正：Y座標をビジュアルウインドウの底辺に合わせる★
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
                 ctx.drawImage(
@@ -219,12 +217,14 @@ class ADVManager {
                     drawHeight
                 );
                 
-                ctx.imageSmoothingEnabled = true; // 解像度モードを元に戻す
+                // 解像度モードを元に戻す
+                ctx.imageSmoothingEnabled = true; 
             }
         }
         
         // ★最優先：台詞ウインドウ（下部固定＆★動的巨大化★）★
-        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; 
+        // RPG風ボックスの描画
+        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; // 0.85 -> 0.7 に変更してキャラを少し透けさせる
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 4;
         ctx.lineJoin = "round";
@@ -245,12 +245,12 @@ class ADVManager {
             ctx.fillText(currentMsg.speaker, dialogueX + padding, dialogueY + 30);
         }
 
-        // テキスト描画（文字送り：★最優先。見切れ防止★）
+        // テキスト描画（一瞬で全文を表示）
         ctx.fillStyle = '#fff';
         ctx.font = '16px "Segoe UI", sans-serif';
         const maxWidth = dialogueWidth - (padding * 2);
         
-        // 文字送りロジック
+        /* 文字送りロジック廃止
         this.textTimer++;
         if (this.textTimer >= this.textInterval) {
             this.textTimer = 0;
@@ -259,6 +259,9 @@ class ADVManager {
             }
         }
         const textToDraw = currentMsg.text.substring(0, this.textIndex);
+        */
+        const textToDraw = currentMsg.text; // 全文一瞬
+
         this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
 
         // タップを促すアイコン
@@ -270,24 +273,22 @@ class ADVManager {
 
     // ★リクエスト：情報表記の修正とサイバーな余白のデザイン★
     drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight) {
-        // 余白全体を黒で塗りつぶす
+        // 余白全体をサイバーブルーの薄いグリッドで埋める
         ctx.fillStyle = '#0a0a0f';
         ctx.fillRect(0, 0, cssWidth, cssHeight);
         
-        // 旧コードを復元：データの羅列（マトリックス風ライン）
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.1)';
-        ctx.font = '8px "Courier New"';
-        const gridSizeX = 100;
-        const gridSizeY = 15;
-        for (let i = 0; i < cssWidth; i += gridSizeX) {
-            for (let j = 0; j < cssHeight; j += gridSizeY) {
-                // ランダムにHex値を羅列し、マトリックス風の演出を作る
-                if (Math.random() > 0.3) {
-                    const randomHex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase();
-                    ctx.fillText(`${i.toString(16)}:${j.toString(16)} [${randomHex}]`, i, j);
-                }
-            }
+        // 旧コードを復元：データの羅列（データの羅列）廃止、グリッド線描画 (余白に)
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)'; // グリッド線
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const gridSize = 40;
+        for (let i = 0; i < cssWidth; i += gridSize) {
+            ctx.moveTo(i, 0); ctx.lineTo(i, cssHeight);
         }
+        for (let j = 0; j < cssHeight; j += gridSize) {
+            ctx.moveTo(0, j); ctx.lineTo(cssWidth, j);
+        }
+        ctx.stroke();
 
         // ゲーム領域の枠（太めのサイバーパンク風、ネオン効果）
         ctx.strokeStyle = '#00ffff';
@@ -298,7 +299,7 @@ class ADVManager {
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight);
         ctx.shadowBlur = 0; // リセット
         
-        // 旧コードを復元：ビジュアルと台詞の境界線のライン
+        // ★消えていたビジュアルと台詞の境界線のラインを復元★
         if (visualAreaHeight) {
             const borderY = gameY + visualAreaHeight;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -309,32 +310,28 @@ class ADVManager {
             ctx.stroke();
         }
 
-        // 余白（目立たない場所）にシステムログ
-        ctx.fillStyle = 'rgba(0, 243, 255, 0.3)';
-        ctx.font = '10px "Courier New"';
-        ctx.textAlign = 'left';
-        ctx.fillText(`C:AUSES-REPORT:_${(new Date().toISOString())}`, 10, cssHeight - 10);
-        
+        // 余白（目立たない場所）にデータの羅列 (薄く全画面に) -> 削除。グリッド線復活のため。
+
         // ★リクエスト：情報表記の修正（右上）★
+        // ビジュアルと台詞をセパレートさせるため、ゲーム領域外（余白）に配置
+        // グリッド線の上に描画される。見切れ修正のため薄い黒帯を復活。
         if (placeText || timeText) {
+            // 文字が見えやすいように薄い黒帯を敷く
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(gameX + gameWidth - 140, gameY - dynamicHeight - 10, 140, 50); // 境界線の上に配置
+
             ctx.fillStyle = '#ff3366';
             ctx.font = 'bold 12px "Courier New"';
             ctx.textAlign = 'right';
-            const infoPaddingX = gameX + gameWidth;
-            const infoPaddingY = gameY - 10;
-            if (placeText) {
-                // 場所：Loc:
-                ctx.fillText(`Loc: ${placeText}`, infoPaddingX, infoPaddingY);
-            }
-            if (timeText) {
-                // 時期：Time:
-                ctx.fillText(`Time: ${timeText}`, infoPaddingX, infoPaddingY + 15);
-            }
-            ctx.textAlign = 'left'; // 元に戻す
+            const infoX = gameX + gameWidth - 10;
+            const infoPaddingY = gameY + visualAreaHeight - dynamicHeight - 10; // 境界線の上に設定
+            if (placeText) ctx.fillText(`Loc: ${placeText}`, infoX, infoPaddingY + 20); // 位置調整
+            if (timeText) ctx.fillText(`Time: ${timeText}`, infoX, infoPaddingY + 35); // 位置調整
+            ctx.textAlign = 'left'; 
         }
     }
 
-    // 日本語の1文字ずつの折り返し処理（そのまま）
+    // wrapText はそのまま
     wrapText(ctx, text, x, y, maxWidth, lineHeight) {
         let words = text.split('');
         let line = '';
