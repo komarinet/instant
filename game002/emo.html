@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>表情・スプライト確認ツール</title>
+    <title>表情ラベル・スプライト確認ツール</title>
     <style>
         body {
             background-color: #111;
             color: #eee;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', Courier, monospace; /* プログラムっぽく */
             margin: 0;
             padding: 20px;
         }
@@ -27,6 +27,7 @@
             margin-bottom: 20px;
             padding-left: 10px;
             border-left: 5px solid #ff3366;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .grid-container {
             display: flex;
@@ -38,47 +39,64 @@
             background: #222;
             border: 1px solid #444;
             border-radius: 8px;
-            padding: 10px;
+            padding: 15px 10px;
             text-align: center;
-            width: 180px; /* 見やすいサイズに縮小表示 */
+            width: 180px; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
         }
         .sprite-card canvas {
             max-width: 100%;
             height: auto;
             display: block;
-            margin: 0 auto 10px;
-            background-color: #000; /* 透過部分がわかるように黒背景 */
-            border-radius: 4px;
+            margin: 0 auto 15px;
+            background-color: #000; 
+            border: 1px solid #333;
         }
         .index-number {
-            color: #00ffff;
-            font-weight: bold;
-            font-size: 1.2rem;
+            color: #888;
+            font-size: 0.8rem;
             margin-bottom: 5px;
         }
-        .emotion-name {
-            font-size: 0.9rem;
-            color: #ccc;
+        .label-name {
+            color: #00ffff;
+            font-weight: bold;
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+        .emotion-desc {
+            font-size: 0.8rem;
+            color: #aaa;
+            font-family: 'Segoe UI', sans-serif;
         }
     </style>
 </head>
 <body>
 
-    <h1>SPRITE & EMOTION CHECKER</h1>
+    <h1>SPRITE LABEL CHECKER</h1>
 
     <div id="content"></div>
 
     <script>
-        // 先生が指定した表情のリストとファイル名
+        // 英語ラベルと日本語の補足説明のリスト
         const charData = [
             {
                 name: "猪狩 俊基 (igari01.png)",
                 color: "#ff3366",
                 src: "img/igari01.png",
                 emotions: [
-                    "おすまし", "微笑", "笑顔", "目閉じ",
-                    "驚愕", "悲しい", "泣き", "怒り",
-                    "絶望", "空欄", "空欄", "空欄"
+                    { label: "normal",   desc: "おすまし" },
+                    { label: "smile",    desc: "微笑" },
+                    { label: "happy",    desc: "笑顔" },
+                    { label: "close",    desc: "目閉じ" },
+                    { label: "surprise", desc: "驚愕" },
+                    { label: "sad",      desc: "悲しい" },
+                    { label: "cry",      desc: "泣き" },
+                    { label: "anger",    desc: "怒り" },
+                    { label: "despair",  desc: "絶望" },
+                    { label: "blank1",   desc: "空欄" },
+                    { label: "blank2",   desc: "空欄" },
+                    { label: "blank3",   desc: "空欄" }
                 ]
             },
             {
@@ -86,9 +104,18 @@
                 color: "#cc33ff",
                 src: "img/hiragi01.png",
                 emotions: [
-                    "おすまし", "笑顔", "可愛く怒る", "泣く",
-                    "恥ずかしい", "怒る", "照れる", "キレる",
-                    "携帯見る", "目を閉じる", "投げキッス", "焦る"
+                    { label: "normal",   desc: "おすまし" },
+                    { label: "smile",    desc: "笑顔" },
+                    { label: "pout",     desc: "可愛く怒る" },
+                    { label: "cry",      desc: "泣く" },
+                    { label: "shy",      desc: "恥ずかしい" },
+                    { label: "anger",    desc: "怒る" },
+                    { label: "blush",    desc: "照れる" },
+                    { label: "rage",     desc: "キレる" },
+                    { label: "phone",    desc: "携帯見る" },
+                    { label: "close",    desc: "目を閉じる" },
+                    { label: "kiss",     desc: "投げキッス" },
+                    { label: "panic",    desc: "焦る" }
                 ]
             }
         ];
@@ -100,7 +127,6 @@
         const contentDiv = document.getElementById('content');
 
         charData.forEach(char => {
-            // キャラクターごとのセクションを作成
             const section = document.createElement('div');
             section.className = 'character-section';
 
@@ -116,24 +142,20 @@
             section.appendChild(grid);
             contentDiv.appendChild(section);
 
-            // 画像を読み込んでCanvasに切り出し描画
             const img = new Image();
             img.src = char.src;
             img.onload = () => {
-                char.emotions.forEach((emotion, index) => {
+                char.emotions.forEach((emoData, index) => {
                     const card = document.createElement('div');
                     card.className = 'sprite-card';
 
-                    // 切り出し用のCanvasを作成
                     const canvas = document.createElement('canvas');
                     canvas.width = spriteWidth;
                     canvas.height = spriteHeight;
                     const ctx = canvas.getContext('2d');
                     
-                    // Nearest Neighborでくっきり描画
                     ctx.imageSmoothingEnabled = false;
 
-                    // 行と列を計算して切り出し
                     const col = index % 4;
                     const row = Math.floor(index / 4);
 
@@ -143,27 +165,33 @@
                         0, 0, spriteWidth, spriteHeight
                     );
 
-                    // インデックス番号と表情名のテキスト
+                    // インデックス番号
                     const indexText = document.createElement('div');
                     indexText.className = 'index-number';
                     indexText.innerText = `Index: ${index}`;
 
-                    const emotionText = document.createElement('div');
-                    emotionText.className = 'emotion-name';
-                    emotionText.innerText = emotion;
+                    // 英語のラベル名（メイン）
+                    const labelText = document.createElement('div');
+                    labelText.className = 'label-name';
+                    labelText.innerText = emoData.label;
+
+                    // 日本語の意味（サブ）
+                    const descText = document.createElement('div');
+                    descText.className = 'emotion-desc';
+                    descText.innerText = `(${emoData.desc})`;
 
                     card.appendChild(canvas);
                     card.appendChild(indexText);
-                    card.appendChild(emotionText);
+                    card.appendChild(labelText);
+                    card.appendChild(descText);
                     grid.appendChild(card);
                 });
             };
             
-            // 画像読み込みエラー時の処理
             img.onerror = () => {
                 const errorMsg = document.createElement('p');
                 errorMsg.style.color = "red";
-                errorMsg.innerText = `画像が見つかりません: ${char.src} (imgフォルダ内にファイルがあるか確認してください)`;
+                errorMsg.innerText = `画像が見つかりません: ${char.src}`;
                 grid.appendChild(errorMsg);
             };
         });
