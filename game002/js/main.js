@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.11"; // バージョン更新
+const VER_MAIN = "0.1.15"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -14,9 +14,9 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// 画像アセットのプリロード（ファイル名を変更）
+// 画像アセットのプリロード（新しいアセットを追加）
 const imagesToPreload = [
-    'airport.png', 'igari01.png', 'hiragi01.png'
+    'airport.png', 'igari01.png', 'hiragi01.png', 'kagami.png', 'room.png'
 ];
 
 // --- UI操作系 ---
@@ -119,7 +119,7 @@ function goToGameStart() {
     
     advManager.preload(imagesToPreload, () => {
         gameState = 'ADV';
-        advManager.start(scenarios['opening'], () => {
+        advManager.start(scenarios['kagami_arrival'], () => { // 開始シナリオを変更
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
             stgManager = new STGManager(canvas, charData);
