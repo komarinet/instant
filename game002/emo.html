@@ -17,27 +17,63 @@
             text-align: center;
             border-bottom: 1px solid #333;
             padding-bottom: 10px;
+            margin-bottom: 10px;
         }
         .description {
             text-align: center;
             color: #aaa;
-            margin-bottom: 30px;
-        }
-        .character-section {
-            margin-bottom: 60px;
-        }
-        .character-title {
-            color: #ff3366;
-            font-size: 1.5rem;
             margin-bottom: 20px;
-            padding-left: 10px;
-            border-left: 5px solid #ff3366;
+            font-size: 0.9rem;
         }
+        
+        /* タブ切り替え用のデザイン */
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #222;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.2s;
+        }
+        .tab-btn:hover {
+            background: #333;
+            color: #fff;
+        }
+        .tab-btn.active {
+            background: #1a1a1a;
+            color: #fff;
+            font-weight: bold;
+            border-bottom: 4px solid; /* JSでキャラカラーを適用 */
+        }
+
+        .character-section {
+            display: none; /* デフォルトは非表示、JSで切り替え */
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .character-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .grid-container {
             display: flex;
             flex-wrap: wrap;
             gap: 20px;
             justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
         }
         .sprite-card {
             background: #222;
@@ -57,36 +93,69 @@
             border: 1px solid #333;
             border-radius: 4px;
         }
+        
+        /* コピーボタン風のデザイン */
         .code-snippet {
             background: #000;
             color: #00ffff;
-            padding: 5px;
+            padding: 8px 5px;
             border-radius: 4px;
             font-family: 'Courier New', Courier, monospace;
             font-size: 1.1rem;
             font-weight: bold;
             margin-bottom: 10px;
-            user-select: all; /* クリックで全選択できるように */
+            cursor: pointer;
+            border: 1px solid #00ffff;
+            transition: background 0.2s;
+        }
+        .code-snippet:hover {
+            background: rgba(0, 255, 255, 0.2);
+        }
+        .code-snippet:active {
+            background: #00ffff;
+            color: #000;
         }
         .emotion-desc {
             font-size: 1rem;
             color: #fff;
             font-weight: bold;
         }
+        
+        /* トースト通知（コピー完了） */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #00ffff;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
     <h1>表情・spriteIndex 対応表</h1>
-    <p class="description">data.js を編集する際、使いたい表情の <code>spriteIndex: 番号</code> を確認するためのシートです。</p>
+    <p class="description">タブでキャラクターを切り替えられます。コード部分をクリックするとクリップボードにコピーされます。</p>
+
+    <div class="tabs" id="tabs-container"></div>
 
     <div id="content"></div>
 
+    <div id="toast">コピーしました！</div>
+
     <script>
-        // 日本語の補足説明リスト
+        // キャラクターデータ（各務 栞を追加）
         const charData = [
             {
-                name: "猪狩 俊基 (igari01.png)",
+                id: "igari",
+                name: "猪狩 俊基",
                 color: "#ff3366",
                 src: "img/igari01.png",
                 emotions: [
@@ -96,7 +165,8 @@
                 ]
             },
             {
-                name: "柊 千華 (hiragi01.png)",
+                id: "hiragi",
+                name: "柊 千華",
                 color: "#cc33ff",
                 src: "img/hiragi01.png",
                 emotions: [
@@ -104,35 +174,80 @@
                     "恥ずかしい", "怒る", "照れる", "キレる",
                     "携帯見る", "目を閉じる", "投げキッス", "焦る"
                 ]
+            },
+            {
+                id: "kagami",
+                name: "各務 栞",
+                color: "#33ff33",
+                src: "img/kagami.png", // 新規追加の画像
+                emotions: [
+                    "おすまし", "微笑", "面倒くさい", "閉眼怒り",
+                    "爆笑", "泣き", "ジト目", "絶望",
+                    "照れ", "閉眼", "爽やか笑い", "吐き捨てる"
+                ]
             }
         ];
 
-        // 1キャラあたりの切り出しサイズ（1333x1500 / 4x3 = 333x500）
-        const spriteWidth = 333;
-        const spriteHeight = 500;
-
+        const tabsContainer = document.getElementById('tabs-container');
         const contentDiv = document.getElementById('content');
 
-        charData.forEach(char => {
+        // タブ切り替えロジック
+        window.showChar = function(charId) {
+            // タブの見た目を更新
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderBottomColor = 'transparent';
+            });
+            const activeBtn = document.getElementById(`tab-${charId}`);
+            activeBtn.classList.add('active');
+            activeBtn.style.borderBottomColor = activeBtn.dataset.color;
+
+            // コンテンツの表示を更新
+            document.querySelectorAll('.character-section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+            document.getElementById(`sec-${charId}`).classList.add('active');
+        };
+
+        // コピー機能とトースト通知
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById('toast');
+                toast.style.opacity = 1;
+                setTimeout(() => { toast.style.opacity = 0; }, 1500);
+            });
+        };
+
+        // UIの生成
+        charData.forEach((char, index) => {
+            // 1. タブボタンの生成
+            const btn = document.createElement('button');
+            btn.id = `tab-${char.id}`;
+            btn.className = 'tab-btn';
+            btn.innerText = char.name;
+            btn.dataset.color = char.color;
+            btn.onclick = () => showChar(char.id);
+            tabsContainer.appendChild(btn);
+
+            // 2. セクションの生成
             const section = document.createElement('div');
+            section.id = `sec-${char.id}`;
             section.className = 'character-section';
-
-            const title = document.createElement('h2');
-            title.className = 'character-title';
-            title.style.color = char.color;
-            title.style.borderLeftColor = char.color;
-            title.innerText = char.name;
-            section.appendChild(title);
-
+            
             const grid = document.createElement('div');
             grid.className = 'grid-container';
             section.appendChild(grid);
             contentDiv.appendChild(section);
 
+            // 3. 画像の読み込みと切り出し
             const img = new Image();
             img.src = char.src;
             img.onload = () => {
-                char.emotions.forEach((desc, index) => {
+                // ★画像サイズから自動計算 (1333x1500でも1000x1500でも対応)
+                const spriteWidth = img.width / 4;
+                const spriteHeight = img.height / 3;
+
+                char.emotions.forEach((desc, i) => {
                     const card = document.createElement('div');
                     card.className = 'sprite-card';
 
@@ -143,19 +258,23 @@
                     
                     ctx.imageSmoothingEnabled = false;
 
-                    const col = index % 4;
-                    const row = Math.floor(index / 4);
+                    const col = i % 4;
+                    const row = Math.floor(i / 4);
 
+                    // 小数点切り出しによる滲みを防ぐためMath.floorを使用
                     ctx.drawImage(
                         img,
-                        col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
-                        0, 0, spriteWidth, spriteHeight
+                        Math.floor(col * spriteWidth), Math.floor(row * spriteHeight), Math.floor(spriteWidth), Math.floor(spriteHeight),
+                        0, 0, Math.floor(spriteWidth), Math.floor(spriteHeight)
                     );
 
-                    // コピーしやすいようにコード表記にする
-                    const codeText = document.createElement('div');
-                    codeText.className = 'code-snippet';
-                    codeText.innerText = `spriteIndex: ${index}`;
+                    // クリックでコピーできるコードブロック
+                    const codeText = `spriteIndex: ${i}`;
+                    const codeDiv = document.createElement('div');
+                    codeDiv.className = 'code-snippet';
+                    codeDiv.innerText = codeText;
+                    codeDiv.title = "クリックしてコピー";
+                    codeDiv.onclick = () => copyToClipboard(codeText);
 
                     // 日本語の意味
                     const descText = document.createElement('div');
@@ -163,7 +282,7 @@
                     descText.innerText = desc;
 
                     card.appendChild(canvas);
-                    card.appendChild(codeText);
+                    card.appendChild(codeDiv);
                     card.appendChild(descText);
                     grid.appendChild(card);
                 });
@@ -172,10 +291,14 @@
             img.onerror = () => {
                 const errorMsg = document.createElement('p');
                 errorMsg.style.color = "red";
-                errorMsg.innerText = `画像が見つかりません: ${char.src}`;
+                errorMsg.innerText = `画像が見つかりません: ${char.src} (imgフォルダ内にファイルがあるか確認してください)`;
                 grid.appendChild(errorMsg);
             };
         });
+
+        // 最初のキャラクター（猪狩）を初期表示
+        setTimeout(() => { showChar(charData[0].id); }, 100);
+
     </script>
 </body>
 </html>
