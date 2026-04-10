@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.15"; // バージョン更新
+const VER_MAIN = "0.1.16"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -14,7 +14,7 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// 画像アセットのプリロード（新しいアセットを追加）
+// 画像アセットのプリロード
 const imagesToPreload = [
     'airport.png', 'igari01.png', 'hiragi01.png', 'kagami.png', 'room.png'
 ];
@@ -62,7 +62,6 @@ initCharSelect();
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     
-    // index.htmlに直書きされた古いバージョン表記があれば消去
     const oldVerText = document.querySelector('.version-info');
     if (oldVerText) oldVerText.innerHTML = '';
 
@@ -119,13 +118,15 @@ function goToGameStart() {
     
     advManager.preload(imagesToPreload, () => {
         gameState = 'ADV';
-        advManager.start(scenarios['kagami_arrival'], () => { // 開始シナリオを変更
+        // ★修正：スタート地点を「空港のオープニング」に戻しました！
+        advManager.start(scenarios['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
             stgManager = new STGManager(canvas, charData);
             
             gameState = 'ADV';
-            advManager.start(scenarios[currentStage].adv, () => {
+            // ★修正：オープニング直後に、追加した各務のシーン（タイムリープ後）を繋ぎます
+            advManager.start(scenarios['kagami_arrival'], () => {
                 gameState = 'PRE_STG_DIALOGUE';
                 advManager.start(scenarios[currentStage].pre_stg, () => {
                     gameState = 'STAGE_START_TEXT';
