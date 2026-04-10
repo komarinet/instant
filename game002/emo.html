@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>表情ラベル・スプライト確認ツール</title>
+    <title>表情・spriteIndex 対応表</title>
     <style>
         body {
             background-color: #111;
             color: #eee;
-            font-family: 'Courier New', Courier, monospace; /* プログラムっぽく */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 20px;
         }
@@ -18,8 +18,13 @@
             border-bottom: 1px solid #333;
             padding-bottom: 10px;
         }
+        .description {
+            text-align: center;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
         .character-section {
-            margin-bottom: 50px;
+            margin-bottom: 60px;
         }
         .character-title {
             color: #ff3366;
@@ -27,7 +32,6 @@
             margin-bottom: 20px;
             padding-left: 10px;
             border-left: 5px solid #ff3366;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .grid-container {
             display: flex;
@@ -39,9 +43,9 @@
             background: #222;
             border: 1px solid #444;
             border-radius: 8px;
-            padding: 15px 10px;
+            padding: 15px;
             text-align: center;
-            width: 180px; 
+            width: 200px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.5);
         }
         .sprite-card canvas {
@@ -49,54 +53,46 @@
             height: auto;
             display: block;
             margin: 0 auto 15px;
-            background-color: #000; 
+            background-color: #000;
             border: 1px solid #333;
+            border-radius: 4px;
         }
-        .index-number {
-            color: #888;
-            font-size: 0.8rem;
-            margin-bottom: 5px;
-        }
-        .label-name {
+        .code-snippet {
+            background: #000;
             color: #00ffff;
+            padding: 5px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
             font-weight: bold;
-            font-size: 1.3rem;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
+            margin-bottom: 10px;
+            user-select: all; /* クリックで全選択できるように */
         }
         .emotion-desc {
-            font-size: 0.8rem;
-            color: #aaa;
-            font-family: 'Segoe UI', sans-serif;
+            font-size: 1rem;
+            color: #fff;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-    <h1>SPRITE LABEL CHECKER</h1>
+    <h1>表情・spriteIndex 対応表</h1>
+    <p class="description">data.js を編集する際、使いたい表情の <code>spriteIndex: 番号</code> を確認するためのシートです。</p>
 
     <div id="content"></div>
 
     <script>
-        // 英語ラベルと日本語の補足説明のリスト
+        // 日本語の補足説明リスト
         const charData = [
             {
                 name: "猪狩 俊基 (igari01.png)",
                 color: "#ff3366",
                 src: "img/igari01.png",
                 emotions: [
-                    { label: "normal",   desc: "おすまし" },
-                    { label: "smile",    desc: "微笑" },
-                    { label: "happy",    desc: "笑顔" },
-                    { label: "close",    desc: "目閉じ" },
-                    { label: "surprise", desc: "驚愕" },
-                    { label: "sad",      desc: "悲しい" },
-                    { label: "cry",      desc: "泣き" },
-                    { label: "anger",    desc: "怒り" },
-                    { label: "despair",  desc: "絶望" },
-                    { label: "blank1",   desc: "空欄" },
-                    { label: "blank2",   desc: "空欄" },
-                    { label: "blank3",   desc: "空欄" }
+                    "おすまし", "微笑", "笑顔", "目閉じ",
+                    "驚愕", "悲しい", "泣き", "怒り",
+                    "絶望", "空欄", "空欄", "空欄"
                 ]
             },
             {
@@ -104,18 +100,9 @@
                 color: "#cc33ff",
                 src: "img/hiragi01.png",
                 emotions: [
-                    { label: "normal",   desc: "おすまし" },
-                    { label: "smile",    desc: "笑顔" },
-                    { label: "pout",     desc: "可愛く怒る" },
-                    { label: "cry",      desc: "泣く" },
-                    { label: "shy",      desc: "恥ずかしい" },
-                    { label: "anger",    desc: "怒る" },
-                    { label: "blush",    desc: "照れる" },
-                    { label: "rage",     desc: "キレる" },
-                    { label: "phone",    desc: "携帯見る" },
-                    { label: "close",    desc: "目を閉じる" },
-                    { label: "kiss",     desc: "投げキッス" },
-                    { label: "panic",    desc: "焦る" }
+                    "おすまし", "笑顔", "可愛く怒る", "泣く",
+                    "恥ずかしい", "怒る", "照れる", "キレる",
+                    "携帯見る", "目を閉じる", "投げキッス", "焦る"
                 ]
             }
         ];
@@ -145,7 +132,7 @@
             const img = new Image();
             img.src = char.src;
             img.onload = () => {
-                char.emotions.forEach((emoData, index) => {
+                char.emotions.forEach((desc, index) => {
                     const card = document.createElement('div');
                     card.className = 'sprite-card';
 
@@ -165,24 +152,18 @@
                         0, 0, spriteWidth, spriteHeight
                     );
 
-                    // インデックス番号
-                    const indexText = document.createElement('div');
-                    indexText.className = 'index-number';
-                    indexText.innerText = `Index: ${index}`;
+                    // コピーしやすいようにコード表記にする
+                    const codeText = document.createElement('div');
+                    codeText.className = 'code-snippet';
+                    codeText.innerText = `spriteIndex: ${index}`;
 
-                    // 英語のラベル名（メイン）
-                    const labelText = document.createElement('div');
-                    labelText.className = 'label-name';
-                    labelText.innerText = emoData.label;
-
-                    // 日本語の意味（サブ）
+                    // 日本語の意味
                     const descText = document.createElement('div');
                     descText.className = 'emotion-desc';
-                    descText.innerText = `(${emoData.desc})`;
+                    descText.innerText = desc;
 
                     card.appendChild(canvas);
-                    card.appendChild(indexText);
-                    card.appendChild(labelText);
+                    card.appendChild(codeText);
                     card.appendChild(descText);
                     grid.appendChild(card);
                 });
