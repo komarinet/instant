@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.16"; // バージョン更新
+const VER_ADV = "0.1.17"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -84,8 +84,8 @@ class ADVManager {
         const dialogueY = gameY + gameHeight - dynamicHeight; 
         const visualAreaHeight = gameHeight - dynamicHeight; 
 
-        // 一番最初に余白デザインを描画
-        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time, visualAreaHeight);
+        // ★修正点1：引数に dynamicHeight を追加してエラーを回避★
+        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time, visualAreaHeight, dynamicHeight);
 
         // B. ゲーム領域（ビジュアルウインドウと台詞ウインドウ）の描画
         ctx.save();
@@ -134,13 +134,11 @@ class ADVManager {
             }
         }
 
-        // ★フリーズの原因となっていた不要な「シルエット生成ロジック」を完全削除しました★
-
         // 立ち絵描画（解像度対策と二人表示レイアウト）
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
             if (charImg) {
-                // 画像の実際のサイズから1コマ分を動的に計算（これでどんなサイズの画像でも対応可能）
+                // 画像の実際のサイズから1コマ分を動的に計算
                 const spriteWidth = charImg.width / 4; 
                 const spriteHeight = charImg.height / 3; 
 
@@ -234,12 +232,12 @@ class ADVManager {
         ctx.restore(); // クリッピング解除
     }
 
-    // サイバーな余白のデザイン
-    drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight) {
+    // サイバーな余白のデザイン ★修正点2：受け取る引数にも dynamicHeight を追加★
+    drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight, dynamicHeight) {
         ctx.fillStyle = '#0a0a0f';
         ctx.fillRect(0, 0, cssWidth, cssHeight);
         
-        // グリッド線を復活
+        // グリッド線
         ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)'; 
         ctx.lineWidth = 1;
         ctx.beginPath();
