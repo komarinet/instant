@@ -1,15 +1,22 @@
-const VER_STG = "0.1.0";
+const VER_STG = "0.1.1"; // バージョン更新
+
 class STGManager {
     constructor(canvas, charData) {
         this.canvas = canvas;
         this.charData = charData;
+        
+        // ★修正：スマホの解像度（DPR）に合わせて、実際の「見た目の画面サイズ」を計算する
+        const dpr = window.devicePixelRatio || 1;
+        this.gameWidth = canvas.width / dpr;
+        this.gameHeight = canvas.height / dpr;
+
         this.bgY = 0;
         this.frame = 0; // 進行度管理用
         
         this.player = {
-            x: canvas.width / 2,
-            y: canvas.height + 50,
-            targetY: canvas.height * 0.8,
+            x: this.gameWidth / 2,
+            y: this.gameHeight + 50,         // 見た目の画面サイズを基準にする
+            targetY: this.gameHeight * 0.8,  // 見た目の画面サイズを基準にする
             color: charData.color,
             baseFireRate: 15,
             fireTimer: 0
@@ -36,9 +43,10 @@ class STGManager {
 
         // 短いテスト用：3秒間ザコが湧き、その後ボスが出現
         if (this.frame % 60 === 0 && this.frame < 180) {
-            this.enemies.push({ type: 'zako', x: Math.random() * (this.canvas.width - 40) + 20, y: -20, hp: 30, fireTimer: 0 });
+            // 出現位置も gameWidth を基準にする
+            this.enemies.push({ type: 'zako', x: Math.random() * (this.gameWidth - 40) + 20, y: -20, hp: 30, fireTimer: 0 });
         } else if (this.frame === 240) {
-            this.enemies.push({ type: 'boss', x: this.canvas.width / 2, y: -50, targetY: 100, hp: 300, fireTimer: 0 });
+            this.enemies.push({ type: 'boss', x: this.gameWidth / 2, y: -50, targetY: 100, hp: 300, fireTimer: 0 });
         }
 
         // 敵弾とグレイズ判定
@@ -51,7 +59,9 @@ class STGManager {
 
             if (dist < 3 + eb.radius) return 'GAMEOVER';
             if (dist < 30) { this.isGrazing = true; currentFireRate = 4; }
-            if (eb.x < 0 || eb.x > this.canvas.width || eb.y > this.canvas.height) this.enemyBullets.splice(i, 1);
+            
+            // 画面外判定も gameWidth / gameHeight を基準にする
+            if (eb.x < 0 || eb.x > this.gameWidth || eb.y > this.gameHeight) this.enemyBullets.splice(i, 1);
         }
 
         // 自機ショット生成
@@ -116,18 +126,20 @@ class STGManager {
     draw(ctx) {
         this.bgY = (this.bgY + 2) % 50;
         ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        // 描画エリアのクリアも gameWidth / gameHeight に
+        ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
         
         ctx.strokeStyle = '#222';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let i = -50; i < this.canvas.height; i += 50) {
+        // グリッド線も gameWidth / gameHeight に
+        for (let i = -50; i < this.gameHeight; i += 50) {
             ctx.moveTo(0, i + this.bgY);
-            ctx.lineTo(this.canvas.width, i + this.bgY);
+            ctx.lineTo(this.gameWidth, i + this.bgY);
         }
-        for (let j = 0; j < this.canvas.width; j += 50) {
+        for (let j = 0; j < this.gameWidth; j += 50) {
             ctx.moveTo(j, 0);
-            ctx.lineTo(j, this.canvas.height);
+            ctx.lineTo(j, this.gameHeight);
         }
         ctx.stroke();
 
