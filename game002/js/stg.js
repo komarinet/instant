@@ -1,4 +1,4 @@
-const VER_STG = "0.1.1"; // バージョン更新
+const VER_STG = "0.1.2"; // バージョン更新
 
 class STGManager {
     constructor(canvas, charData) {
@@ -124,6 +124,8 @@ class STGManager {
     }
 
     draw(ctx) {
+        // ★修正：奥の3D背景を透けさせるため、背景色とグリッド線の描画をコメントアウト★
+        /*
         this.bgY = (this.bgY + 2) % 50;
         ctx.fillStyle = '#0a0a0a';
         // 描画エリアのクリアも gameWidth / gameHeight に
@@ -142,6 +144,7 @@ class STGManager {
             ctx.lineTo(j, this.gameHeight);
         }
         ctx.stroke();
+        */
 
         ctx.fillStyle = this.player.color;
         this.bullets.forEach(b => { ctx.fillRect(b.x - 2, b.y, 4, 15); });
