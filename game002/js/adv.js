@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.19"; // バージョン更新
+const VER_ADV = "0.1.21"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -12,6 +12,7 @@ class ADVManager {
         this.textInterval = 3; 
         this.shakeTimer = 0; 
         this.shakeAmount = 10; 
+        this.slideTimer = 0; // ★追加：スライド演出用
     }
 
     preload(images, callback) {
@@ -56,6 +57,8 @@ class ADVManager {
         this.onComplete = onCompleteCallback;
         this.textIndex = 0; 
         this.shakeTimer = 0; 
+        this.slideTimer = 0; // ★追加
+        this.playSE(); // ★追加：最初のシーンの音を鳴らす
     }
 
     next() {
@@ -67,6 +70,21 @@ class ADVManager {
         } else {
             this.textIndex = 0;
             this.shakeTimer = 0;
+            this.slideTimer = 0; // ★追加
+            this.playSE(); // ★追加：次のシーンの音を鳴らす
+        }
+    }
+
+    // ★追加：効果音・バイブレーションの再生処理
+    playSE() {
+        const msg = this.currentScenario[this.index];
+        if (msg && msg.se) {
+            // スマホ実機ならバイブレーションも作動させる
+            if (msg.se === 'vibration.mp3' && navigator.vibrate) {
+                navigator.vibrate([500, 200, 500]);
+            }
+            const audio = new Audio(`se/${msg.se}`);
+            audio.play().catch(e => console.log("Audio play blocked", e));
         }
     }
 
@@ -94,8 +112,10 @@ class ADVManager {
         const padding = 15;
         const dialogueWidth = gameWidth;
         const dialogueX = gameX;
-        // 文字量から必要な高さを計算（簡易）
-        const lineCount = currentMsg.text.split('').length / (dialogueWidth / 24); 
+        
+        // ★追加: テキストが空なら高さを計算しない
+        const textLength = currentMsg.text ? currentMsg.text.split('').length : 0;
+        const lineCount = textLength / (dialogueWidth / 24); 
         const dynamicHeight = Math.max(gameHeight * 0.2, lineCount * 24 + padding * 2 + 35); 
         
         const dialogueY = gameY + gameHeight - dynamicHeight; 
@@ -120,6 +140,13 @@ class ADVManager {
                 shakeX = (Math.random() - 0.5) * this.shakeAmount;
                 shakeY = (Math.random() - 0.5) * this.shakeAmount;
             }
+        }
+
+        // ★追加：スライドはけ演出
+        let slideX = 0;
+        if (currentMsg.effect === 'slideOutLeft') {
+            this.slideTimer += 15; // 毎フレーム15px左へ移動
+            slideX = -this.slideTimer;
         }
 
         // --- 描画処理 ---
@@ -194,10 +221,10 @@ class ADVManager {
                 // Y座標をビジュアルウインドウの底辺に合わせる
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
-                // 通常の立ち絵をそのまま描画
+                // 通常の立ち絵をそのまま描画（slideXの加算を追加）
                 ctx.drawImage(
                     charCanvas,
-                    drawX + shakeX, 
+                    drawX + shakeX + slideX, 
                     drawY + shakeY, 
                     drawWidth, 
                     drawHeight
@@ -207,47 +234,57 @@ class ADVManager {
             }
         }
         
-        // 台詞ウインドウ
-        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; 
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 4;
-        ctx.lineJoin = "round";
-        
-        ctx.beginPath();
-        if(ctx.roundRect) {
-            ctx.roundRect(dialogueX, dialogueY, dialogueWidth, dynamicHeight, 15);
-        } else {
-            ctx.rect(dialogueX, dialogueY, dialogueWidth, dynamicHeight);
-        }
-        ctx.fill();
-        ctx.stroke();
+        // ★追加：文字が空文字でない場合のみ台詞ウインドウを描画する
+        const showTextWindow = currentMsg.text !== undefined && currentMsg.text !== '';
 
-        // 話者名
-        if (currentMsg.speaker) {
-            ctx.fillStyle = currentMsg.speaker === '猪狩' ? '#ff3366' : '#00ffff';
-            ctx.font = 'bold 18px "Segoe UI", sans-serif';
-            ctx.fillText(currentMsg.speaker, dialogueX + padding, dialogueY + 30);
-        }
-
-        // テキスト描画（一瞬で全文を表示）
-        ctx.fillStyle = '#fff';
-        ctx.font = '16px "Segoe UI", sans-serif';
-        const maxWidth = dialogueWidth - (padding * 2);
-        
-        this.textTimer++;
-        if (this.textTimer >= this.textInterval) {
-            this.textTimer = 0;
-            if (this.textIndex < currentMsg.text.length) {
-                this.textIndex++;
+        if (showTextWindow) {
+            // 台詞ウインドウ
+            ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; 
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.lineJoin = "round";
+            
+            ctx.beginPath();
+            if(ctx.roundRect) {
+                ctx.roundRect(dialogueX, dialogueY, dialogueWidth, dynamicHeight, 15);
+            } else {
+                ctx.rect(dialogueX, dialogueY, dialogueWidth, dynamicHeight);
             }
-        }
-        
-        const textToDraw = currentMsg.text; 
-        this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
+            ctx.fill();
+            ctx.stroke();
 
-        // タップを促すアイコン
-        ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
-        ctx.fillText('▼', dialogueX + dialogueWidth - 35, dialogueY + dynamicHeight - 15);
+            // 話者名
+            if (currentMsg.speaker) {
+                ctx.fillStyle = currentMsg.speaker === '猪狩' ? '#ff3366' : '#00ffff';
+                ctx.font = 'bold 18px "Segoe UI", sans-serif';
+                ctx.fillText(currentMsg.speaker, dialogueX + padding, dialogueY + 30);
+            }
+
+            // テキスト描画（一瞬で全文を表示）
+            ctx.fillStyle = '#fff';
+            ctx.font = '16px "Segoe UI", sans-serif';
+            const maxWidth = dialogueWidth - (padding * 2);
+            
+            this.textTimer++;
+            if (this.textTimer >= this.textInterval) {
+                this.textTimer = 0;
+                if (this.textIndex < currentMsg.text.length) {
+                    this.textIndex++;
+                }
+            }
+            
+            const textToDraw = currentMsg.text; 
+            this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
+
+            // タップを促すアイコン
+            ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
+            ctx.fillText('▼', dialogueX + dialogueWidth - 35, dialogueY + dynamicHeight - 15);
+        } else {
+            // ★追加：ウインドウがない場合でも、画面右下にタップ可能であることを示す▼を表示
+            ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
+            ctx.font = '24px "Segoe UI", sans-serif';
+            ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
+        }
 
         ctx.restore(); // クリッピング解除
     }
