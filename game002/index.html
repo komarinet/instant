@@ -16,12 +16,19 @@
         #game-container {
             position: relative; width: 100%; height: 100%;
         }
-        canvas { display: block; width: 100%; height: 100%; }
+        
+        /* ★修正：canvasを重ねるための位置指定を追加★ */
+        canvas { display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+        
+        /* ★追加：背景の3D用は奥、2Dゲーム用は手前（透明）に設定★ */
+        #bgCanvas { z-index: 1; }
+        #gameCanvas { z-index: 5; background: transparent; }
+
         .screen {
             position: absolute; top: 0; left: 0;
             width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0, 0, 0, 0.9); z-index: 10;
+            background: rgba(0, 0, 0, 0.9); z-index: 10; /* ゲーム画面より手前 */
         }
         .hidden { display: none !important; }
         h1 { font-size: 2.5rem; color: #ff3366; text-shadow: 0 0 10px #ff3366; margin-bottom: 30px; text-align: center;}
@@ -68,6 +75,8 @@
         <button style="margin-top:20px; border:none; text-decoration:underline; padding:5px;" onclick="changeScreen('char-select-screen')">Back</button>
     </div>
 
+    <canvas id="bgCanvas"></canvas>
+    
     <canvas id="gameCanvas"></canvas>
     
     <div id="result-screen" class="screen hidden" style="background: rgba(0,0,0,0.7);">
@@ -76,9 +85,12 @@
     </div>
 </div>
 
+<script src="https://unpkg.com/three@latest/build/three.min.js"></script>
+
 <script src="js/data.js?v=0.1.4"></script>
 <script src="js/adv.js?v=0.1.4"></script>
 <script src="js/stg.js?v=0.1.4"></script>
+<script src="js/3dbg.js?v=0.1.0"></script>
 <script src="js/main.js?v=0.1.4"></script>
 </body>
 </html>
