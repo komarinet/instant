@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.21"; // バージョン更新
+const VER_ADV = "0.1.22"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -75,16 +75,56 @@ class ADVManager {
         }
     }
 
-    // ★追加：効果音・バイブレーションの再生処理
+    // ★修正：音声ファイル不要。プログラムで直接ビープ音を生成する処理
     playSE() {
         const msg = this.currentScenario[this.index];
         if (msg && msg.se) {
-            // スマホ実機ならバイブレーションも作動させる
+            // スマホ実機なら物理バイブレーションも作動させる
             if (msg.se === 'vibration.mp3' && navigator.vibrate) {
                 navigator.vibrate([500, 200, 500]);
             }
-            const audio = new Audio(`se/${msg.se}`);
-            audio.play().catch(e => console.log("Audio play blocked", e));
+
+            // Web Audio APIを使用して音源なしで音を生成する
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const ctx = new AudioContext();
+
+                if (msg.se === 'vibration.mp3') {
+                    // バイブレーション風の低音（ブーッ）
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth'; // 濁った音色
+                    osc.frequency.setValueAtTime(40, ctx.currentTime); // かなり低音
+                    
+                    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+                    
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.6);
+                } else if (msg.se === 'alarm.mp3') {
+                    // アラーム風の電子音（ピピッ、ピピッ、ピピッ）
+                    const playBeep = (delay) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(880, ctx.currentTime + delay); // 高めの音
+                        
+                        gain.gain.setValueAtTime(0.1, ctx.currentTime + delay);
+                        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.1);
+                        
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.start(ctx.currentTime + delay);
+                        osc.stop(ctx.currentTime + delay + 0.1);
+                    };
+                    // 3回連続で鳴らす
+                    playBeep(0);
+                    playBeep(0.15);
+                    playBeep(0.3);
+                }
+            }
         }
     }
 
