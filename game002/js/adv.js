@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.18"; // バージョン更新
+const VER_ADV = "0.1.19"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -15,15 +15,32 @@ class ADVManager {
     }
 
     preload(images, callback) {
+        // ★修正：空の配列が来た場合の安全策を追加
+        if (!images || images.length === 0) {
+            callback();
+            return;
+        }
+
         let loaded = 0;
         const total = images.length;
+        
+        // ★修正：完了チェックを関数化
+        const checkComplete = () => {
+            loaded++;
+            if (loaded === total) callback();
+        };
+
         images.forEach(imgSrc => {
             const img = new Image();
             img.src = `img/${imgSrc}`;
             img.onload = () => {
                 this.assets[imgSrc] = img;
-                loaded++;
-                if (loaded === total) callback();
+                checkComplete();
+            };
+            // ★追加：画像が存在しない場合でもフリーズさせずに進行させる
+            img.onerror = () => {
+                console.error(`[ADVManager] 画像読み込み失敗: img/${imgSrc}`);
+                checkComplete();
             };
         });
     }
@@ -115,7 +132,8 @@ class ADVManager {
         // 背景画像描画（Cover表示）
         if (currentMsg.bg) {
             const bgImg = this.assets[currentMsg.bg];
-            if (bgImg) {
+            // ★追加：画像が存在し、かつ正常に読み込めている場合のみ描画する
+            if (bgImg && bgImg.naturalWidth > 0) {
                 const bgRatio = bgImg.width / bgImg.height;
                 const visualRatio = gameWidth / visualAreaHeight; 
                 let drawW, drawH, drawX, drawY;
@@ -138,7 +156,8 @@ class ADVManager {
         // 立ち絵描画（解像度対策と二人表示レイアウト）
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
-            if (charImg) {
+            // ★追加：画像が存在し、かつ正常に読み込めている場合のみ描画する
+            if (charImg && charImg.naturalWidth > 0) {
                 // 画像の実際のサイズから1コマ分を動的に計算
                 const spriteWidth = charImg.width / 4; 
                 const spriteHeight = charImg.height / 3; 
