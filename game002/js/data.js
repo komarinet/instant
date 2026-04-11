@@ -64,7 +64,7 @@ const scenarios = {
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '生き残って頂ければ' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari01.png', spriteIndex: 7, speaker: '猪狩', text: 'ふざけやがって・・・' },
         // イグニッション（背景切り替え）
-        { bg: 'igni.png', place: 'Room', time: '2025.04', character: 'igari01.png', spriteIndex: 7, speaker: '猪狩', text: 'イグニッション' }
+        { bg: 'igni.png', place: 'Room', time: '2025.04', spriteIndex: 7, speaker: '猪狩', text: 'イグニッション' }
     ],
     1: {
         adv: [
