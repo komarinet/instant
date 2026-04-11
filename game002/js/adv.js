@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.22"; // バージョン更新
+const VER_ADV = "0.1.23"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -13,6 +13,7 @@ class ADVManager {
         this.shakeTimer = 0; 
         this.shakeAmount = 10; 
         this.slideTimer = 0; // ★追加：スライド演出用
+        this.fadeTimer = 0;  // ★追加：フェードイン演出用
     }
 
     preload(images, callback) {
@@ -58,6 +59,7 @@ class ADVManager {
         this.textIndex = 0; 
         this.shakeTimer = 0; 
         this.slideTimer = 0; // ★追加
+        this.fadeTimer = 0;  // ★追加
         this.playSE(); // ★追加：最初のシーンの音を鳴らす
     }
 
@@ -71,6 +73,7 @@ class ADVManager {
             this.textIndex = 0;
             this.shakeTimer = 0;
             this.slideTimer = 0; // ★追加
+            this.fadeTimer = 0;  // ★追加
             this.playSE(); // ★追加：次のシーンの音を鳴らす
         }
     }
@@ -153,8 +156,9 @@ class ADVManager {
         const dialogueWidth = gameWidth;
         const dialogueX = gameX;
         
-        // ★追加: テキストが空なら高さを計算しない
-        const textLength = currentMsg.text ? currentMsg.text.split('').length : 0;
+        // ★追加: テキストが空なら高さを計算しない（ただしウインドウは表示するため safeText を使用）
+        const safeText = currentMsg.text || ''; // ★修正：テキスト未定義時は空文字として扱う
+        const textLength = safeText.split('').length;
         const lineCount = textLength / (dialogueWidth / 24); 
         const dynamicHeight = Math.max(gameHeight * 0.2, lineCount * 24 + padding * 2 + 35); 
         
@@ -220,6 +224,14 @@ class ADVManager {
             }
         }
 
+        // ★追加：フェードイン効果（背景描画後にアルファ値を適用し、立ち絵とウインドウをじわっと表示）
+        let alpha = 1.0;
+        if (currentMsg.effect === 'fadeIn') {
+            if (this.fadeTimer < 120) this.fadeTimer++; // 120フレーム(約2秒)で1.0へ
+            alpha = this.fadeTimer / 120;
+        }
+        ctx.globalAlpha = alpha;
+
         // 立ち絵描画（解像度対策と二人表示レイアウト）
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
@@ -275,7 +287,8 @@ class ADVManager {
         }
         
         // ★追加：文字が空文字でない場合のみ台詞ウインドウを描画する
-        const showTextWindow = currentMsg.text !== undefined && currentMsg.text !== '';
+        // const showTextWindow = currentMsg.text !== undefined && currentMsg.text !== '';
+        const showTextWindow = true; // ★修正：テキストが空欄でもウインドウを消さないように変更
 
         if (showTextWindow) {
             // 台詞ウインドウ
@@ -308,12 +321,12 @@ class ADVManager {
             this.textTimer++;
             if (this.textTimer >= this.textInterval) {
                 this.textTimer = 0;
-                if (this.textIndex < currentMsg.text.length) {
+                if (this.textIndex < safeText.length) { // ★修正：エラー回避のため safeText を使用
                     this.textIndex++;
                 }
             }
             
-            const textToDraw = currentMsg.text; 
+            const textToDraw = safeText; // ★修正：エラー回避のため safeText を使用
             this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
 
             // タップを促すアイコン
@@ -326,6 +339,7 @@ class ADVManager {
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
 
+        ctx.globalAlpha = 1.0; // ★追加：アルファ値を元に戻す
         ctx.restore(); // クリッピング解除
     }
 
