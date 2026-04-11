@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.17"; // バージョン更新
+const VER_MAIN = "0.1.18"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -14,7 +14,7 @@ let gameLoopId;
 const advManager = new ADVManager();
 let stgManager = null;
 
-// ★追加：3D背景マネージャーのグローバル変数★
+// 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
 // 画像アセットのプリロード
@@ -22,9 +22,9 @@ const imagesToPreload = [
     'airport.png', 'igari01.png', 'hiragi01.png', 'kagami.png', 'room.png'
 ];
 
-// ★追加：3D背景用のアセット（キー名とファイル名）★
+// ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
 const imagesToPreload3D = [
-    { key: 'sideatlas', src: 'Build_side.png' },
+    { key: 'sideatlas', src: 'build_side.png' }, // ここを修正しました！
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' }
 ];
@@ -89,7 +89,6 @@ function showVersions() {
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
-    // 3D背景のバージョンも表示に追加
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
 
     verDiv.innerHTML = `
@@ -130,7 +129,7 @@ function goToGameStart() {
     changeScreen(''); 
     
     advManager.preload(imagesToPreload, () => {
-        // ★追加：3D背景マネージャーの初期化とプリロード★
+        // 3D背景マネージャーの初期化とプリロード
         bgManager3D = new BGManager3D('bgCanvas');
         bgManager3D.preload(imagesToPreload3D, () => {
             // プリロード完了後、Three.js空間を初期化
@@ -168,7 +167,7 @@ function startGame(stageNum) {
         const charData = characters.find(c => c.id === selectedCharId);
         stgManager = new STGManager(canvas, charData);
         
-        // ★追加：ステージ単体からの開始でも3D背景を初期化★
+        // ステージ単体からの開始でも3D背景を初期化
         if (!bgManager3D) {
             bgManager3D = new BGManager3D('bgCanvas');
             bgManager3D.preload(imagesToPreload3D, () => {
@@ -229,7 +228,7 @@ function loop() {
     if (gameState === 'UI') return;
     
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
-    // ★修正：全体の黒塗りをコメントアウト（背景を透けさせるため）★
+    // 全体の黒塗りをコメントアウト（背景を透けさせるため）
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
     // ctx.fillStyle = '#000';
     // ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
@@ -300,7 +299,7 @@ function loop() {
         }
     }
     else if (gameState === 'TRANSITION_FADE') {
-        // ★修正：フェード時の黒塗りをコメントアウト（背景を透けさせるため）★
+        // フェード時の黒塗りをコメントアウト（背景を透けさせるため）
         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
         // ctx.fillStyle = '#000';
         // ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
