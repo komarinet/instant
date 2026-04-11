@@ -1,4 +1,4 @@
-const VER_3DBG = "0.1.3"; // バージョン更新
+const VER_3DBG = "0.1.4"; // バージョン更新
 
 class BGManager3D {
     constructor(canvasId) {
@@ -252,8 +252,8 @@ class BGManager3D {
 
         // 地面（グラウンド）のシームレススクロール（テクスチャオフセットを変化させる）
         if (this.ground && this.ground.material.map) {
-            // テクスチャのYオフセットを変化させる。
-            this.ground.material.map.offset.y -= (this.scrollSpeed * 0.005);
+            // ★修正：-= を += に変更して、ビルと同じ方向（奥から手前）へスクロールさせます。
+            this.ground.material.map.offset.y += (this.scrollSpeed * 0.005);
         }
 
         // ビル群のスクロール
