@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.18"; // バージョン更新
+const VER_MAIN = "0.1.20"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -118,6 +118,20 @@ function resizeCanvas() {
     canvas.height = height * dpr;
     
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // ★ここだけ追加しました：3Dキャンバスも一緒にリサイズしないと真っ暗になります★
+    const bgCanvas = document.getElementById('bgCanvas');
+    if (bgCanvas) {
+        bgCanvas.style.width = width + 'px';
+        bgCanvas.style.height = height + 'px';
+        bgCanvas.width = width * dpr;
+        bgCanvas.height = height * dpr;
+        if (typeof bgManager3D !== 'undefined' && bgManager3D && bgManager3D.renderer) {
+            bgManager3D.renderer.setSize(width, height, false);
+            bgManager3D.camera.aspect = width / height;
+            bgManager3D.camera.updateProjectionMatrix();
+        }
+    }
 }
 window.addEventListener('resize', () => { requestAnimationFrame(resizeCanvas); });
 window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 300); });
