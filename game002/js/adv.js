@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.23"; // バージョン更新
+const VER_ADV = "0.1.24"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -237,12 +237,14 @@ class ADVManager {
             const charImg = this.assets[currentMsg.character];
             // ★追加：画像が存在し、かつ正常に読み込めている場合のみ描画する
             if (charImg && charImg.naturalWidth > 0) {
-                // 画像の実際のサイズから1コマ分を動的に計算
-                const spriteWidth = charImg.width / 4; 
-                const spriteHeight = charImg.height / 3; 
+                // ★修正：画像の実際のサイズから1コマ分を動的に計算（igari02.png は4行に対応）
+                const cols = 4;
+                const rows = currentMsg.character === 'igari02.png' ? 4 : 3;
+                const spriteWidth = charImg.width / cols; 
+                const spriteHeight = charImg.height / rows; 
 
-                const col = currentMsg.spriteIndex % 4;
-                const row = Math.floor(currentMsg.spriteIndex / 4);
+                const col = currentMsg.spriteIndex % cols;
+                const row = Math.floor(currentMsg.spriteIndex / cols);
                 
                 const charCanvas = document.createElement('canvas');
                 charCanvas.width = spriteWidth;
@@ -264,8 +266,8 @@ class ADVManager {
                 const drawHeight = targetCharHeight; 
                 const drawWidth = spriteWidth * baseScale;
 
-                // 猪狩を右、他を左に配置
-                const isIgari = currentMsg.character === 'igari01.png';
+                // ★修正：猪狩を右、他を左に配置（igari02.pngも右に配置する）
+                const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
                 const drawX = isIgari ? paddingRight : paddingLeft;
