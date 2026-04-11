@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.17"; // バージョン更新
+const VER_ADV = "0.1.18"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -108,8 +108,9 @@ class ADVManager {
         // --- 描画処理 ---
 
         // B-1. ビジュアルウインドウ（上部全画面）
-        ctx.fillStyle = '#0a0a0a';
-        ctx.fillRect(gameX, gameY, gameWidth, visualAreaHeight);
+        // ★修正：奥の3D背景を透けさせるため、黒塗りをコメントアウト★
+        // ctx.fillStyle = '#0a0a0a';
+        // ctx.fillRect(gameX, gameY, gameWidth, visualAreaHeight);
         
         // 背景画像描画（Cover表示）
         if (currentMsg.bg) {
@@ -232,8 +233,10 @@ class ADVManager {
         ctx.restore(); // クリッピング解除
     }
 
-    // サイバーな余白のデザイン ★修正点2：受け取る引数にも dynamicHeight を追加★
+    // サイバーな余白のデザイン
     drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight, dynamicHeight) {
+        // ★修正：奥の3D背景を透けさせるため、画面全体の黒塗り・2Dグリッド線・羅列をコメントアウト★
+        /*
         ctx.fillStyle = '#0a0a0f';
         ctx.fillRect(0, 0, cssWidth, cssHeight);
         
@@ -263,8 +266,9 @@ class ADVManager {
                 }
             }
         }
+        */
 
-        // ゲーム領域の枠
+        // ゲーム領域の枠 (ここは残す)
         ctx.strokeStyle = '#00ffff';
         ctx.lineWidth = 2;
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight);
@@ -273,7 +277,8 @@ class ADVManager {
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight);
         ctx.shadowBlur = 0; 
         
-        // ビジュアルと台詞の境界線のライン
+        // ★修正：背景と一体化させるため、境界線のラインもコメントアウト★
+        /*
         if (visualAreaHeight) {
             const borderY = gameY + visualAreaHeight;
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
@@ -283,14 +288,15 @@ class ADVManager {
             ctx.lineTo(gameX + gameWidth, borderY);
             ctx.stroke();
         }
+        */
 
-        // システムログ
+        // システムログ (ここは残す)
         ctx.fillStyle = 'rgba(0, 243, 255, 0.3)';
         ctx.font = '10px "Courier New"';
         ctx.textAlign = 'left';
         ctx.fillText(`C:AUSES-REPORT:_${(new Date().toISOString())}`, 10, cssHeight - 10);
         
-        // Loc/Time
+        // Loc/Time (ここは残す)
         if (placeText || timeText) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillRect(gameX + gameWidth - 140, gameY + visualAreaHeight - dynamicHeight - 10, 140, 50); 
