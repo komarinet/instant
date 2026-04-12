@@ -1,4 +1,4 @@
-const VER_DATA = "0.1.19"; // バージョン更新
+const VER_DATA = "0.1.20"; // バージョン更新
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -59,12 +59,9 @@ const scenarios = {
         { bg: 'igni.png', place: 'Room', time: '2025.04', speaker: '猪狩', text: 'イグニッション' } 
     ],
     1: {
-        adv: [
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '……ここは。一年前の……俺たちがいた街か。', effect: 'fadeIn' } 
-        ],
+        adv: [], // ★修正：テキストを削除して空にしました
         pre_stg: [], 
         post_stg: [
-            // ★修正：背景を breakufo.png にし、各務の立ち絵を追加しました
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
