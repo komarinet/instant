@@ -1,4 +1,4 @@
-const VER_STG = "0.2.3"; // バージョン更新（敵描画エラー修正）
+const VER_STG = "0.2.5"; // バージョン更新（視認性向上・パワーアップ修正）
 
 // --- クラス定義 ---
 
@@ -72,7 +72,7 @@ class Player {
     shoot() {
         if (this.isEntering) return;
         
-        // ★修正：パワーレベル（0〜8）に応じて弾幕を強化★
+        // ★修正：パワーレベル（0〜8）に応じて細かく弾幕を強化★
         const bulletSpeed = 10;
         
         if (this.powerLevel === 0) {
@@ -82,24 +82,45 @@ class Player {
             this.bullets.push(new Bullet(this.x - 5, this.y - this.size, 0, -bulletSpeed, this.color));
             this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0, -bulletSpeed, this.color));
         }
-        else if (this.powerLevel >= 2 && this.powerLevel < 5) {
-            // 3WAY
+        else if (this.powerLevel === 2) {
             this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, -1, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 1, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bulletSpeed, this.color));
         }
-        else if (this.powerLevel >= 5 && this.powerLevel < 8) {
-            // 5WAY
+        else if (this.powerLevel === 3) {
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bulletSpeed, this.color));
+        }
+        else if (this.powerLevel === 4) {
             this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, -1, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 1, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, -2, -bulletSpeed, this.color));
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 2, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2, -bulletSpeed, this.color));
+        }
+        else if (this.powerLevel === 5) {
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2.5, -bulletSpeed, this.color));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2.5, -bulletSpeed, this.color));
+        }
+        else if (this.powerLevel === 6) {
+            for (let i = -3; i <= 3; i++) {
+                this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bulletSpeed, this.color));
+            }
+        }
+        else if (this.powerLevel === 7) {
+            for (let i = -3; i <= 4; i++) {
+                this.bullets.push(new Bullet(this.x - 2.5, this.y - this.size, (i - 0.5) * 1.0, -bulletSpeed, this.color));
+            }
         }
         else if (this.powerLevel >= 8) {
-            // 扇状7WAY（最強）
-            for (let i = -3; i <= 3; i++) {
-                this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.5, -bulletSpeed, this.color));
+            for (let i = -4; i <= 4; i++) {
+                this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bulletSpeed, this.color));
             }
         }
     }
@@ -138,18 +159,18 @@ class Enemy {
         // ADVManagerから画像を読み込む（main.jsでプリロード済み）
         this.advManager = advManager; 
 
-        // ★修正：Typeごとにサイズ、HP、画像を切り替え★
+        // ★修正：スマホ画面に合わせてサイズを半減★
         if (type === 'typea') {
-            this.imgSrc = 'typea.png'; this.size = 32; this.hp = 2; // 赤い戦闘機：ザコ
+            this.imgSrc = 'typea.png'; this.size = 16; this.hp = 2; // 赤い戦闘機：ザコ
         } else if (type === 'typeb') {
-            this.imgSrc = 'typeb.png'; this.size = 40; this.hp = 4; // 青い砲台：少し硬い
+            this.imgSrc = 'typeb.png'; this.size = 20; this.hp = 4; // 青い砲台：少し硬い
         } else if (type === 'typec') {
-            this.imgSrc = 'typec.png'; this.size = 35; this.hp = 3; // 黄色い円盤：波型
+            this.imgSrc = 'typec.png'; this.size = 18; this.hp = 3; // 黄色い円盤：波型
         } else if (type === 'typeboss') {
-            this.imgSrc = 'typeboss.png'; this.size = 150; this.hp = 150; // ボス：デカい
+            this.imgSrc = 'typeboss.png'; this.size = 75; this.hp = 150; // ボス：デカい
         } else {
             // 旧バージョンの互換性維持用（もしあれば）
-            this.size = 30; this.hp = 1; this.imgSrc = null;
+            this.size = 15; this.hp = 1; this.imgSrc = null;
         }
     }
 
@@ -206,7 +227,17 @@ class Enemy {
             } else {
                 drawH = this.size * 2; drawW = drawH * aspectRatio;
             }
+            
+            // ★追加：敵にドロップシャドウ（影）をつけて背景から浮き上がらせる★
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = 3;
+            ctx.shadowOffsetY = 3;
+
             ctx.drawImage(img, this.x - drawW / 2, this.y - drawH / 2, drawW, drawH);
+            
+            ctx.restore(); // 影をリセット
         } else {
             // 画像がない場合のフォールバック（既存の図形描画）
             ctx.fillStyle = (this.type === 'typeboss') ? '#ff00ff' : '#00ffff'; ctx.beginPath();
@@ -449,8 +480,13 @@ class STGManager {
         return 'PLAYING';
     }
 
-    // ★修正：自機（HP・パワーUI）、敵、弾、アイテムの描画ロジック★
     draw(ctx) {
+        // ★追加：3D背景の上に薄い黒を敷いて、視認性を上げる★
+        const canvas = document.getElementById('gameCanvas');
+        const dpr = window.devicePixelRatio || 1;
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+        ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
         this.player.bullets.forEach(b => b.draw(ctx));
         this.enemies.forEach(e => e.draw(ctx));
         this.enemyBullets.forEach(eb => eb.draw(ctx));
@@ -458,12 +494,10 @@ class STGManager {
         this.player.draw(ctx);
         
         // ★追加：HPゲージとパワーレベルのUI描画★
-        const canvas = document.getElementById('gameCanvas');
-        const dpr = window.devicePixelRatio || 1;
         const cssHeight = canvas.height / dpr;
         
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; // UI背景
-        ctx.fillRect(10, cssHeight - 50, 290, 40); // 見切れないように幅を290に拡大
+        ctx.fillRect(10, cssHeight - 50, 290, 40); 
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, cssHeight - 50, 290, 40);
 
         // HPゲージ
