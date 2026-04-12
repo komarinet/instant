@@ -67,7 +67,7 @@ const scenarios = {
         post_stg: [
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）と申します' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
         ]
