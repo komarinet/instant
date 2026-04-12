@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.24"; // バージョン更新
+const VER_MAIN = "0.1.26"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -59,6 +59,16 @@ function updatePreview() {
 function changeScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
+    
+    // ADV状態ならスキップボタンを表示
+    const skipBtn = document.getElementById('skip-btn');
+    if (skipBtn) {
+        if (gameState.includes('ADV') || gameState.includes('DIALOGUE')) {
+            skipBtn.classList.remove('hidden');
+        } else {
+            skipBtn.classList.add('hidden');
+        }
+    }
 }
 
 function goToStageSelect() { 
@@ -137,6 +147,27 @@ window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 30
 resizeCanvas(); 
 
 
+// ★追加：スキップ機能★
+function skipADV() {
+    advManager.isActive = false;
+    if (gameState === 'ADV') {
+        // 最初のオープニング中の場合は、一気にステージ1開始暗転まで飛ばす
+        gameState = 'STAGE_START_TEXT';
+        transitionTimer = 90;
+        const charData = characters.find(c => c.id === selectedCharId);
+        if (!stgManager) {
+            stgManager = new STGManager(canvas, charData);
+        }
+    } else {
+        // それ以外（PRE_STG等）は、直後の遷移へ
+        gameState = 'STAGE_START_TEXT';
+        transitionTimer = 90;
+    }
+    const skipBtn = document.getElementById('skip-btn');
+    if (skipBtn) skipBtn.classList.add('hidden');
+}
+
+
 // ★追加：バックグラウンド・プリロード処理★
 let isPreloadCompleted = false;
 let pendingStageStart = null;
@@ -158,11 +189,12 @@ advManager.preload(imagesToPreload, () => {
 
 // --- ゲーム進行フロー ---
 
-// ★修正：goToGameStart() と startGame() の処理を一つにまとめ、ロード完了後に発火するように整理しました
 function executeStart(stageNum) {
+    changeScreen(''); 
+    const skipBtn = document.getElementById('skip-btn');
+    if (skipBtn) skipBtn.classList.remove('hidden');
+
     if (stageNum === 1) {
-        changeScreen(''); 
-        
         gameState = 'ADV';
         advManager.start(scenarios['opening'], () => { 
             currentStage = 1;
@@ -175,6 +207,7 @@ function executeStart(stageNum) {
                 advManager.start(scenarios[currentStage].pre_stg, () => {
                     gameState = 'STAGE_START_TEXT';
                     transitionTimer = 90;
+                    if (skipBtn) skipBtn.classList.add('hidden');
                 });
             });
         });
@@ -182,7 +215,6 @@ function executeStart(stageNum) {
         loop();
     } else {
         currentStage = stageNum;
-        changeScreen(''); 
         const charData = characters.find(c => c.id === selectedCharId);
         stgManager = new STGManager(canvas, charData);
         
@@ -190,6 +222,7 @@ function executeStart(stageNum) {
         advManager.start(scenarios[currentStage].pre_stg, () => {
             gameState = 'STAGE_START_TEXT';
             transitionTimer = 90;
+            if (skipBtn) skipBtn.classList.add('hidden');
         });
         cancelAnimationFrame(gameLoopId);
         loop();
@@ -248,6 +281,14 @@ canvas.addEventListener('touchend', e => { isTouching = false; });
 function loop() {
     if (gameState === 'UI') return;
     
+    // スキップボタンの確実な非表示制御
+    const skipBtn = document.getElementById('skip-btn');
+    if (skipBtn) {
+        if (!gameState.includes('ADV') && !gameState.includes('DIALOGUE')) {
+            skipBtn.classList.add('hidden');
+        }
+    }
+
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
     // 全体の黒塗りをコメントアウト（背景を透けさせるため）
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
@@ -292,9 +333,11 @@ function loop() {
             return;
         } else if (status === 'STAGE_CLEAR') {
             gameState = 'POST_STG_DIALOGUE';
+            if (skipBtn) skipBtn.classList.remove('hidden');
             advManager.start(scenarios[currentStage].post_stg, () => {
                 gameState = 'STAGE_CLEAR_TEXT';
                 transitionTimer = 90; 
+                if (skipBtn) skipBtn.classList.add('hidden');
             });
         }
     }
@@ -331,9 +374,11 @@ function loop() {
             if (scenarios[currentStage]) {
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
                 gameState = 'PRE_STG_DIALOGUE';
+                if (skipBtn) skipBtn.classList.remove('hidden');
                 advManager.start(scenarios[currentStage].pre_stg, () => {
                     gameState = 'STAGE_START_TEXT';
                     transitionTimer = 90;
+                    if (skipBtn) skipBtn.classList.add('hidden');
                 });
             } else {
                 gameState = 'UI';
