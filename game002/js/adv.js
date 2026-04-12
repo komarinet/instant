@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.24"; // バージョン更新
+const VER_ADV = "0.1.25"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -14,6 +14,7 @@ class ADVManager {
         this.shakeAmount = 10; 
         this.slideTimer = 0; // ★追加：スライド演出用
         this.fadeTimer = 0;  // ★追加：フェードイン演出用
+        this.whiteoutAlpha = 0; // ★追加：ホワイトアウト演出用
     }
 
     preload(images, callback) {
@@ -60,6 +61,7 @@ class ADVManager {
         this.shakeTimer = 0; 
         this.slideTimer = 0; // ★追加
         this.fadeTimer = 0;  // ★追加
+        this.whiteoutAlpha = 0; // ★追加
         this.playSE(); // ★追加：最初のシーンの音を鳴らす
     }
 
@@ -74,6 +76,7 @@ class ADVManager {
             this.shakeTimer = 0;
             this.slideTimer = 0; // ★追加
             this.fadeTimer = 0;  // ★追加
+            this.whiteoutAlpha = 0; // ★追加
             this.playSE(); // ★追加：次のシーンの音を鳴らす
         }
     }
@@ -227,8 +230,13 @@ class ADVManager {
         // ★追加：フェードイン効果（背景描画後にアルファ値を適用し、立ち絵とウインドウをじわっと表示）
         let alpha = 1.0;
         if (currentMsg.effect === 'fadeIn') {
-            if (this.fadeTimer < 120) this.fadeTimer++; // 120フレーム(約2秒)で1.0へ
-            alpha = this.fadeTimer / 120;
+            const delay = currentMsg.delay || 0; // ★追加：遅延時間
+            this.fadeTimer++;
+            if (this.fadeTimer < delay) {
+                alpha = 0;
+            } else {
+                alpha = Math.min(1.0, (this.fadeTimer - delay) / 60); // 1秒(60f)かけてフェードイン
+            }
         }
         ctx.globalAlpha = alpha;
 
@@ -342,6 +350,14 @@ class ADVManager {
         }
 
         ctx.globalAlpha = 1.0; // ★追加：アルファ値を元に戻す
+
+        // ★追加：ホワイトアウト演出
+        if (currentMsg.effect === 'whiteout') {
+            this.whiteoutAlpha = Math.min(1.0, this.whiteoutAlpha + 0.02);
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.whiteoutAlpha})`;
+            ctx.fillRect(gameX, gameY, gameWidth, gameHeight);
+        }
+
         ctx.restore(); // クリッピング解除
     }
 
