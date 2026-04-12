@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.27"; // バージョン更新
+const VER_MAIN = "0.1.28"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -27,7 +27,8 @@ const imagesToPreload = [
 const imagesToPreload3D = [
     { key: 'sideatlas', src: 'build_side.png' }, 
     { key: 'topatlas', src: 'build_top.png' },
-    { key: 'ground', src: 'ground01.png' }
+    { key: 'ground', src: 'ground01.png' },
+    { key: 'ground2', src: 'ground02.png' } // ★追加：ステージ2用背景
 ];
 
 // --- UI操作系 ---
@@ -374,12 +375,17 @@ function loop() {
             currentStage++;
             if (scenarios[currentStage]) {
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
-                gameState = 'PRE_STG_DIALOGUE';
-                if (skipBtn) skipBtn.classList.remove('hidden');
-                advManager.start(scenarios[currentStage].pre_stg, () => {
-                    gameState = 'STAGE_START_TEXT';
-                    transitionTimer = 90;
-                    if (skipBtn) skipBtn.classList.add('hidden');
+                
+                // ★修正：次のステージへ進んだ時にADV（開始時）から読み込む
+                gameState = 'ADV';
+                advManager.start(scenarios[currentStage].adv, () => {
+                    gameState = 'PRE_STG_DIALOGUE';
+                    if (skipBtn) skipBtn.classList.remove('hidden');
+                    advManager.start(scenarios[currentStage].pre_stg, () => {
+                        gameState = 'STAGE_START_TEXT';
+                        transitionTimer = 90;
+                        if (skipBtn) skipBtn.classList.add('hidden');
+                    });
                 });
             } else {
                 gameState = 'UI';
