@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.26"; // バージョン更新
+const VER_ADV = "0.1.27"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -242,6 +242,65 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; // 立ち絵にのみアルファ値を適用
 
+        // ★追加：背面キャラクター（character2）の描画★
+        if (currentMsg.character2) {
+            const charImg2 = this.assets[currentMsg.character2];
+            if (charImg2 && charImg2.naturalWidth > 0) {
+                const cols = 4;
+                const rows = currentMsg.character2 === 'igari02.png' ? 4 : 3;
+                const spriteWidth = charImg2.width / cols; 
+                const spriteHeight = charImg2.height / rows; 
+
+                const spIndex2 = currentMsg.spriteIndex2 || 0;
+                const col = spIndex2 % cols;
+                const row = Math.floor(spIndex2 / cols);
+                
+                const charCanvas = document.createElement('canvas');
+                charCanvas.width = spriteWidth;
+                charCanvas.height = spriteHeight;
+                const charCtx = charCanvas.getContext('2d');
+                
+                charCtx.imageSmoothingEnabled = false;
+                charCtx.drawImage(
+                    charImg2,
+                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
+                    0, 0, spriteWidth, spriteHeight
+                );
+
+                ctx.imageSmoothingEnabled = false;
+
+                const targetCharHeight = cssHeight * 0.50;
+                const baseScale = targetCharHeight / spriteHeight; 
+                const drawHeight = targetCharHeight; 
+                const drawWidth = spriteWidth * baseScale;
+
+                const isIgari = currentMsg.character2 === 'igari01.png' || currentMsg.character2 === 'igari02.png';
+                const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
+
+                const paddingLeft = gameX + gameWidth * 0.05;
+                const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
+                let drawX = alignRight ? paddingRight : paddingLeft;
+
+                // 背面キャラは少し内側にズラす
+                drawX = alignRight ? drawX - gameWidth * 0.15 : drawX + gameWidth * 0.15;
+
+                const drawY = gameY + visualAreaHeight - drawHeight;
+
+                ctx.filter = 'brightness(0.6)'; // 少し暗くして遠近感を出す
+
+                ctx.drawImage(
+                    charCanvas,
+                    drawX + shakeX + slideX, 
+                    drawY + shakeY, 
+                    drawWidth, 
+                    drawHeight
+                );
+                
+                ctx.filter = 'none'; // フィルタ解除
+                ctx.imageSmoothingEnabled = true; 
+            }
+        }
+
         // 立ち絵描画（解像度対策と二人表示レイアウト）
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
@@ -278,9 +337,13 @@ class ADVManager {
 
                 // ★修正：猪狩を右、他を左に配置（igari02.pngも右に配置する）
                 const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
+                
+                // ★追加：isRightが指定されている場合はそちらを優先する
+                const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
+
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
-                const drawX = isIgari ? paddingRight : paddingLeft;
+                const drawX = alignRight ? paddingRight : paddingLeft;
 
                 // Y座標をビジュアルウインドウの底辺に合わせる
                 const drawY = gameY + visualAreaHeight - drawHeight;
