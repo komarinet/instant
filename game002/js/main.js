@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.29"; // バージョン更新（candleプリロード追加）
+const VER_MAIN = "0.1.30"; // バージョン更新（darkcandle登録）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -20,7 +20,8 @@ let bgManager3D = null;
 // ★修正：新しい敵画像をプリロードに追加★
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
-    'typea.png', 'typeb.png', 'typec.png', 'typeboss.png'
+    'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
+    'darkcandle.png' // ★追加：ステージ2の豹変背景
 ];
 
 // ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
