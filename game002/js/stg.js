@@ -1,4 +1,4 @@
-const VER_STG = "0.2.2"; // バージョン更新（UI見切れ修正）
+const VER_STG = "0.2.3"; // バージョン更新（敵描画エラー修正）
 
 // --- クラス定義 ---
 
@@ -194,8 +194,9 @@ class Enemy {
     }
 
     draw(ctx) {
-        // ★修正：ADVManagerにキャッシュされた2D画像を描画★
-        const img = this.advManager.assets[this.imgSrc];
+        // ★修正：advManagerが見つからない場合のエラー落ちを完全に防ぐ安全対策を追加★
+        const img = (this.advManager && this.advManager.assets) ? this.advManager.assets[this.imgSrc] : null;
+        
         if (img && img.naturalWidth > 0) {
             // 画像のサイズ（縦横比揃える）を考慮して描画
             const aspectRatio = img.width / img.height;
@@ -276,8 +277,8 @@ class STGManager {
         this.stageTimer = 0;
         this.isStageClear = false;
 
-        // ★追加：画像描画のためADVManagerへの参照を持つ★
-        this.advManager = window.advManager; 
+        // ★修正：グローバルスコープから正しくadvManagerを取得する★
+        this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
     }
 
     // ★追加：抜け落ちていた登場演出の処理を復旧★
