@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.25"; // バージョン更新
+const VER_ADV = "0.1.26"; // バージョン更新
 
 class ADVManager {
     constructor() {
@@ -227,18 +227,20 @@ class ADVManager {
             }
         }
 
-        // ★追加：フェードイン効果（背景描画後にアルファ値を適用し、立ち絵とウインドウをじわっと表示）
-        let alpha = 1.0;
-        if (currentMsg.effect === 'fadeIn') {
+        // ★修正：待機(delay)とフェードの処理を分離し、ウインドウを消さないように調整
+        let isWaiting = false;
+        let charAlpha = 1.0;
+        if (currentMsg.delay || currentMsg.effect === 'fadeIn') {
             const delay = currentMsg.delay || 0; // ★追加：遅延時間
             this.fadeTimer++;
             if (this.fadeTimer < delay) {
-                alpha = 0;
-            } else {
-                alpha = Math.min(1.0, (this.fadeTimer - delay) / 60); // 1秒(60f)かけてフェードイン
+                isWaiting = true; // 待機中（キャラ・テキストを隠す）
+                charAlpha = 0;
+            } else if (currentMsg.effect === 'fadeIn') {
+                charAlpha = Math.min(1.0, (this.fadeTimer - delay) / 60); // 1秒(60f)かけてフェードイン
             }
         }
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = charAlpha; // 立ち絵にのみアルファ値を適用
 
         // 立ち絵描画（解像度対策と二人表示レイアウト）
         if (currentMsg.character) {
@@ -296,6 +298,9 @@ class ADVManager {
             }
         }
         
+        // ★立ち絵を描き終わったら必ずアルファを1.0に戻す（これで空のウインドウが最初から表示される）
+        ctx.globalAlpha = 1.0; 
+
         // ★追加：文字が空文字でない場合のみ台詞ウインドウを描画する
         // const showTextWindow = currentMsg.text !== undefined && currentMsg.text !== '';
         const showTextWindow = true; // ★修正：テキストが空欄でもウインドウを消さないように変更
@@ -316,40 +321,40 @@ class ADVManager {
             ctx.fill();
             ctx.stroke();
 
-            // 話者名
-            if (currentMsg.speaker) {
+            // 話者名（待機中でない場合のみ描画）
+            if (currentMsg.speaker && !isWaiting) {
                 ctx.fillStyle = currentMsg.speaker === '猪狩' ? '#ff3366' : '#00ffff';
                 ctx.font = 'bold 18px "Segoe UI", sans-serif';
                 ctx.fillText(currentMsg.speaker, dialogueX + padding, dialogueY + 30);
             }
 
-            // テキスト描画（一瞬で全文を表示）
+            // テキスト描画（一瞬で全文を表示、待機中でない場合のみ）
             ctx.fillStyle = '#fff';
             ctx.font = '16px "Segoe UI", sans-serif';
             const maxWidth = dialogueWidth - (padding * 2);
             
-            this.textTimer++;
-            if (this.textTimer >= this.textInterval) {
-                this.textTimer = 0;
-                if (this.textIndex < safeText.length) { // ★修正：エラー回避のため safeText を使用
-                    this.textIndex++;
+            if (!isWaiting) {
+                this.textTimer++;
+                if (this.textTimer >= this.textInterval) {
+                    this.textTimer = 0;
+                    if (this.textIndex < safeText.length) { // ★修正：エラー回避のため safeText を使用
+                        this.textIndex++;
+                    }
                 }
-            }
-            
-            const textToDraw = safeText; // ★修正：エラー回避のため safeText を使用
-            this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
+                
+                const textToDraw = safeText; // ★修正：エラー回避のため safeText を使用
+                this.wrapText(ctx, textToDraw, dialogueX + padding, dialogueY + 65, maxWidth, 24);
 
-            // タップを促すアイコン
-            ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
-            ctx.fillText('▼', dialogueX + dialogueWidth - 35, dialogueY + dynamicHeight - 15);
+                // タップを促すアイコン
+                ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
+                ctx.fillText('▼', dialogueX + dialogueWidth - 35, dialogueY + dynamicHeight - 15);
+            }
         } else {
             // ★追加：ウインドウがない場合でも、画面右下にタップ可能であることを示す▼を表示
             ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
             ctx.font = '24px "Segoe UI", sans-serif';
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
-
-        ctx.globalAlpha = 1.0; // ★追加：アルファ値を元に戻す
 
         // ★追加：ホワイトアウト演出
         if (currentMsg.effect === 'whiteout') {
