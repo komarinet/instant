@@ -1,4 +1,4 @@
-const VER_DATA = "0.1.22"; // バージョン更新
+const VER_DATA = "0.1.23"; // バージョン更新
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -41,45 +41,4 @@ const scenarios = {
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'はい、猪狩ですが' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '猪狩俊基さんですね。我々は異世界保険組合です' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'いせかい・・・保険組合？' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '科学文明軍という異世界人が空港を爆破しました' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'これは、異世界条項47条に反しています' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '特殊詐欺ならお断りなんだが' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'また爆発で恋人を失う気ですか？' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '！' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'あれは夢などではありません' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '我々はあの未来を防ぐため、１年間を巻き戻しました' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'もしあなたが未来を変えたければ' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '科学文明軍と戦い、彼らを撃破して下さい' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'いや、でもどうやって' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', effect: 'shake', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'とぼけるのはやめましょう、猪狩俊基' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'あなたは異世界から転移した天才科学者、猪狩隆盛の息子' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '彼の技術力を受け継いでるはずです' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', effect: 'shake', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ちっ・・・後で説明してもらうからな' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '生き残って頂ければ' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ふざけやがって・・・' },
-        { bg: 'igni.png', place: 'Room', time: '2025.04', speaker: '猪狩', text: 'イグニッション' } 
-    ],
-    1: {
-        adv: [], 
-        pre_stg: [], 
-        post_stg: [
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）と申します' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
-        ]
-    },
-    2: { 
-        adv: [], 
-        pre_stg: [
-            { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'としき君……みつけた……。どうして他の女の人といるの……？' }, 
-            { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '千華！？お前、その体は一体……！' } 
-        ], 
-        post_stg: [
-            { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '痛い……としき君……' } 
-        ] 
-    }
-};
+        { bg: 'room.png', place: 'Room', time: '202
