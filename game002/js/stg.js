@@ -1,4 +1,4 @@
-const VER_STG = "0.2.1"; // バージョン大幅更新
+const VER_STG = "0.2.2"; // バージョン更新（UI見切れ修正）
 
 // --- クラス定義 ---
 
@@ -462,8 +462,8 @@ class STGManager {
         const cssHeight = canvas.height / dpr;
         
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; // UI背景
-        ctx.fillRect(10, cssHeight - 50, 250, 40);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, cssHeight - 50, 250, 40);
+        ctx.fillRect(10, cssHeight - 50, 290, 40); // 見切れないように幅を290に拡大
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, cssHeight - 50, 290, 40);
 
         // HPゲージ
         ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('HP:', 20, cssHeight - 25);
