@@ -1,4 +1,4 @@
-const VER_3DBG = "0.1.7"; // バージョン更新（巨大ロウソクと不安な炎の実装）
+const VER_3DBG = "0.1.8"; // バージョン更新（ステージ切り替え判定のバグ修正）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -21,7 +21,7 @@ class BGManager3D {
             sideatlas: null,
             topatlas: null,
             ground: null,
-            ground2: null,
+            ground2: null, // ★追加：Stage2用グラウンドテクスチャ
             candle: null // ★追加：ロウソク側面
         };
         this.textureAtlasSize = {
@@ -36,7 +36,7 @@ class BGManager3D {
         
         // ★追加：現在のステージ管理用変数
         this.currentStage = 1;
-        this.flameMaterial = null; // 炎の共通シェーダーマテリアル
+        this.flameMaterial = null; // ★追加：炎の共通シェーダーマテリアル
     }
 
     // ★アセットのプリロードロジック★（ビルドサイド、ビルドトップ、グラウンド）
@@ -139,7 +139,7 @@ class BGManager3D {
         if (!this.ground || !this.ground.material) return;
         
         if (stageNum === 2) {
-            // Stage 2: ground02.png を上下反転させて使用、ビルを隠してロウソクを表示
+            // Stage 2: ground02.png を上下反転させて使用
             if (this.textures.ground2) {
                 this.ground.material.map = this.textures.ground2;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
@@ -148,10 +148,11 @@ class BGManager3D {
                 this.ground.material.map.repeat.set(4, -10); 
                 this.ground.material.needsUpdate = true;
             }
+            // ★追加：ビルを隠してロウソクを表示
             this.buildings.forEach(b => b.visible = false);
             this.candles.forEach(c => c.visible = true);
         } else {
-            // Stage 1 (他): ground01.png を通常使用、ビルを表示してロウソクを隠す
+            // Stage 1 (他): ground01.png を通常使用
             if (this.textures.ground) {
                 this.ground.material.map = this.textures.ground;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
@@ -159,6 +160,7 @@ class BGManager3D {
                 this.ground.material.map.repeat.set(4, 10);
                 this.ground.material.needsUpdate = true;
             }
+            // ★追加：ビルを表示してロウソクを隠す
             this.buildings.forEach(b => b.visible = true);
             this.candles.forEach(c => c.visible = false);
         }
@@ -195,12 +197,101 @@ class BGManager3D {
         this.scene.add(this.ground);
     }
 
-    // ★追加：巨大ロウソク群の作成
+    // ランダムなビル群の作成
+    createBuildings() {
+        const sideTexAtlas = this.textures.sideatlas;
+        const topTexAtlas = this.textures.topatlas;
+
+        const numBuildings = 60; // ビルの数
+
+        for (let i = 0; i < numBuildings; i++) {
+            // ランダムなサイズ
+            const w = Math.random() * 15 + 10;
+            const d = Math.random() * 15 + 10;
+            const h = Math.random() * 40 + 20;
+
+            const geo = new THREE.BoxGeometry(w, h, d);
+            
+            let sideMat, topMat;
+
+            // 側面テクスチャの切り出し（3列2行、右下空欄）
+            if (sideTexAtlas) {
+                const sideTex = sideTexAtlas.clone();
+                sideTex.needsUpdate = true;
+                sideTex.repeat.set(1/3, 1/2); // 3列2行サイズに分割
+                const sideIndex = Math.floor(Math.random() * 5); // 0〜4（5番目は空欄）
+                const sCol = sideIndex % 3;
+                const sRow = Math.floor(sideIndex / 3);
+                // UVのY軸は下から上なので、行の計算を反転させる
+                sideTex.offset.set(sCol * (1/3), 1 - (sRow + 1) * (1/2));
+                sideMat = new THREE.MeshPhongMaterial({ map: sideTex });
+            } else {
+                sideMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
+            }
+
+            // 屋上テクスチャの切り出し（4列3行）
+            if (topTexAtlas) {
+                const topTex = topTexAtlas.clone();
+                topTex.needsUpdate = true;
+                topTex.repeat.set(1/4, 1/3); // 4列3行サイズに分割
+                const topIndex = Math.floor(Math.random() * 12);
+                const tCol = topIndex % 4;
+                const tRow = Math.floor(topIndex / 4);
+                topTex.offset.set(tCol * (1/4), 1 - (tRow + 1) * (1/3));
+                topMat = new THREE.MeshPhongMaterial({ map: topTex });
+            } else {
+                topMat = new THREE.MeshPhongMaterial({ color: 0x555555 });
+            }
+
+            // マテリアルを配列で指定 [右, 左, 上, 下, 前, 後]
+            const materials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
+            
+            const mesh = new THREE.Mesh(geo, materials);
+            
+            // ランダムに配置
+            mesh.position.x = (Math.random() - 0.5) * 200;
+            mesh.position.z = (Math.random() - 0.5) * 400 - 50; 
+            mesh.position.y = h / 2; // 地面に接するように高さを調整
+
+            mesh.castShadow = true; // 影を落とす
+            mesh.receiveShadow = true; // 影を受け取る
+
+            this.scene.add(mesh);
+            this.buildings.push(mesh);
+        }
+    }
+
+    // 煙・雲（疾走感）の作成
+    createClouds() {
+        const numClouds = 20;
+        const cloudGeo = new THREE.PlaneGeometry(40, 40);
+        const cloudMat = new THREE.MeshBasicMaterial({
+            color: 0x111115,
+            transparent: true,
+            opacity: 0.4,
+            depthWrite: false // 雲同士の描画順序のちらつきを防止
+        });
+
+        for (let i = 0; i < numClouds; i++) {
+            const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+            cloud.position.x = (Math.random() - 0.5) * 200;
+            cloud.position.y = Math.random() * 20 + 60; // ビルより高い位置
+            cloud.position.z = (Math.random() - 0.5) * 300;
+            
+            // ランダムな回転で煙のモクモク感を出す
+            cloud.rotation.x = -Math.PI / 2; 
+            cloud.rotation.z = Math.random() * Math.PI * 2;
+            
+            this.scene.add(cloud);
+            this.clouds.push(cloud);
+        }
+    }
+
+    // ★追加：巨大ロウソク群の作成（完全新規メソッド）
     createCandles() {
         const numCandles = 60; // キャンドルの数
 
-        // ★魔法のような炎を作るための自作シェーダー★
-        // 青や紫が混ざった不安定で毒々しい色の炎をプログラマブルに生成します
+        // 魔法のような炎を作るための自作シェーダー
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 uTime: { value: 0.0 }
@@ -318,104 +409,14 @@ class BGManager3D {
         }
     }
 
-    // ランダムなビル群の作成
-    createBuildings() {
-        const sideTexAtlas = this.textures.sideatlas;
-        const topTexAtlas = this.textures.topatlas;
-
-        const numBuildings = 60; // ビルの数
-
-        for (let i = 0; i < numBuildings; i++) {
-            // ランダムなサイズ
-            const w = Math.random() * 15 + 10;
-            const d = Math.random() * 15 + 10;
-            const h = Math.random() * 40 + 20;
-
-            const geo = new THREE.BoxGeometry(w, h, d);
-            
-            let sideMat, topMat;
-
-            // 側面テクスチャの切り出し（3列2行、右下空欄）
-            if (sideTexAtlas) {
-                const sideTex = sideTexAtlas.clone();
-                sideTex.needsUpdate = true;
-                sideTex.repeat.set(1/3, 1/2); // 3列2行サイズに分割
-                const sideIndex = Math.floor(Math.random() * 5); // 0〜4（5番目は空欄）
-                const sCol = sideIndex % 3;
-                const sRow = Math.floor(sideIndex / 3);
-                // UVのY軸は下から上なので、行の計算を反転させる
-                sideTex.offset.set(sCol * (1/3), 1 - (sRow + 1) * (1/2));
-                sideMat = new THREE.MeshPhongMaterial({ map: sideTex });
-            } else {
-                sideMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
-            }
-
-            // 屋上テクスチャの切り出し（4列3行）
-            if (topTexAtlas) {
-                const topTex = topTexAtlas.clone();
-                topTex.needsUpdate = true;
-                topTex.repeat.set(1/4, 1/3); // 4列3行サイズに分割
-                const topIndex = Math.floor(Math.random() * 12);
-                const tCol = topIndex % 4;
-                const tRow = Math.floor(topIndex / 4);
-                topTex.offset.set(tCol * (1/4), 1 - (tRow + 1) * (1/3));
-                topMat = new THREE.MeshPhongMaterial({ map: topTex });
-            } else {
-                topMat = new THREE.MeshPhongMaterial({ color: 0x555555 });
-            }
-
-            // マテリアルを配列で指定 [右, 左, 上, 下, 前, 後]
-            const materials = [sideMat, sideMat, topMat, sideMat, sideMat, sideMat];
-            
-            const mesh = new THREE.Mesh(geo, materials);
-            
-            // ランダムに配置
-            mesh.position.x = (Math.random() - 0.5) * 200;
-            mesh.position.z = (Math.random() - 0.5) * 400 - 50; 
-            mesh.position.y = h / 2; // 地面に接するように高さを調整
-
-            mesh.castShadow = true; // 影を落とす
-            mesh.receiveShadow = true; // 影を受け取る
-
-            this.scene.add(mesh);
-            this.buildings.push(mesh);
-        }
-    }
-
-    // 煙・雲（疾走感）の作成
-    createClouds() {
-        const numClouds = 20;
-        const cloudGeo = new THREE.PlaneGeometry(40, 40);
-        const cloudMat = new THREE.MeshBasicMaterial({
-            color: 0x111115,
-            transparent: true,
-            opacity: 0.4,
-            depthWrite: false // 雲同士の描画順序のちらつきを防止
-        });
-
-        for (let i = 0; i < numClouds; i++) {
-            const cloud = new THREE.Mesh(cloudGeo, cloudMat);
-            cloud.position.x = (Math.random() - 0.5) * 200;
-            cloud.position.y = Math.random() * 20 + 60; // ビルより高い位置
-            cloud.position.z = (Math.random() - 0.5) * 300;
-            
-            // ランダムな回転で煙のモクモク感を出す
-            cloud.rotation.x = -Math.PI / 2; 
-            cloud.rotation.z = Math.random() * Math.PI * 2;
-            
-            this.scene.add(cloud);
-            this.clouds.push(cloud);
-        }
-    }
-
     // アニメーションループ
     loop() {
         if (!this.isActive) return;
 
-        // ★追加：main.js の global 変数 currentStage を監視して自動で背景を切り替え
-        if (typeof window !== 'undefined' && typeof window.currentStage !== 'undefined') {
-            if (this.currentStage !== window.currentStage) {
-                this.setStage(window.currentStage);
+        // ★修正：letで宣言された変数はwindowに入らないため、直接参照に変更してバグを修正
+        if (typeof currentStage !== 'undefined') {
+            if (this.currentStage !== currentStage) {
+                this.setStage(currentStage);
             }
         }
 
@@ -450,7 +451,7 @@ class BGManager3D {
 
         // ビル群のスクロール
         this.buildings.forEach(b => {
-            if (!b.visible) return;
+            if (!b.visible) return; // ★追加：非表示の時は移動処理をスキップして軽くする
             b.position.z += this.scrollSpeed;
             // ★修正：影のアーティファクトを防ぐため、画面外に出たら早めに(z:40で)リサイクル
             if (b.position.z > 40) {
