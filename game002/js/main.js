@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.23"; // バージョン更新
+const VER_MAIN = "0.1.24"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -18,14 +18,13 @@ let stgManager = null;
 let bgManager3D = null;
 
 // 画像アセットのプリロード
-// ★修正：'breakufo.png' をリストに追加しました★
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png'
 ];
 
 // ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
 const imagesToPreload3D = [
-    { key: 'sideatlas', src: 'build_side.png' }, // ここを修正しました！
+    { key: 'sideatlas', src: 'build_side.png' }, 
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' }
 ];
@@ -120,7 +119,6 @@ function resizeCanvas() {
     
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-    // ★ここだけ追加しました：3Dキャンバスも一緒にリサイズしないと真っ暗になります★
     const bgCanvas = document.getElementById('bgCanvas');
     if (bgCanvas) {
         bgCanvas.style.width = width + 'px';
@@ -139,72 +137,80 @@ window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 30
 resizeCanvas(); 
 
 
-// --- ゲーム進行フロー ---
-function goToGameStart() {
-    changeScreen(''); 
-    
-    advManager.preload(imagesToPreload, () => {
-        // 3D背景マネージャーの初期化とプリロード
-        bgManager3D = new BGManager3D('bgCanvas');
-        bgManager3D.preload(imagesToPreload3D, () => {
-            // プリロード完了後、Three.js空間を初期化
-            bgManager3D.init();
+// ★追加：バックグラウンド・プリロード処理★
+let isPreloadCompleted = false;
+let pendingStageStart = null;
 
+// ページを読み込んだ瞬間から、ユーザーがメニューを操作している裏で読み込みを開始する
+advManager.preload(imagesToPreload, () => {
+    bgManager3D = new BGManager3D('bgCanvas');
+    bgManager3D.preload(imagesToPreload3D, () => {
+        bgManager3D.init(); // 3D空間の重い初期化も裏で済ませておく
+        isPreloadCompleted = true;
+        
+        // もし読み込み完了前にユーザーがステージ開始ボタンを押していたら、直ちに開始する
+        if (pendingStageStart !== null) {
+            executeStart(pendingStageStart);
+        }
+    });
+});
+
+
+// --- ゲーム進行フロー ---
+
+// ★修正：goToGameStart() と startGame() の処理を一つにまとめ、ロード完了後に発火するように整理しました
+function executeStart(stageNum) {
+    if (stageNum === 1) {
+        changeScreen(''); 
+        
+        gameState = 'ADV';
+        advManager.start(scenarios['opening'], () => { 
+            currentStage = 1;
+            const charData = characters.find(c => c.id === selectedCharId);
+            stgManager = new STGManager(canvas, charData);
+            
             gameState = 'ADV';
-            // スタート地点を「空港のオープニング」に戻しました！
-            advManager.start(scenarios['opening'], () => { 
-                currentStage = 1;
-                const charData = characters.find(c => c.id === selectedCharId);
-                stgManager = new STGManager(canvas, charData);
-                
-                gameState = 'ADV';
-                // オープニング直後に、追加した各務のシーン（タイムリープ後）を繋ぎます
-                advManager.start(scenarios['kagami_arrival'], () => {
-                    gameState = 'PRE_STG_DIALOGUE';
-                    advManager.start(scenarios[currentStage].pre_stg, () => {
-                        gameState = 'STAGE_START_TEXT';
-                        transitionTimer = 90;
-                    });
+            advManager.start(scenarios['kagami_arrival'], () => {
+                gameState = 'PRE_STG_DIALOGUE';
+                advManager.start(scenarios[currentStage].pre_stg, () => {
+                    gameState = 'STAGE_START_TEXT';
+                    transitionTimer = 90;
                 });
             });
-            cancelAnimationFrame(gameLoopId);
-            loop();
         });
-    });
-}
-
-function startGame(stageNum) {
-    if (stageNum === 1) {
-        goToGameStart();
+        cancelAnimationFrame(gameLoopId);
+        loop();
     } else {
         currentStage = stageNum;
         changeScreen(''); 
         const charData = characters.find(c => c.id === selectedCharId);
         stgManager = new STGManager(canvas, charData);
         
-        // ステージ単体からの開始でも3D背景を初期化
-        if (!bgManager3D) {
-            bgManager3D = new BGManager3D('bgCanvas');
-            bgManager3D.preload(imagesToPreload3D, () => {
-                bgManager3D.init();
-                gameState = 'PRE_STG_DIALOGUE';
-                advManager.start(scenarios[currentStage].pre_stg, () => {
-                    gameState = 'STAGE_START_TEXT';
-                    transitionTimer = 90;
-                });
-                cancelAnimationFrame(gameLoopId);
-                loop();
-            });
-        } else {
-            gameState = 'PRE_STG_DIALOGUE';
-            advManager.start(scenarios[currentStage].pre_stg, () => {
-                gameState = 'STAGE_START_TEXT';
-                transitionTimer = 90;
-            });
-            cancelAnimationFrame(gameLoopId);
-            loop();
-        }
+        gameState = 'PRE_STG_DIALOGUE';
+        advManager.start(scenarios[currentStage].pre_stg, () => {
+            gameState = 'STAGE_START_TEXT';
+            transitionTimer = 90;
+        });
+        cancelAnimationFrame(gameLoopId);
+        loop();
     }
+}
+
+function startGame(stageNum) {
+    if (!isPreloadCompleted) {
+        // もしプレイヤーが爆速でクリックしてロードが間に合っていなかった場合、ボタン表示を変えて待機する
+        const stageList = document.getElementById('stage-list');
+        if (stageList) {
+            stageList.querySelectorAll('button').forEach(btn => {
+                btn.innerText = "NOW LOADING...";
+                btn.style.color = "#00ffff";
+                btn.style.borderColor = "#00ffff";
+            });
+        }
+        pendingStageStart = stageNum;
+        return;
+    }
+    executeStart(stageNum);
 }
 
 
