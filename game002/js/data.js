@@ -1,4 +1,4 @@
-const VER_DATA = "0.1.20"; // バージョン更新
+const VER_DATA = "0.1.21"; // バージョン更新
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -11,15 +11,16 @@ const characters = [
 
 const scenarios = {
     'opening': [
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな' },
+        // ★修正：背景のみで2秒(120f)待ってから表示
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな', effect: 'fadeIn', delay: 120 },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'まあまあ、今回は修行で行くんだし' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '一緒に行ってもどこへも行けないよ？' },
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 2, speaker: '猪狩', text: '知的好奇心ってやつさ' },
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: '知的好奇心ってやつさ' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 2, speaker: '猪狩', text: 'この科学の時代に魔女の里だろ？' },
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 2, speaker: '猪狩', text: '磁場とか放射線量とか測定してぇー' },
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '磁場とか放射線量とか測定してぇー' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: 'でたよ、科学バカ・・・' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '（小声）まあ、そんなとこも好きだけど・・・' },
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: 'なんか言ったか？' },
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'なんか言ったか？' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'ううん。じゃあ、行ってくる' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: 'ああ, 気をつけて' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '・・・あのさ、俊基' },
@@ -28,38 +29,41 @@ const scenarios = {
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 10, speaker: '柊', text: '冗談よ。じゃねー' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 10, effect: 'slideOutLeft', text: '' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '全く。魔女ってやつはみんなあんなに嫉妬深いのかな' },
-        { bg: 'airport.png', place: 'Airport', time: '2026.04', effect: 'shake', text: '' }
+        { bg: 'airport.png', place: 'Airport', time: '2026.04', effect: 'shake', text: '' },
+        // ★修正：ホワイトアウト演出
+        { bg: 'airport.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'うわーーーー！', effect: 'whiteout' }
     ],
     'kagami_arrival': [
         { bg: 'room.png', place: 'Room', time: '2025.04', se: 'alarm.mp3', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'はっ・・・夢？' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'やばっ今何時だ、仕事が・・・' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '・・・2025年4月2日？' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'はっ・・・夢？' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 8, speaker: '猪狩', text: 'てか、昼じゃねぇか！　いま何時だ、仕事が・・・' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・2025年4月2日？' },
         { bg: 'room.png', place: 'Room', time: '2025.04', se: 'vibration.mp3', text: '' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'はい、猪狩ですが' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '猪狩俊基さんですね。我々は異世界保険組合です' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'いせかい・・・保険組合？' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '科学文明軍という異世界の人間がこの世界に介入して、多くの人間を殺傷しました' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'いせかい・・・保険組合？' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '科学文明軍という異世界人が空港を爆破しました' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'これは、異世界条項47条に反しています' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '従って、１年間のリブートが実行されました' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '待て待て、話が見えない' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '端的に言いますね。我々は１年、時間を巻き戻しました' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'ですがこのままなら１年後、柊千華の乗った飛行機は同じように科学文明軍によって爆破されます' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'あいつらが・・・' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '特殊詐欺ならお断りなんだが' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'また爆発で恋人を失う気ですか？' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '！' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'あれは夢などではありません' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '我々はあの未来を防ぐため、１年間を巻き戻しました' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'もしあなたが未来を変えたければ' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '科学文明軍と戦い、彼らを撃破して下さい' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'いや、でもどうやって' },
         { bg: 'room.png', place: 'Room', time: '2025.04', effect: 'shake', text: '' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'とぼけるのはやめましょう、猪狩俊基' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'あなたは持っているはずです。その手段を' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'あなたは異世界から転移した天才科学者、猪狩隆盛の息子' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '彼の技術力を受け継いでるはずです' },
         { bg: 'room.png', place: 'Room', time: '2025.04', effect: 'shake', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '後で説明してもらうからな' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ちっ・・・後で説明してもらうからな' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '生き残って頂ければ' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ふざけやがって・・・' },
         { bg: 'igni.png', place: 'Room', time: '2025.04', speaker: '猪狩', text: 'イグニッション' } 
     ],
     1: {
-        adv: [], // ★修正：テキストを削除して空にしました
+        adv: [], 
         pre_stg: [], 
         post_stg: [
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
