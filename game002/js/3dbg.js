@@ -1,4 +1,4 @@
-const VER_3DBG = "0.1.5"; // バージョン更新
+const VER_3DBG = "0.1.6"; // バージョン更新（Stage2背景・影修正）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -19,7 +19,8 @@ class BGManager3D {
         this.textures = {
             sideatlas: null,
             topatlas: null,
-            ground: null
+            ground: null,
+            ground2: null // ★追加：Stage2用グラウンドテクスチャ
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, // Build_side.png
@@ -30,6 +31,9 @@ class BGManager3D {
         this.scrollSpeed = 0.5; // 地面とビルのスクロール速度
         this.cloudScrollSpeed = 1.0; // 雲のスクロール速度（疾走感）
         this.isLoaded = false;
+        
+        // ★追加：現在のステージ管理用変数
+        this.currentStage = 1;
     }
 
     // ★アセットのプリロードロジック★（ビルドサイド、ビルドトップ、グラウンド）
@@ -123,6 +127,33 @@ class BGManager3D {
 
         this.isActive = true;
         this.loop(); // アニメーションループ開始
+    }
+
+    // ★追加：ステージに応じた背景切り替え機能
+    setStage(stageNum) {
+        this.currentStage = stageNum;
+        if (!this.ground || !this.ground.material) return;
+        
+        if (stageNum === 2) {
+            // Stage 2: ground02.png を上下反転させて使用
+            if (this.textures.ground2) {
+                this.ground.material.map = this.textures.ground2;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                // マイナス値を設定することでテクスチャを上下反転させる
+                this.ground.material.map.repeat.set(4, -10); 
+                this.ground.material.needsUpdate = true;
+            }
+        } else {
+            // Stage 1 (他): ground01.png を通常使用
+            if (this.textures.ground) {
+                this.ground.material.map = this.textures.ground;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.repeat.set(4, 10);
+                this.ground.material.needsUpdate = true;
+            }
+        }
     }
 
     // 地面（グラウンド）の作成とシームレススクロール設定
@@ -250,6 +281,13 @@ class BGManager3D {
     loop() {
         if (!this.isActive) return;
 
+        // ★追加：main.js の global 変数 currentStage を監視して自動で背景を切り替え
+        if (typeof window !== 'undefined' && typeof window.currentStage !== 'undefined') {
+            if (this.currentStage !== window.currentStage) {
+                this.setStage(window.currentStage);
+            }
+        }
+
         // 地面（グラウンド）のシームレススクロール（テクスチャオフセットを変化させる）
         if (this.ground && this.ground.material.map) {
             // ★修正：ビル群の移動と完全に同期させるための計算
@@ -261,7 +299,8 @@ class BGManager3D {
         // ビル群のスクロール
         this.buildings.forEach(b => {
             b.position.z += this.scrollSpeed;
-            if (b.position.z > 100) {
+            // ★修正：影のアーティファクトを防ぐため、画面外に出たら早めに(z:40で)リサイクル
+            if (b.position.z > 40) {
                 b.position.z -= 400;
                 b.position.x = (Math.random() - 0.5) * 200;
             }
