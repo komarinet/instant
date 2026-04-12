@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.28"; // バージョン更新
+const VER_MAIN = "0.1.29"; // バージョン更新（candleプリロード追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -28,7 +28,8 @@ const imagesToPreload3D = [
     { key: 'sideatlas', src: 'build_side.png' }, 
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' },
-    { key: 'ground2', src: 'ground02.png' } // ★追加：ステージ2用背景
+    { key: 'ground2', src: 'ground02.png' }, // ★追加：ステージ2用背景
+    { key: 'candle', src: 'candle.png' } // ★追加：ロウソクの側面テクスチャ
 ];
 
 // --- UI操作系 ---
