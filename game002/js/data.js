@@ -1,4 +1,4 @@
-const VER_DATA = "0.1.18"; // バージョン更新
+const VER_DATA = "0.1.19"; // バージョン更新
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -11,7 +11,6 @@ const characters = [
 
 const scenarios = {
     'opening': [
-        // ★修正：すべて 'igari02.png' に変更し、文脈に合う感情番号（0〜15）に再設定しました
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'まあまあ、今回は修行で行くんだし' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '一緒に行ってもどこへも行けないよ？' },
@@ -65,11 +64,12 @@ const scenarios = {
         ],
         pre_stg: [], 
         post_stg: [
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', speaker: '各務', text: '異世界保険組合の各務（かがみ）と申します' },
-            { bg: 'airport.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
+            // ★修正：背景を breakufo.png にし、各務の立ち絵を追加しました
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいでしょう。第１関門は合格ということで' },
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'ええ、私があなたをタイムリープさせました' },
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）と申します' },
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
         ]
     },
     2: { 
