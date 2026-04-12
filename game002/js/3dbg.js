@@ -1,4 +1,4 @@
-const VER_3DBG = "0.1.6"; // バージョン更新（Stage2背景・影修正）
+const VER_3DBG = "0.1.7"; // バージョン更新（巨大ロウソクと不安な炎の実装）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -14,13 +14,15 @@ class BGManager3D {
         this.ground = null;
         this.buildings = [];
         this.clouds = []; // 煙・雲
+        this.candles = []; // ★追加：巨大ロウソク群
         
         // --- アセット（テクスチャ） ---
         this.textures = {
             sideatlas: null,
             topatlas: null,
             ground: null,
-            ground2: null // ★追加：Stage2用グラウンドテクスチャ
+            ground2: null,
+            candle: null // ★追加：ロウソク側面
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, // Build_side.png
@@ -34,6 +36,7 @@ class BGManager3D {
         
         // ★追加：現在のステージ管理用変数
         this.currentStage = 1;
+        this.flameMaterial = null; // 炎の共通シェーダーマテリアル
     }
 
     // ★アセットのプリロードロジック★（ビルドサイド、ビルドトップ、グラウンド）
@@ -124,6 +127,7 @@ class BGManager3D {
         this.createGround();
         this.createBuildings(); // ランダムなビル群生成
         this.createClouds();   // 煙・雲（疾走感）生成
+        this.createCandles();  // ★追加：巨大ロウソク群生成
 
         this.isActive = true;
         this.loop(); // アニメーションループ開始
@@ -135,7 +139,7 @@ class BGManager3D {
         if (!this.ground || !this.ground.material) return;
         
         if (stageNum === 2) {
-            // Stage 2: ground02.png を上下反転させて使用
+            // Stage 2: ground02.png を上下反転させて使用、ビルを隠してロウソクを表示
             if (this.textures.ground2) {
                 this.ground.material.map = this.textures.ground2;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
@@ -144,8 +148,10 @@ class BGManager3D {
                 this.ground.material.map.repeat.set(4, -10); 
                 this.ground.material.needsUpdate = true;
             }
+            this.buildings.forEach(b => b.visible = false);
+            this.candles.forEach(c => c.visible = true);
         } else {
-            // Stage 1 (他): ground01.png を通常使用
+            // Stage 1 (他): ground01.png を通常使用、ビルを表示してロウソクを隠す
             if (this.textures.ground) {
                 this.ground.material.map = this.textures.ground;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
@@ -153,6 +159,8 @@ class BGManager3D {
                 this.ground.material.map.repeat.set(4, 10);
                 this.ground.material.needsUpdate = true;
             }
+            this.buildings.forEach(b => b.visible = true);
+            this.candles.forEach(c => c.visible = false);
         }
     }
 
@@ -185,6 +193,129 @@ class BGManager3D {
         this.ground.receiveShadow = true; // 影を受け取る
         
         this.scene.add(this.ground);
+    }
+
+    // ★追加：巨大ロウソク群の作成
+    createCandles() {
+        const numCandles = 60; // キャンドルの数
+
+        // ★魔法のような炎を作るための自作シェーダー★
+        // 青や紫が混ざった不安定で毒々しい色の炎をプログラマブルに生成します
+        this.flameMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0.0 }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                varying vec3 vWorldPosition;
+                void main() {
+                    vUv = uv;
+                    vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPosition.xyz;
+                    gl_Position = projectionMatrix * viewMatrix * worldPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform float uTime;
+                varying vec2 vUv;
+                varying vec3 vWorldPosition;
+
+                // ランダムノイズ関数
+                float rand(vec2 n) { 
+                    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+                }
+
+                void main() {
+                    vec2 p = vUv * 2.0 - 1.0; 
+                    
+                    // ワールド座標をシードにして、個々の炎の揺らめきタイミングをずらす
+                    float offset = rand(vWorldPosition.xz);
+                    float t = uTime * 3.0 + offset * 10.0;
+
+                    // 炎の揺らめき（歪み）
+                    p.x += sin(t + p.y * 3.0) * 0.15 * p.y;
+
+                    // 炎のベース形状（雫型）
+                    float d = length(vec2(p.x, max(0.0, p.y - 0.2))) * 1.5;
+                    float alpha = smoothstep(0.8, 0.2, d + p.y * 0.5);
+
+                    // 不安で魔女的な色合い（青緑 -> 赤紫 -> オレンジ）
+                    vec3 colorBottom = vec3(0.0, 0.4, 0.6); // 不気味な青緑
+                    vec3 colorMid = vec3(0.8, 0.0, 0.4);    // 毒々しい赤紫
+                    vec3 colorTop = vec3(1.0, 0.5, 0.0);    // オレンジ
+                    vec3 colorCore = vec3(1.0, 1.0, 0.8);   // 中心は白
+
+                    // Y軸に応じて色をミックス
+                    vec3 col = mix(colorBottom, colorMid, smoothstep(-0.5, 0.0, p.y));
+                    col = mix(col, colorTop, smoothstep(0.0, 0.5, p.y));
+
+                    // 中心部を白く飛ばす
+                    float core = smoothstep(0.3, 0.0, d);
+                    col = mix(col, colorCore, core);
+
+                    // チカチカする明滅
+                    float flicker = 0.7 + 0.3 * sin(t * 5.0 + offset);
+
+                    // 加算合成用にアルファを掛けて出力
+                    gl_FragColor = vec4(col * flicker, alpha * flicker);
+                }
+            `,
+            transparent: true,
+            blending: THREE.AdditiveBlending, // 加算合成（明るい部分だけが発光して重なる）
+            depthWrite: false, // 炎同士の重なりバグを防ぐ
+            side: THREE.DoubleSide
+        });
+
+        // ロウソク本体のマテリアル
+        const candleTex = this.textures.candle;
+        let sideMat;
+        if (candleTex) {
+            sideMat = new THREE.MeshPhongMaterial({ map: candleTex });
+        } else {
+            sideMat = new THREE.MeshPhongMaterial({ color: 0x883311 });
+        }
+        // 円柱のフタ部分（溶けたロウ）と底
+        const topMat = new THREE.MeshPhongMaterial({ color: 0x331100 }); 
+        const wickMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); // 真っ黒の芯
+
+        for (let i = 0; i < numCandles; i++) {
+            const candleGroup = new THREE.Group();
+
+            // ランダムなサイズ
+            const r = Math.random() * 4 + 3; // 半径 3〜7
+            const h = Math.random() * 30 + 15; // 高さ 15〜45
+
+            // 1. ロウソク本体（CylinderGeometry）
+            // マテリアルは [側面, 上のフタ, 底のフタ] の順番
+            const bodyGeo = new THREE.CylinderGeometry(r * 0.8, r, h, 8); 
+            const bodyMesh = new THREE.Mesh(bodyGeo, [sideMat, topMat, sideMat]); 
+            bodyMesh.castShadow = true;
+            bodyMesh.receiveShadow = true;
+            bodyMesh.position.y = h / 2; // 地面に接するように
+            candleGroup.add(bodyMesh);
+
+            // 2. 黒い芯
+            const wickGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 4);
+            const wickMesh = new THREE.Mesh(wickGeo, wickMat);
+            wickMesh.position.y = h + 1; // 本体の少し上
+            candleGroup.add(wickMesh);
+
+            // 3. 不安な炎（平面のビルボード）
+            const flameSize = r * 3.0; // 本体の太さに合わせて炎も大きく
+            const flameGeo = new THREE.PlaneGeometry(flameSize, flameSize * 1.5);
+            const flameMesh = new THREE.Mesh(flameGeo, this.flameMaterial);
+            flameMesh.position.y = h + 1 + flameSize * 0.5; // 芯のさらに上
+            candleGroup.add(flameMesh);
+
+            // ランダムに配置
+            candleGroup.position.x = (Math.random() - 0.5) * 200;
+            candleGroup.position.z = (Math.random() - 0.5) * 400 - 50;
+
+            candleGroup.visible = false; // デフォルトは隠しておく（Stage2で表示）
+
+            this.scene.add(candleGroup);
+            this.candles.push(candleGroup);
+        }
     }
 
     // ランダムなビル群の作成
@@ -296,8 +427,30 @@ class BGManager3D {
             this.ground.material.map.offset.y += (this.scrollSpeed / 40);
         }
 
+        // ★追加：炎のシェーダーのアニメーション時間を進める
+        if (this.flameMaterial) {
+            this.flameMaterial.uniforms.uTime.value += 0.016; 
+        }
+
+        // ★追加：巨大ロウソク群のスクロールと炎のビルボード処理
+        this.candles.forEach(c => {
+            if (!c.visible) return;
+            c.position.z += this.scrollSpeed;
+            if (c.position.z > 40) {
+                c.position.z -= 400;
+                c.position.x = (Math.random() - 0.5) * 200;
+            }
+            
+            // 平面ポリゴンで作った「炎(children[2])」が、常にカメラ側（プレイヤー側）を向くようにする
+            const flame = c.children[2];
+            if (flame && this.camera) {
+                flame.quaternion.copy(this.camera.quaternion);
+            }
+        });
+
         // ビル群のスクロール
         this.buildings.forEach(b => {
+            if (!b.visible) return;
             b.position.z += this.scrollSpeed;
             // ★修正：影のアーティファクトを防ぐため、画面外に出たら早めに(z:40で)リサイクル
             if (b.position.z > 40) {
