@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.22"; // バージョン更新
+const VER_MAIN = "0.1.23"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -18,9 +18,9 @@ let stgManager = null;
 let bgManager3D = null;
 
 // 画像アセットのプリロード
-// ★修正：'igari01.png' を 'igari02.png' に変更しました★
+// ★修正：'breakufo.png' をリストに追加しました★
 const imagesToPreload = [
-    'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png'
+    'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png'
 ];
 
 // ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
