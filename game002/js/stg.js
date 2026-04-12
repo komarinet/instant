@@ -1,4 +1,4 @@
-const VER_STG = "0.2.0"; // バージョン大幅更新
+const VER_STG = "0.2.1"; // バージョン大幅更新
 
 // --- クラス定義 ---
 
@@ -280,6 +280,13 @@ class STGManager {
         this.advManager = window.advManager; 
     }
 
+    // ★追加：抜け落ちていた登場演出の処理を復旧★
+    updateEntrance() {
+        const canvas = document.getElementById('gameCanvas');
+        this.player.update(canvas);
+        return !this.player.isEntering; // 登場完了したらtrueを返す
+    }
+
     // ★修正：ゲームループ内の更新ロジック全体★
     updateGameplay() {
         this.frame++;
@@ -323,6 +330,7 @@ class STGManager {
         }
 
         // ★修正：ボス出現タイミング（約1分半後：5400フレーム）★
+        // ※テストしやすさのため一旦早めの 3200フレーム（約50秒）に設定しています
         if (timer === 3200 && !this.bossSpawned) {
             const boss = new Enemy('typeboss', screenW / 2, -150, this.player.charData, this.advManager);
             this.enemies.push(boss);
