@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.26"; // バージョン更新
+const VER_MAIN = "0.1.27"; // バージョン更新
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,9 +17,10 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
-// 画像アセットのプリロード
+// ★修正：新しい敵画像をプリロードに追加★
 const imagesToPreload = [
-    'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png'
+    'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
+    'typea.png', 'typeb.png', 'typec.png', 'typeboss.png'
 ];
 
 // ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
