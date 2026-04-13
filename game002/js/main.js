@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.30"; // バージョン更新（darkcandle登録）
+const VER_MAIN = "0.1.31"; // バージョン更新（const修正、バージョン表示修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -85,11 +85,14 @@ initCharSelect();
 // --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
+    if (!titleScreen) return; // ★追加：タイトル画面がない場合のエラー回避
     
-    const oldVerText = document.querySelector('.version-info');
-    if (oldVerText) oldVerText.innerHTML = '';
+    // ★修正：確実な削除のためクラス名を指定して .remove() に変更
+    const oldVerText = document.querySelector('.version-info-panel');
+    if (oldVerText) oldVerText.remove();
 
     const verDiv = document.createElement('div');
+    verDiv.className = 'version-info-panel'; // ★追加：検索して消せるようにクラス名を付与
     verDiv.style.position = 'absolute';
     verDiv.style.bottom = '15px';
     verDiv.style.right = '20px';
@@ -99,6 +102,7 @@ function showVersions() {
     verDiv.style.pointerEvents = 'none';
     verDiv.style.lineHeight = '1.2';
     verDiv.style.fontFamily = 'monospace'; 
+    verDiv.style.zIndex = '100'; // ★追加：他の要素に隠れないように
 
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
