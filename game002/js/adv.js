@@ -1,4 +1,4 @@
-const VER_ADV = "0.3.1"; 
+const VER_ADV = "0.3.3"; 
 
 class ADVManager {
     constructor() {
@@ -214,11 +214,13 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
+        // ★★★ 背面キャラクター描画 ★★★
         if (currentMsg.character2) {
             const charImg2 = this.assets[currentMsg.character2];
             if (charImg2 && charImg2.naturalWidth > 0) {
                 const cols = 4;
                 const rows = currentMsg.character2 === 'igari02.png' ? 4 : 3;
+                
                 const spriteWidth = charImg2.width / cols; 
                 const spriteHeight = charImg2.height / rows; 
 
@@ -226,83 +228,123 @@ class ADVManager {
                 const col = spIndex2 % cols;
                 const row = Math.floor(spIndex2 / cols);
 
-                const targetCharHeight = cssHeight * 0.50;
-                const baseScale = targetCharHeight / spriteHeight; 
+                const bleed = 1;
+                const sx = Math.floor(col * spriteWidth) + bleed;
+                const sy = Math.floor(row * spriteHeight) + bleed;
+                const sWidth = Math.floor(spriteWidth) - bleed * 2;
+                const sHeight = Math.floor(spriteHeight) - bleed * 2;
+
+                // ★先生の指定された比率を適用
+                let charScale = 1.0;
+                let yOffset = 0; 
+                if (currentMsg.character2 === 'kagami.png') {
+                    charScale = 41 / 43;
+                } else if (currentMsg.character2 === 'hiragi01.png') {
+                    charScale = 10 / 11;
+                } else if (currentMsg.character2 === 'igari01.png' || currentMsg.character2 === 'igari02.png') {
+                    charScale = 1.0; 
+                }
+
+                const targetCharHeight = cssHeight * 0.50 * charScale;
+                const baseScale = targetCharHeight / sHeight; 
                 const drawHeight = targetCharHeight; 
-                const drawWidth = spriteWidth * baseScale;
+                const drawWidth = sWidth * baseScale;
 
                 let mainDrawWidth = drawWidth;
                 if (currentMsg.character && this.assets[currentMsg.character]) {
                     const mainImg = this.assets[currentMsg.character];
                     const mainRows = currentMsg.character === 'igari02.png' ? 4 : 3;
-                    mainDrawWidth = (mainImg.width / 4) * (targetCharHeight / (mainImg.height / mainRows));
+                    const msWidth = Math.floor(mainImg.width / 4) - bleed * 2;
+                    const msHeight = Math.floor(mainImg.height / mainRows) - bleed * 2;
+                    
+                    let mScale = 1.0;
+                    if (currentMsg.character === 'kagami.png') { mScale = 41 / 43; }
+                    else if (currentMsg.character === 'hiragi01.png') { mScale = 10 / 11; }
+                    else if (currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png') { mScale = 1.0; }
+                    
+                    const mTargetHeight = cssHeight * 0.50 * mScale;
+                    mainDrawWidth = msWidth * (mTargetHeight / msHeight);
                 }
 
                 const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
                 const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
 
                 const edgeShift = alignRight ? mainDrawWidth * 0.25 : -mainDrawWidth * 0.25;
-
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - mainDrawWidth;
                 let mainDrawX = (alignRight ? paddingRight : paddingLeft) + edgeShift;
 
                 const distanceOffset = mainDrawWidth * 0.45;
                 let drawX = alignRight ? mainDrawX - distanceOffset : mainDrawX + distanceOffset;
-
-                const drawY = gameY + visualAreaHeight - drawHeight;
+                const drawY = gameY + visualAreaHeight - drawHeight + yOffset; 
 
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(
                     charImg2,
-                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
+                    sx, sy, sWidth, sHeight, 
                     drawX + shakeX + slideX, 
                     drawY + shakeY, 
                     drawWidth, 
                     drawHeight
                 );
-                
                 ctx.imageSmoothingEnabled = true; 
             }
         }
 
+        // ★★★ メインキャラクター描画 ★★★
         if (currentMsg.character) {
             const charImg = this.assets[currentMsg.character];
             if (charImg && charImg.naturalWidth > 0) {
                 const cols = 4;
                 const rows = currentMsg.character === 'igari02.png' ? 4 : 3;
+                
                 const spriteWidth = charImg.width / cols; 
                 const spriteHeight = charImg.height / rows; 
 
                 const col = currentMsg.spriteIndex % cols;
                 const row = Math.floor(currentMsg.spriteIndex / cols);
-                
-                const targetCharHeight = cssHeight * 0.50;
-                const baseScale = targetCharHeight / spriteHeight; 
+
+                const bleed = 1;
+                const sx = Math.floor(col * spriteWidth) + bleed;
+                const sy = Math.floor(row * spriteHeight) + bleed;
+                const sWidth = Math.floor(spriteWidth) - bleed * 2;
+                const sHeight = Math.floor(spriteHeight) - bleed * 2;
+
+                // ★先生の指定された比率を適用
+                let charScale = 1.0;
+                let yOffset = 0;
+                if (currentMsg.character === 'kagami.png') {
+                    charScale = 41 / 43;
+                } else if (currentMsg.character === 'hiragi01.png') {
+                    charScale = 10 / 11;
+                } else if (currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png') {
+                    charScale = 1.0;
+                }
+
+                const targetCharHeight = cssHeight * 0.50 * charScale;
+                const baseScale = targetCharHeight / sHeight; 
                 const drawHeight = targetCharHeight; 
-                const drawWidth = spriteWidth * baseScale;
+                const drawWidth = sWidth * baseScale;
 
                 const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
                 const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
 
                 const edgeShift = alignRight ? drawWidth * 0.25 : -drawWidth * 0.25;
-
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
                 const drawX = (alignRight ? paddingRight : paddingLeft) + edgeShift;
 
-                const drawY = gameY + visualAreaHeight - drawHeight;
+                const drawY = gameY + visualAreaHeight - drawHeight + yOffset; 
 
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(
                     charImg,
-                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
+                    sx, sy, sWidth, sHeight, 
                     drawX + shakeX + slideX, 
                     drawY + shakeY, 
                     drawWidth, 
                     drawHeight
                 );
-                
                 ctx.imageSmoothingEnabled = true; 
             }
         }
@@ -326,10 +368,37 @@ class ADVManager {
             ctx.fill();
             ctx.stroke();
 
+            // ★修正：フルネームとふりがな（ルビ）の描画ロジック★
             if (currentMsg.speaker && !isWaiting) {
-                ctx.fillStyle = currentMsg.speaker === '猪狩' ? '#ff3366' : '#00ffff';
+                let speakerName = currentMsg.speaker;
+                let speakerRuby = "";
+                let nameColor = '#00ffff'; // デフォルト色
+
+                if (currentMsg.speaker === '猪狩') {
+                    speakerName = '猪狩 俊基';
+                    speakerRuby = 'いがり としき';
+                    nameColor = '#ff3366';
+                } else if (currentMsg.speaker === '柊') {
+                    speakerName = '柊 千華';
+                    speakerRuby = 'ひいらぎ ちか';
+                    nameColor = '#cc33ff';
+                } else if (currentMsg.speaker === '各務') {
+                    speakerName = '各務 栞';
+                    speakerRuby = 'かがみ しおり';
+                    nameColor = '#33ff33';
+                }
+
+                ctx.fillStyle = nameColor;
+
+                // ふりがな（ルビ）を描画
+                if (speakerRuby !== "") {
+                    ctx.font = '10px "Segoe UI", sans-serif';
+                    ctx.fillText(speakerRuby, dialogueX + padding, dialogueY + 12);
+                }
+
+                // フルネームを描画
                 ctx.font = 'bold 18px "Segoe UI", sans-serif';
-                ctx.fillText(currentMsg.speaker, dialogueX + padding, dialogueY + 30);
+                ctx.fillText(speakerName, dialogueX + padding, dialogueY + 30);
             }
 
             ctx.fillStyle = '#fff';
