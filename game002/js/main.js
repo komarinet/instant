@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.2"; // バージョン更新（ステージ2専用画像プリロード、STGへの引数追加）
+const VER_MAIN = "0.2.3"; // バージョン更新（キャラクター別シナリオデータ読み込み対応）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -216,16 +216,16 @@ function executeStart(stageNum) {
 
     if (stageNum === 1) {
         gameState = 'ADV';
-        advManager.start(scenarios['opening'], () => { 
+        advManager.start(scenarios[selectedCharId]['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
             // ★修正：STGManagerにcurrentStageを渡す
             stgManager = new STGManager(canvas, charData, currentStage);
             
             gameState = 'ADV';
-            advManager.start(scenarios['kagami_arrival'], () => {
+            advManager.start(scenarios[selectedCharId]['kagami_arrival'], () => {
                 gameState = 'PRE_STG_DIALOGUE';
-                advManager.start(scenarios[currentStage].pre_stg, () => {
+                advManager.start(scenarios[selectedCharId][currentStage].pre_stg, () => {
                     gameState = 'STAGE_START_TEXT';
                     transitionTimer = 90;
                     if (skipBtn) skipBtn.classList.add('hidden');
@@ -241,7 +241,7 @@ function executeStart(stageNum) {
         stgManager = new STGManager(canvas, charData, currentStage);
         
         gameState = 'PRE_STG_DIALOGUE';
-        advManager.start(scenarios[currentStage].pre_stg, () => {
+        advManager.start(scenarios[selectedCharId][currentStage].pre_stg, () => {
             gameState = 'STAGE_START_TEXT';
             transitionTimer = 90;
             if (skipBtn) skipBtn.classList.add('hidden');
@@ -351,7 +351,7 @@ function loop() {
         } else if (status === 'STAGE_CLEAR') {
             gameState = 'POST_STG_DIALOGUE';
             if (skipBtn) skipBtn.classList.remove('hidden');
-            advManager.start(scenarios[currentStage].post_stg, () => {
+            advManager.start(scenarios[selectedCharId][currentStage].post_stg, () => {
                 gameState = 'STAGE_CLEAR_TEXT';
                 transitionTimer = 90; 
                 if (skipBtn) skipBtn.classList.add('hidden');
@@ -385,15 +385,15 @@ function loop() {
         transitionTimer--;
         if(transitionTimer <= 0) {
             currentStage++;
-            if (scenarios[currentStage]) {
+            if (scenarios[selectedCharId] && scenarios[selectedCharId][currentStage]) {
                 // ★修正：STGManagerにcurrentStageを渡す
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), currentStage);
                 
                 gameState = 'ADV';
-                advManager.start(scenarios[currentStage].adv, () => {
+                advManager.start(scenarios[selectedCharId][currentStage].adv, () => {
                     gameState = 'PRE_STG_DIALOGUE';
                     if (skipBtn) skipBtn.classList.remove('hidden');
-                    advManager.start(scenarios[currentStage].pre_stg, () => {
+                    advManager.start(scenarios[selectedCharId][currentStage].pre_stg, () => {
                         gameState = 'STAGE_START_TEXT';
                         transitionTimer = 90;
                         if (skipBtn) skipBtn.classList.add('hidden');
