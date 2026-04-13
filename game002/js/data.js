@@ -1,4 +1,4 @@
-const VER_DATA = "0.1.29"; // constを小文字に修正
+const VER_DATA = "0.1.30"; // Constをconstに修正、バージョン更新
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -74,49 +74,36 @@ const scenarios = {
     },
     2: { 
         adv: [
-            // 柊の最初の台詞：二人表示を維持
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 10, character2: 'kagami.png', spriteIndex2: 0, speaker: '柊', text: '俊基くん、その女の人だれ？', delay: 60 },
-            
-            // その後の猪狩の台詞：猪狩単体表示（右側）
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '千華!?　お前どうしてここに！' },
-            
-            // その後の柊の台詞：柊単体表示（左側）
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '俊基の生命エネルギーが少し減ったのを感じたの' }, // 表情(0)
-            
-            // その後の柊の台詞：柊単体表示（左側）
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '心配になって来てみたら、女の人といて' }, // 表情(0)
-            
-            // その後の猪狩の台詞：猪狩単体表示（右側）
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '俊基の生命エネルギーが少し減ったのを感じたの' },
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '心配になって来てみたら、女の人といて' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '俺の生命エネルギーなんてモニタリングしてんのか!?' },
-            
-            // その後の柊の台詞：柊単体表示（左側）
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '女の人といて、身体は無事で、エネルギー消費・・・' }, // 呆れ(6)
-            
-            // その後の猪狩の台詞：猪狩単体表示（右側）
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '女の人といて、身体は無事で、エネルギー消費・・・' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '待て、壮大な誤解をしてるぞお前' },
-            
-            // その後の柊の台詞：柊単体表示（左側）
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '・・・浮気だ' }, // 怒り(11)
-            
-            // その後の猪狩の台詞：猪狩単体表示（右側）
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '・・・浮気だ' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'お、おい千華！' },
-            
-            // ★修正：柊の浮気だー！の台詞で背景指定をdarkcandle.pngに★
-            { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' } // 怒り(11)
+            // ★ここから darkcandle.png に背景変更
+            { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' }
         ], 
         pre_stg: [
-            // ★修正：な、なんだこの、で始まる各務の台詞。表情は戦慄の(11)。位置は右指定
-            { character: 'kagami.png', spriteIndex: 11, speaker: '各務', text: 'な、なんだこの世界は', isRight: true },
-            { character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '魔女のテリトリーですよ！　千華のやつブチ切れやがった！', isRight: true },
-            { character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基くんも', isRight: false },
-            { character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '殺して私も死ぬ！', isRight: false, effect: 'shake' },
-            { character: 'kagami.png', spriteIndex: 4, speaker: '各務', text: 'どうするんですか', isRight: true },
-            { character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかねぇ', isRight: true }, 
-            { character: 'kagami.png', spriteIndex: 4, speaker: '各務', text: '出来るんですか!?', isRight: true },
-            { character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: 'やらなきゃ助ける予定の女に殺されて終わりだ！', isRight: true },
-            { character: 'kagami.png', spriteIndex: 3, speaker: '各務', text: 'なんて面倒な・・・', isRight: true },
-            { character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '仕方ありません。私も手伝います', isRight: true },
-            { character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: '助かる！', isRight: true }
+            // ★修正：すべてに bg: 'darkcandle.png' を追加し背景を維持。
+            // ★修正：各務と猪狩のセリフには character と character2 の両方を指定し、二人で並んで表示。
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 11, speaker: '各務', text: 'な、なんだこの世界は', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 11, speaker: '猪狩', text: '魔女のテリトリーですよ！　千華のやつブチ切れやがった！', isRight: true },
+            
+            // 柊のセリフ（一人で左側に表示）
+            { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基くんも', isRight: false },
+            { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '殺して私も死ぬ！', isRight: false, effect: 'shake' },
+            
+            // 各務と猪狩の掛け合い（再び二人で右側に表示）
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 13, character2: 'kagami.png', spriteIndex2: 4, speaker: '各務', text: 'どうするんですか', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 13, character2: 'kagami.png', spriteIndex2: 4, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかねぇ', isRight: true }, 
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 13, character2: 'kagami.png', spriteIndex2: 4, speaker: '各務', text: '出来るんですか!?', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 13, character2: 'kagami.png', spriteIndex2: 4, speaker: '猪狩', text: 'やらなきゃ助ける予定の女に殺されて終わりだ！', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 3, speaker: '各務', text: 'なんて面倒な・・・', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 0, speaker: '各務', text: '仕方ありません。私も手伝います', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: '助かる！', isRight: true }
         ], 
         post_stg: [
             { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '痛い……としき君……' } 
