@@ -1,3 +1,5 @@
+const VER_SCENARIO_KAGAMI = "0.1.0";
+
 // 各務 栞 ルートのシナリオデータ
 scenarios.kagami = {
     'opening': [],
