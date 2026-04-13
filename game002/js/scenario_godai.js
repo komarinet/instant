@@ -1,3 +1,5 @@
+const VER_SCENARIO_GODAI = "0.1.0";
+
 // G・O・D・A・I ルートのシナリオデータ
 scenarios.godai = {
     'opening': [],
