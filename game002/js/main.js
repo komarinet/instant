@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.1"; // バージョン更新（ADV背景の透過フラグ対応）
+const VER_MAIN = "0.2.2"; // バージョン更新（ステージ2専用画像プリロード、STGへの引数追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,10 +17,12 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
+// ★修正：ステージ2のオカルト敵画像群をプリロードに追加
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
-    'darkcandle.png'
+    '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', // ★追加：ステージ2の敵
+    'darkcandle.png' 
 ];
 
 const imagesToPreload3D = [
@@ -28,7 +30,7 @@ const imagesToPreload3D = [
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' },
     { key: 'ground2', src: 'ground02.png' }, 
-    { key: 'candle', src: 'candle.png' }
+    { key: 'candle', src: 'candle.png' } 
 ];
 
 // --- UI操作系 ---
@@ -156,7 +158,8 @@ function skipADV() {
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
         if (!stgManager) {
-            stgManager = new STGManager(canvas, charData);
+            // ★修正：STGManagerにcurrentStageを渡す
+            stgManager = new STGManager(canvas, charData, currentStage);
         }
     } else {
         gameState = 'STAGE_START_TEXT';
@@ -171,23 +174,19 @@ function skipADV() {
 let isPreloadCompleted = false;
 let pendingStageStart = null;
 
-// 2Dアセットの読み込みPromise
 const loadADV = new Promise((resolve) => {
     advManager.preload(imagesToPreload, resolve);
 });
 
-// 3Dアセットの読み込みPromise
 const load3D = new Promise((resolve) => {
     bgManager3D = new BGManager3D('bgCanvas');
     bgManager3D.preload(imagesToPreload3D, resolve);
 });
 
-// 両方の読み込みが完了したら発火する
 Promise.all([loadADV, load3D]).then(() => {
-    bgManager3D.init(); // 重い初期化を実行
+    bgManager3D.init(); 
     isPreloadCompleted = true;
     
-    // UIのNOW LOADING表記を元に戻す
     const stageList = document.getElementById('stage-list');
     if (stageList) {
         const stageTexts = [
@@ -203,7 +202,6 @@ Promise.all([loadADV, load3D]).then(() => {
         });
     }
 
-    // 読み込み完了前にユーザーがボタンを押していた場合は直ちに開始
     if (pendingStageStart !== null) {
         executeStart(pendingStageStart);
     }
@@ -221,7 +219,8 @@ function executeStart(stageNum) {
         advManager.start(scenarios['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
-            stgManager = new STGManager(canvas, charData);
+            // ★修正：STGManagerにcurrentStageを渡す
+            stgManager = new STGManager(canvas, charData, currentStage);
             
             gameState = 'ADV';
             advManager.start(scenarios['kagami_arrival'], () => {
@@ -238,7 +237,8 @@ function executeStart(stageNum) {
     } else {
         currentStage = stageNum;
         const charData = characters.find(c => c.id === selectedCharId);
-        stgManager = new STGManager(canvas, charData);
+        // ★修正：STGManagerにcurrentStageを渡す
+        stgManager = new STGManager(canvas, charData, currentStage);
         
         gameState = 'PRE_STG_DIALOGUE';
         advManager.start(scenarios[currentStage].pre_stg, () => {
@@ -253,7 +253,6 @@ function executeStart(stageNum) {
 
 function startGame(stageNum) {
     if (!isPreloadCompleted) {
-        // ロード未完了時はNOW LOADING表記にして待機
         const stageList = document.getElementById('stage-list');
         if (stageList) {
             stageList.querySelectorAll('button').forEach(btn => {
@@ -314,11 +313,11 @@ function loop() {
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
     if (gameState === 'ADV') {
-        advManager.draw(ctx, canvas, false); // ★修正：ADV単体時は背景黒塗り（第3引数false）
+        advManager.draw(ctx, canvas, false); 
     } 
     else if (gameState === 'PRE_STG_DIALOGUE') {
         stgManager.draw(ctx);
-        advManager.draw(ctx, canvas, true); // ★修正：STG前は背景透過（第3引数true）
+        advManager.draw(ctx, canvas, true); 
     }
     else if (gameState === 'STAGE_START_TEXT') {
         stgManager.draw(ctx);
@@ -361,7 +360,7 @@ function loop() {
     }
     else if (gameState === 'POST_STG_DIALOGUE') {
         stgManager.draw(ctx); 
-        advManager.draw(ctx, canvas, true); // ★修正：STG後は背景透過（第3引数true）
+        advManager.draw(ctx, canvas, true); 
     }
     else if (gameState === 'STAGE_CLEAR_TEXT') {
         stgManager.draw(ctx);
@@ -387,7 +386,8 @@ function loop() {
         if(transitionTimer <= 0) {
             currentStage++;
             if (scenarios[currentStage]) {
-                stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
+                // ★修正：STGManagerにcurrentStageを渡す
+                stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), currentStage);
                 
                 gameState = 'ADV';
                 advManager.start(scenarios[currentStage].adv, () => {
