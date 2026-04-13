@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.27"; // バージョン更新
+const VER_ADV = "0.1.28"; // バージョン更新（重なり調整・暗転解除）
 
 class ADVManager {
     constructor() {
@@ -281,12 +281,12 @@ class ADVManager {
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
                 let drawX = alignRight ? paddingRight : paddingLeft;
 
-                // 背面キャラは少し内側にズラす
-                drawX = alignRight ? drawX - gameWidth * 0.15 : drawX + gameWidth * 0.15;
+                // 背面キャラは少し内側にズラす（★修正：重なりすぎないように0.15から0.25へ距離を広げる）
+                drawX = alignRight ? drawX - gameWidth * 0.25 : drawX + gameWidth * 0.25;
 
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
-                ctx.filter = 'brightness(0.6)'; // 少し暗くして遠近感を出す
+                // ctx.filter = 'brightness(0.6)'; // ★修正：薄暗くする必要はないためコメントアウト
 
                 ctx.drawImage(
                     charCanvas,
@@ -296,7 +296,7 @@ class ADVManager {
                     drawHeight
                 );
                 
-                ctx.filter = 'none'; // フィルタ解除
+                // ctx.filter = 'none'; // ★修正：フィルタ解除も不要になるためコメントアウト
                 ctx.imageSmoothingEnabled = true; 
             }
         }
