@@ -1,4 +1,4 @@
-Const VER_DATA = "0.1.28"; // バージョン更新
+const VER_DATA = "0.1.29"; // constを小文字に修正
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -105,9 +105,18 @@ const scenarios = {
             { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' } // 怒り(11)
         ], 
         pre_stg: [
-            // ★修正：なんだこの、で始まる各務の台詞の表情を11に★
-            { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'としき君……みつけた……。どうして他の女の人といるの……？' }, 
-            { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '千華！？お前、その体は一体……！' } 
+            // ★修正：な、なんだこの、で始まる各務の台詞。表情は戦慄の(11)。位置は右指定
+            { character: 'kagami.png', spriteIndex: 11, speaker: '各務', text: 'な、なんだこの世界は', isRight: true },
+            { character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '魔女のテリトリーですよ！　千華のやつブチ切れやがった！', isRight: true },
+            { character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基くんも', isRight: false },
+            { character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '殺して私も死ぬ！', isRight: false, effect: 'shake' },
+            { character: 'kagami.png', spriteIndex: 4, speaker: '各務', text: 'どうするんですか', isRight: true },
+            { character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかねぇ', isRight: true }, 
+            { character: 'kagami.png', spriteIndex: 4, speaker: '各務', text: '出来るんですか!?', isRight: true },
+            { character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: 'やらなきゃ助ける予定の女に殺されて終わりだ！', isRight: true },
+            { character: 'kagami.png', spriteIndex: 3, speaker: '各務', text: 'なんて面倒な・・・', isRight: true },
+            { character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '仕方ありません。私も手伝います', isRight: true },
+            { character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: '助かる！', isRight: true }
         ], 
         post_stg: [
             { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '痛い……としき君……' } 
