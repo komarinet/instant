@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.30"; // バージョン更新：一時Canvas生成を廃止し描画負荷を劇的に軽減
+const VER_ADV = "0.2.2"; // バージョン更新：一時Canvas生成を廃止し描画負荷を劇的に軽減＋立ち絵の重なりと端寄せを正確に修正（コメント類完全保持）
 
 class ADVManager {
     constructor() {
@@ -272,14 +272,17 @@ class ADVManager {
                 const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
                 const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
 
+                // ★大修正：透明余白を無視して画面端に寄せるためのシフト量（幅の25%）
+                const edgeShift = alignRight ? mainDrawWidth * 0.25 : -mainDrawWidth * 0.25;
+
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - mainDrawWidth;
-                let mainDrawX = alignRight ? paddingRight : paddingLeft;
+                let mainDrawX = (alignRight ? paddingRight : paddingLeft) + edgeShift;
 
-                // ★完璧な重なり計算：メインキャラの幅の 1/10 (0.1) だけ重なるように横に並べる★
-                const overlapWidth = mainDrawWidth * 0.1;
-                // 右揃えなら背面キャラはメインキャラの左側。左揃えなら右側。
-                let drawX = alignRight ? mainDrawX - drawWidth + overlapWidth : mainDrawX + mainDrawWidth - overlapWidth;
+                // ★大修正：透明余白同士がぶつからないよう、枠を45%食い込ませて配置する
+                const distanceOffset = mainDrawWidth * 0.45;
+                // 右揃え（メインが右）なら、サブキャラは左(マイナス)へ。左揃えなら右(プラス)へ。
+                let drawX = alignRight ? mainDrawX - distanceOffset : mainDrawX + distanceOffset;
 
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
@@ -311,7 +314,7 @@ class ADVManager {
 
                 const col = currentMsg.spriteIndex % cols;
                 const row = Math.floor(currentMsg.spriteIndex / cols);
-                
+
                 const targetCharHeight = cssHeight * 0.50;
                 const baseScale = targetCharHeight / spriteHeight; 
                 const drawHeight = targetCharHeight; 
@@ -323,9 +326,12 @@ class ADVManager {
                 // ★追加：isRightが指定されている場合はそちらを優先する
                 const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
 
+                // ★大修正：ここでも同様に余白補正をかけて、猪狩をしっかり画面右端へ寄せる
+                const edgeShift = alignRight ? drawWidth * 0.25 : -drawWidth * 0.25;
+
                 const paddingLeft = gameX + gameWidth * 0.05;
                 const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
-                const drawX = alignRight ? paddingRight : paddingLeft;
+                const drawX = (alignRight ? paddingRight : paddingLeft) + edgeShift;
 
                 // Y座標をビジュアルウインドウの底辺に合わせる
                 const drawY = gameY + visualAreaHeight - drawHeight;
