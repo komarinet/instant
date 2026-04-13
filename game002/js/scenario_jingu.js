@@ -1,3 +1,6 @@
+
+const VER_SCENARIO_JINGU = "0.1.0";
+
 // 神宮寺 恒成 ルートのシナリオデータ
 scenarios.jingu = {
     'opening': [],
