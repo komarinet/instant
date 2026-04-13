@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.29"; // Constをconstに修正、重なり計算の実装
+const VER_ADV = "0.1.30"; // バージョン更新：一時Canvas生成を廃止し描画負荷を劇的に軽減
 
 class ADVManager {
     constructor() {
@@ -254,20 +254,6 @@ class ADVManager {
                 const spIndex2 = currentMsg.spriteIndex2 || 0;
                 const col = spIndex2 % cols;
                 const row = Math.floor(spIndex2 / cols);
-                
-                const charCanvas = document.createElement('canvas');
-                charCanvas.width = spriteWidth;
-                charCanvas.height = spriteHeight;
-                const charCtx = charCanvas.getContext('2d');
-                
-                charCtx.imageSmoothingEnabled = false;
-                charCtx.drawImage(
-                    charImg2,
-                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
-                    0, 0, spriteWidth, spriteHeight
-                );
-
-                ctx.imageSmoothingEnabled = false;
 
                 const targetCharHeight = cssHeight * 0.50;
                 const baseScale = targetCharHeight / spriteHeight; 
@@ -297,8 +283,11 @@ class ADVManager {
 
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
+                // ★修正：一時Canvas作成を廃止し、9引数で直接描画
+                ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(
-                    charCanvas,
+                    charImg2,
+                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
                     drawX + shakeX + slideX, 
                     drawY + shakeY, 
                     drawWidth, 
@@ -323,21 +312,6 @@ class ADVManager {
                 const col = currentMsg.spriteIndex % cols;
                 const row = Math.floor(currentMsg.spriteIndex / cols);
                 
-                const charCanvas = document.createElement('canvas');
-                charCanvas.width = spriteWidth;
-                charCanvas.height = spriteHeight;
-                const charCtx = charCanvas.getContext('2d');
-                
-                // Nearest Neighborで切り出す（ぼやけ防止）
-                charCtx.imageSmoothingEnabled = false;
-                charCtx.drawImage(
-                    charImg,
-                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
-                    0, 0, spriteWidth, spriteHeight
-                );
-
-                ctx.imageSmoothingEnabled = false;
-
                 const targetCharHeight = cssHeight * 0.50;
                 const baseScale = targetCharHeight / spriteHeight; 
                 const drawHeight = targetCharHeight; 
@@ -356,9 +330,12 @@ class ADVManager {
                 // Y座標をビジュアルウインドウの底辺に合わせる
                 const drawY = gameY + visualAreaHeight - drawHeight;
 
+                // ★修正：一時Canvas作成を廃止し、9引数で直接描画
+                ctx.imageSmoothingEnabled = false;
                 // 通常の立ち絵をそのまま描画（slideXの加算を追加）
                 ctx.drawImage(
-                    charCanvas,
+                    charImg,
+                    col * spriteWidth, row * spriteHeight, spriteWidth, spriteHeight,
                     drawX + shakeX + slideX, 
                     drawY + shakeY, 
                     drawWidth, 
