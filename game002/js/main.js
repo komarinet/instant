@@ -1,4 +1,4 @@
-const VER_MAIN = "0.1.31"; // バージョン更新（const修正、バージョン表示修正）
+const VER_MAIN = "0.2.0"; // バージョン更新（Promise.allによる並列ロードの完全同期化）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,20 +17,18 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
-// ★修正：新しい敵画像をプリロードに追加★
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
-    'darkcandle.png' // ★追加：ステージ2の豹変背景
+    'darkcandle.png'
 ];
 
-// ★修正：大文字小文字の不一致によるフリーズを防ぐため、すべて小文字に統一★
 const imagesToPreload3D = [
     { key: 'sideatlas', src: 'build_side.png' }, 
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' },
-    { key: 'ground2', src: 'ground02.png' }, // ★追加：ステージ2用背景
-    { key: 'candle', src: 'candle.png' } // ★追加：ロウソクの側面テクスチャ
+    { key: 'ground2', src: 'ground02.png' }, 
+    { key: 'candle', src: 'candle.png' }
 ];
 
 // --- UI操作系 ---
@@ -64,7 +62,6 @@ function changeScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
     
-    // ADV状態ならスキップボタンを表示
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) {
         if (gameState.includes('ADV') || gameState.includes('DIALOGUE')) {
@@ -79,20 +76,18 @@ function goToStageSelect() {
     changeScreen('stage-select-screen'); 
 }
 
-// 初期化実行
 initCharSelect();
 
 // --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
-    if (!titleScreen) return; // ★追加：タイトル画面がない場合のエラー回避
+    if (!titleScreen) return; 
     
-    // ★修正：確実な削除のためクラス名を指定して .remove() に変更
     const oldVerText = document.querySelector('.version-info-panel');
     if (oldVerText) oldVerText.remove();
 
     const verDiv = document.createElement('div');
-    verDiv.className = 'version-info-panel'; // ★追加：検索して消せるようにクラス名を付与
+    verDiv.className = 'version-info-panel'; 
     verDiv.style.position = 'absolute';
     verDiv.style.bottom = '15px';
     verDiv.style.right = '20px';
@@ -102,7 +97,7 @@ function showVersions() {
     verDiv.style.pointerEvents = 'none';
     verDiv.style.lineHeight = '1.2';
     verDiv.style.fontFamily = 'monospace'; 
-    verDiv.style.zIndex = '100'; // ★追加：他の要素に隠れないように
+    verDiv.style.zIndex = '100'; 
 
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
@@ -131,10 +126,8 @@ function resizeCanvas() {
     
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
-    
     canvas.width = width * dpr;
     canvas.height = height * dpr;
-    
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const bgCanvas = document.getElementById('bgCanvas');
@@ -159,7 +152,6 @@ resizeCanvas();
 function skipADV() {
     advManager.isActive = false;
     if (gameState === 'ADV') {
-        // 最初のオープニング中の場合は、一気にステージ1開始暗転まで飛ばす
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
@@ -167,7 +159,6 @@ function skipADV() {
             stgManager = new STGManager(canvas, charData);
         }
     } else {
-        // それ以外（PRE_STG等）は、直後の遷移へ
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
     }
@@ -176,27 +167,50 @@ function skipADV() {
 }
 
 
-// ★追加：バックグラウンド・プリロード処理★
+// ★変更：Promise.allによる並行バックグラウンド・プリロード処理★
 let isPreloadCompleted = false;
 let pendingStageStart = null;
 
-// ページを読み込んだ瞬間から、ユーザーがメニューを操作している裏で読み込みを開始する
-advManager.preload(imagesToPreload, () => {
+// 2Dアセットの読み込みPromise
+const loadADV = new Promise((resolve) => {
+    advManager.preload(imagesToPreload, resolve);
+});
+
+// 3Dアセットの読み込みPromise
+const load3D = new Promise((resolve) => {
     bgManager3D = new BGManager3D('bgCanvas');
-    bgManager3D.preload(imagesToPreload3D, () => {
-        bgManager3D.init(); // 3D空間の重い初期化も裏で済ませておく
-        isPreloadCompleted = true;
-        
-        // もし読み込み完了前にユーザーがステージ開始ボタンを押していたら、直ちに開始する
-        if (pendingStageStart !== null) {
-            executeStart(pendingStageStart);
-        }
-    });
+    bgManager3D.preload(imagesToPreload3D, resolve);
+});
+
+// 両方の読み込みが完了したら発火する
+Promise.all([loadADV, load3D]).then(() => {
+    bgManager3D.init(); // 重い初期化を実行
+    isPreloadCompleted = true;
+    
+    // UIのNOW LOADING表記を元に戻す
+    const stageList = document.getElementById('stage-list');
+    if (stageList) {
+        const stageTexts = [
+            "Stage 1: Reboot", "Stage 2: Jealous Witch", "Stage 3: Chronos Mask", 
+            "Stage 4: Nano Monarch", "Stage 5: Asset-Ash", "Final Stage: The Commander"
+        ];
+        stageList.querySelectorAll('button').forEach((btn, index) => {
+            if (index < stageTexts.length) {
+                btn.innerText = stageTexts[index];
+                btn.style.color = "#fff";
+                btn.style.borderColor = index === 5 ? "#ff3366" : "#ffaa00";
+            }
+        });
+    }
+
+    // 読み込み完了前にユーザーがボタンを押していた場合は直ちに開始
+    if (pendingStageStart !== null) {
+        executeStart(pendingStageStart);
+    }
 });
 
 
 // --- ゲーム進行フロー ---
-
 function executeStart(stageNum) {
     changeScreen(''); 
     const skipBtn = document.getElementById('skip-btn');
@@ -239,7 +253,7 @@ function executeStart(stageNum) {
 
 function startGame(stageNum) {
     if (!isPreloadCompleted) {
-        // もしプレイヤーが爆速でクリックしてロードが間に合っていなかった場合、ボタン表示を変えて待機する
+        // ロード未完了時はNOW LOADING表記にして待機
         const stageList = document.getElementById('stage-list');
         if (stageList) {
             stageList.querySelectorAll('button').forEach(btn => {
@@ -289,7 +303,6 @@ canvas.addEventListener('touchend', e => { isTouching = false; });
 function loop() {
     if (gameState === 'UI') return;
     
-    // スキップボタンの確実な非表示制御
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) {
         if (!gameState.includes('ADV') && !gameState.includes('DIALOGUE')) {
@@ -298,10 +311,7 @@ function loop() {
     }
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
-    // 全体の黒塗りをコメントアウト（背景を透けさせるため）
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
-    // ctx.fillStyle = '#000';
-    // ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
     if (gameState === 'ADV') {
         advManager.draw(ctx, canvas);
@@ -371,10 +381,7 @@ function loop() {
         }
     }
     else if (gameState === 'TRANSITION_FADE') {
-        // フェード時の黒塗りをコメントアウト（背景を透けさせるため）
         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-        // ctx.fillStyle = '#000';
-        // ctx.fillRect(0, 0, canvas.width / dpr, canvas.height / dpr);
         
         transitionTimer--;
         if(transitionTimer <= 0) {
@@ -382,7 +389,6 @@ function loop() {
             if (scenarios[currentStage]) {
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId));
                 
-                // ★修正：次のステージへ進んだ時にADV（開始時）から読み込む
                 gameState = 'ADV';
                 advManager.start(scenarios[currentStage].adv, () => {
                     gameState = 'PRE_STG_DIALOGUE';
