@@ -1,4 +1,4 @@
-const VER_ADV = "0.1.28"; // バージョン更新（重なり調整・暗転解除）
+const VER_ADV = "0.1.29"; // Constをconstに修正、重なり計算の実装
 
 class ADVManager {
     constructor() {
@@ -274,19 +274,28 @@ class ADVManager {
                 const drawHeight = targetCharHeight; 
                 const drawWidth = spriteWidth * baseScale;
 
-                const isIgari = currentMsg.character2 === 'igari01.png' || currentMsg.character2 === 'igari02.png';
+                // ★メインキャラの幅を計算してX座標の基準を合わせる
+                let mainDrawWidth = drawWidth;
+                if (currentMsg.character && this.assets[currentMsg.character]) {
+                    const mainImg = this.assets[currentMsg.character];
+                    const mainRows = currentMsg.character === 'igari02.png' ? 4 : 3;
+                    mainDrawWidth = (mainImg.width / 4) * (targetCharHeight / (mainImg.height / mainRows));
+                }
+
+                // isIgari判定はメインキャラ基準で行う
+                const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
                 const alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
 
                 const paddingLeft = gameX + gameWidth * 0.05;
-                const paddingRight = gameX + gameWidth * 0.95 - drawWidth;
-                let drawX = alignRight ? paddingRight : paddingLeft;
+                const paddingRight = gameX + gameWidth * 0.95 - mainDrawWidth;
+                let mainDrawX = alignRight ? paddingRight : paddingLeft;
 
-                // 背面キャラは少し内側にズラす（★修正：重なりすぎないように0.15から0.25へ距離を広げる）
-                drawX = alignRight ? drawX - gameWidth * 0.25 : drawX + gameWidth * 0.25;
+                // ★完璧な重なり計算：メインキャラの幅の 1/10 (0.1) だけ重なるように横に並べる★
+                const overlapWidth = mainDrawWidth * 0.1;
+                // 右揃えなら背面キャラはメインキャラの左側。左揃えなら右側。
+                let drawX = alignRight ? mainDrawX - drawWidth + overlapWidth : mainDrawX + mainDrawWidth - overlapWidth;
 
                 const drawY = gameY + visualAreaHeight - drawHeight;
-
-                // ctx.filter = 'brightness(0.6)'; // ★修正：薄暗くする必要はないためコメントアウト
 
                 ctx.drawImage(
                     charCanvas,
@@ -296,7 +305,6 @@ class ADVManager {
                     drawHeight
                 );
                 
-                // ctx.filter = 'none'; // ★修正：フィルタ解除も不要になるためコメントアウト
                 ctx.imageSmoothingEnabled = true; 
             }
         }
