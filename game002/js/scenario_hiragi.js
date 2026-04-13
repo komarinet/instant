@@ -1,3 +1,6 @@
+const VER_SCENARIO_HIRAGI = "0.1.0";
+
+
 // 柊 千華 ルートのシナリオデータ
 scenarios.hiragi = {
     'opening': [],
