@@ -1,4 +1,4 @@
-const VER_DATA = "0.2.0"; // 分割リファクタリング版
+const VER_DATA = "0.2.0"; // キャラクター別シナリオ分割対応
 
 const characters = [
     { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
@@ -9,5 +9,12 @@ const characters = [
     { id: 'jinguji', name: '神宮寺 恒成', color: '#ffcc00', desc: 'ナノマシン. アイテムを強欲に吸い寄せる（未実装）。', weapon: 'Weapon: 札束弾幕' }
 ];
 
-// シナリオデータを格納するための空のオブジェクトを用意
-const scenarios = {};
+// 大元のシナリオ箱（この中にキャラクターIDごとの箱を追加していく）
+const scenarios = {
+    igari: {},
+    shiina: {},
+    chika: {},
+    kagami: {},
+    godai: {},
+    jinguji: {}
+};
