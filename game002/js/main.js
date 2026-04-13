@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.3"; // バージョン更新（キャラクター別シナリオデータ読み込み対応）
+const VER_MAIN = "0.2.4"; // バージョン更新（シナリオファイルのバージョンチェック追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,11 +17,11 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
-// ★修正：ステージ2のオカルト敵画像群をプリロードに追加
+// ステージ2のオカルト敵画像群をプリロードに追加
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
-    '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', // ★追加：ステージ2の敵
+    '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png',
     'darkcandle.png' 
 ];
 
@@ -80,7 +80,7 @@ function goToStageSelect() {
 
 initCharSelect();
 
-// --- バージョン情報の収集と表示ロジック ---
+// --- ★修正：バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
@@ -101,17 +101,34 @@ function showVersions() {
     verDiv.style.fontFamily = 'monospace'; 
     verDiv.style.zIndex = '100'; 
 
+    // システム系ファイル
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
+    const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
+
+    // シナリオ系ファイル
+    const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
+    const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
+    const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
+    const scKagami = typeof VER_SCENARIO_KAGAMI !== 'undefined' ? VER_SCENARIO_KAGAMI : '---';
+    const scGodai = typeof VER_SCENARIO_GODAI !== 'undefined' ? VER_SCENARIO_GODAI : '---';
+    const scJingu = typeof VER_SCENARIO_JINGU !== 'undefined' ? VER_SCENARIO_JINGU : '---';
 
     verDiv.innerHTML = `
-        data : v${dVer}<br>
+        core : v${dVer}<br>
         adv  : v${aVer}<br>
         stg  : v${sVer}<br>
         3dbg : v${b3Ver}<br>
-        main : v${VER_MAIN}
+        main : v${mVer}<br>
+        <hr style="border-color: rgba(255,255,255,0.2); margin: 2px 0;">
+        sc_igari : v${scIgari}<br>
+        sc_mamoru: v${scMamoru}<br>
+        sc_hiragi: v${scHiragi}<br>
+        sc_kagami: v${scKagami}<br>
+        sc_godai : v${scGodai}<br>
+        sc_jingu : v${scJingu}
     `;
     titleScreen.appendChild(verDiv);
 }
@@ -158,7 +175,6 @@ function skipADV() {
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
         if (!stgManager) {
-            // ★修正：STGManagerにcurrentStageを渡す
             stgManager = new STGManager(canvas, charData, currentStage);
         }
     } else {
@@ -219,7 +235,6 @@ function executeStart(stageNum) {
         advManager.start(scenarios[selectedCharId]['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
-            // ★修正：STGManagerにcurrentStageを渡す
             stgManager = new STGManager(canvas, charData, currentStage);
             
             gameState = 'ADV';
@@ -237,7 +252,6 @@ function executeStart(stageNum) {
     } else {
         currentStage = stageNum;
         const charData = characters.find(c => c.id === selectedCharId);
-        // ★修正：STGManagerにcurrentStageを渡す
         stgManager = new STGManager(canvas, charData, currentStage);
         
         gameState = 'PRE_STG_DIALOGUE';
@@ -386,7 +400,6 @@ function loop() {
         if(transitionTimer <= 0) {
             currentStage++;
             if (scenarios[selectedCharId] && scenarios[selectedCharId][currentStage]) {
-                // ★修正：STGManagerにcurrentStageを渡す
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), currentStage);
                 
                 gameState = 'ADV';
