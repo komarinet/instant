@@ -48,9 +48,8 @@ scenarios.igari = {
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '我々を舐めるなよ、猪狩俊基' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '君は異世界から転移した天才科学者、猪狩隆盛の息子だろう？' },
         { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: '彼の技術力を受け継いでるはずだ' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', effect: 'shake', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'どうしてそれを!?' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'さてね。生き残ったら説明してやってもいい' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '何故それを・・・' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', speaker: 'オペレーター', text: 'そうだな。/n生き残ったら説明してやってもいい'},
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ふざけやがって・・・' },
         { bg: 'igni.png', place: 'Room', time: '2025.04', speaker: '猪狩', text: 'イグニッション' } 
     ],
