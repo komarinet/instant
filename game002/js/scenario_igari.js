@@ -1,3 +1,5 @@
+const VER_SCENARIO_IGARI = "0.1.0";
+
 // 猪狩 俊基ルートのシナリオデータ
 
 scenarios.igari = {
