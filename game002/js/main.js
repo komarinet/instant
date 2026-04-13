@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.0"; // バージョン更新（Promise.allによる並列ロードの完全同期化）
+const VER_MAIN = "0.2.1"; // バージョン更新（ADV背景の透過フラグ対応）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -314,11 +314,11 @@ function loop() {
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
     if (gameState === 'ADV') {
-        advManager.draw(ctx, canvas);
+        advManager.draw(ctx, canvas, false); // ★修正：ADV単体時は背景黒塗り（第3引数false）
     } 
     else if (gameState === 'PRE_STG_DIALOGUE') {
         stgManager.draw(ctx);
-        advManager.draw(ctx, canvas);
+        advManager.draw(ctx, canvas, true); // ★修正：STG前は背景透過（第3引数true）
     }
     else if (gameState === 'STAGE_START_TEXT') {
         stgManager.draw(ctx);
@@ -361,7 +361,7 @@ function loop() {
     }
     else if (gameState === 'POST_STG_DIALOGUE') {
         stgManager.draw(ctx); 
-        advManager.draw(ctx, canvas);
+        advManager.draw(ctx, canvas, true); // ★修正：STG後は背景透過（第3引数true）
     }
     else if (gameState === 'STAGE_CLEAR_TEXT') {
         stgManager.draw(ctx);
