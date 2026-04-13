@@ -1,3 +1,5 @@
+const VER_SCENARIO_MAMORU = "0.1.0";
+
 // 椎名 護 ルートのシナリオデータ
 scenarios.mamoru = {
     'opening': [],
