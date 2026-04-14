@@ -1,10 +1,10 @@
-const VER_SCENARIO_IGARI = "0.1.0";
+const VER_SCENARIO_IGARI = "0.2.3"; // バージョン更新（マスク侵食エフェクト適用）
 
 // 猪狩 俊基ルートのシナリオデータ
 
 scenarios.igari = {
     'opening': [
-        // ★修正：fadeInを削除し、delay（待機）のみを残しました
+        // fadeInを削除し、delay（待機）のみを残しました
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな', delay: 120 },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'まあまあ、今回は修行で行くんだし' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '一緒に行ってもどこへも行けないよ？' },
@@ -75,6 +75,12 @@ scenarios.igari = {
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 12, character2: 'kagami.png', spriteIndex2: 9, speaker: '猪狩', text: '待て、なんか壮大な誤解をしてるぞお前' },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 12, speaker: '柊', text: '・・・浮気だ' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 3, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: 'お、おい千華！' },
+            
+            // ★追加・修正：Canvasの合成機能を用いた背景侵食エフェクト
+            // 手前が breakufo.png、奥から darkcandle.png が円状に露出してくる。90フレームで完結し自動進行。
+            { bg: 'breakufo.png', maskBg: 'darkcandle.png', maskDelay: 90, effect: 'shake', text: '' },
+            
+            // エフェクト終了後、柊がブチ切れたセリフと背景を表示。
             { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' }
         ], 
         pre_stg: [
