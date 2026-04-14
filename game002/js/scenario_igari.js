@@ -78,17 +78,17 @@ scenarios.igari = {
             { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' }
         ], 
         pre_stg: [
-            { bg: 'darkcandle.png', character: 'kagami.png', spriteIndex: 11, speaker: '各務', text: 'な、なんだこの世界は', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 8, speaker: '猪狩', text: '魔女の結界だ！　千華のやつブチ切れやがった！', isRight: true },
+            { bg: 'darkcandle.png', character: 'kagami.png', spriteIndex: 14, speaker: '各務', text: 'なんだこの世界は', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '魔女の結界だ！　千華のやつブチ切れやがった！', isRight: true },
             { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基も', isRight: false },
             { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '両方殺して私も死ぬ！', isRight: false, effect: 'shake' },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 12, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: 'おい、どうするんだ？', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 9, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかない', isRight: true }, 
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 0, character2: 'kagami.png', spriteIndex2: 11, speaker: '各務', text: '世界を書き換えるようなバケモン相手にそんな芸当、できんのか？', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 13, character2: 'kagami.png', spriteIndex2: 9, speaker: '猪狩', text: 'やらなきゃならんだろ。じゃなきゃ、助ける予定の女に殺されちまう！', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: '面倒なことになったな・・・', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 0, speaker: '各務', text: '仕方ない。私も手伝おう', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 1, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: '助かる！', isRight: true }
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 5, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: 'おい、どうするんだ？', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 4, character2: 'kagami.png', spriteIndex2: 6, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかない', isRight: true }, 
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 0, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: '世界を書き換えるようなバケモン相手にそんな芸当、できんのか？', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 6, speaker: '猪狩', text: 'やらなきゃならんだろ。じゃなきゃ、助ける予定の女に殺されちまう！', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 5, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: '面倒なことになったな・・・', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 11, character2: 'kagami.png', spriteIndex2: 9, speaker: '各務', text: '仕方ない。私も手伝おう', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 0, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: '助かる！', isRight: true }
         ], 
         post_stg: [
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'あれ？　俊基？', isRight: false },
