@@ -90,7 +90,7 @@ scenarios.igari = {
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 5, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: 'おい、どうするんだ？', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 4, character2: 'kagami.png', spriteIndex2: 6, speaker: '猪狩', text: '死なん程度に攻撃して落ち着かせるしかない', isRight: true }, 
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 0, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: '世界を書き換えるようなバケモン相手にそんな芸当、できんのか？', isRight: true },
-            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 6, speaker: '猪狩', text: 'やらなきゃならんだろ。じゃなきゃ、助ける予定の女に殺されちまう！', isRight: true },
+            { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 7, character2: 'kagami.png', spriteIndex2: 6, speaker: '猪狩', text: 'やるしかないだろ。じゃなきゃ、助ける予定の女に殺されちまう！', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 5, character2: 'kagami.png', spriteIndex2: 2, speaker: '各務', text: '面倒なことになったな・・・', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 11, character2: 'kagami.png', spriteIndex2: 9, speaker: '各務', text: '仕方ない。私も手伝おう', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 0, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: '助かる！', isRight: true }
