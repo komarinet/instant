@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.2.3"; // バージョン更新（マスク侵食エフェクト適用）
+const VER_SCENARIO_IGARI = "0.2.4"; // バージョン更新（マスク侵食中の立ち絵保持対応）
 
 // 猪狩 俊基ルートのシナリオデータ
 
@@ -76,14 +76,14 @@ scenarios.igari = {
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 12, speaker: '柊', text: '・・・浮気だ' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 3, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: 'お、おい千華！' },
             
-            // ★追加・修正：Canvasの合成機能を用いた背景侵食エフェクト
-            // 手前が breakufo.png、奥から darkcandle.png が円状に露出してくる。90フレームで完結し自動進行。
-            { bg: 'breakufo.png', maskBg: 'darkcandle.png', maskDelay: 90, effect: 'shake', text: '' },
+            // ★修正：柊が先に「浮気だーーーー！」と叫ぶ
+            { bg: 'breakufo.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' },
             
-            // エフェクト終了後、柊がブチ切れたセリフと背景を表示。
-            { bg: 'darkcandle.png', place: "Cika's territory", character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '浮気だーーーー！', effect: 'shake' }
+            // ★修正：柊の立ち絵（13）を維持したまま、テキストウィンドウを消して背景が侵食する演出
+            { bg: 'breakufo.png', maskBg: 'darkcandle.png', maskDelay: 90, character: 'hiragi01.png', spriteIndex: 13, effect: 'shake', text: '' }
         ], 
         pre_stg: [
+            // ADVパートが終了し、PRE_STG_DIALOGUEへ移行。背景は既にdarkcandleに切り替わっている。
             { bg: 'darkcandle.png', character: 'kagami.png', spriteIndex: 14, speaker: '各務', text: 'なんだこの世界は', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '魔女の結界だ！　千華のやつブチ切れやがった！', isRight: true },
             { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基も', isRight: false },
