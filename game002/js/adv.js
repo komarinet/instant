@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.1"; // バージョン更新（Canvas合成による背景マスク侵食エフェクト実装）
+const VER_ADV = "0.4.2"; // バージョン更新（マスク侵食エフェクトの高DPR環境表示修正）
 
 class ADVManager {
     constructor() {
@@ -15,8 +15,8 @@ class ADVManager {
         this.slideTimer = 0; 
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
-        this.whiteoutNextCalled = false; 
-        this.bgEffectTimer = 0; 
+        this.whiteoutNextCalled = false; // 自動進行の重複防止フラグ
+        this.bgEffectTimer = 0; // 背景エフェクト（侵食）用タイマー
     }
 
     preload(images, callback) {
@@ -62,7 +62,7 @@ class ADVManager {
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
         this.whiteoutNextCalled = false; 
-        this.bgEffectTimer = 0; 
+        this.bgEffectTimer = 0; // 初期化
         this.playSE(); 
     }
 
@@ -79,7 +79,7 @@ class ADVManager {
             this.fadeTimer = 0;  
             this.whiteoutAlpha = 0; 
             this.whiteoutNextCalled = false; 
-            this.bgEffectTimer = 0; 
+            this.bgEffectTimer = 0; // 初期化
             this.playSE(); 
         }
     }
@@ -134,8 +134,12 @@ class ADVManager {
     draw(ctx, canvas, isTransparent = false) {
         if (!this.isActive) return;
         const currentMsg = this.currentScenario[this.index];
-        const cssWidth = canvas.width / (window.devicePixelRatio || 1);
-        const cssHeight = canvas.height / (window.devicePixelRatio || 1);
+        
+        // DPR(Device Pixel Ratio)を取得
+        const dpr = window.devicePixelRatio || 1; // ★追加：DPR取得
+
+        const cssWidth = canvas.width / dpr; // ★修正
+        const cssHeight = canvas.height / dpr; // ★修正
         
         const gameAspectRatio = 3 / 2;
         let gameHeight = cssHeight * 0.7; 
@@ -193,7 +197,7 @@ class ADVManager {
             const delay = currentMsg.maskDelay || 90; // 演出にかけるフレーム数
 
             if (topBg && bottomBg) {
-                // 背景の描画位置・サイズ計算（手前と奥で共通）
+                // 背景の描画位置・サイズ計算（手前と奥で共通、CSSピクセル値）
                 const bgRatio = topBg.width / topBg.height;
                 const visualRatio = gameWidth / visualAreaHeight; 
                 let drawW, drawH, drawX, drawY;
@@ -211,18 +215,25 @@ class ADVManager {
                 }
 
                 // 1. まず奥の背景（侵食後の世界）を描画
+                // メインctxはDPRでscaleされているのでCSSピクセル指定でOK
                 ctx.drawImage(bottomBg, drawX + shakeX, drawY + shakeY, drawW, drawH);
 
                 // 2. マスク用に一時的なオフスクリーンCanvasを作成
+                // ★修正：サイズはDPRを考慮した内部ピクセルサイズにする
                 const maskCanvas = document.createElement('canvas');
                 maskCanvas.width = canvas.width;
                 maskCanvas.height = canvas.height;
                 const mCtx = maskCanvas.getContext('2d');
 
-                // 手前の背景を描画
+                // ★超修正：オフスクリーンCanvasのctxにもDPRスケールを適用する
+                // これにより、mCtxへの描画もCSSピクセル値で行えるようになる
+                mCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+                // 手前の背景を描画（CSSピクセル指定で、内部的にDPR倍されて描画される）
                 mCtx.drawImage(topBg, drawX + shakeX, drawY + shakeY, drawW, drawH);
 
                 // 3. destination-outで中心から円状に切り抜く
+                // 円の中心座標と半径もCSSピクセル指定でOK
                 const progress = Math.min(1.0, this.bgEffectTimer / delay);
                 const maxRadius = Math.max(gameWidth, gameHeight) * 1.5; // 画面を覆い尽くすサイズ
                 const currentRadius = maxRadius * progress;
@@ -234,7 +245,9 @@ class ADVManager {
                 mCtx.globalCompositeOperation = 'source-over';
 
                 // 4. メインのCanvasに、一部が切り抜かれた手前の背景を重ねる
-                ctx.drawImage(maskCanvas, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+                // ★超修正：メインctxはDPRスケール中なので、描画元（maskCanvas）のサイズを
+                // DPRで割ってCSSピクセルサイズとして指定し、正しい位置・サイズで描画する
+                ctx.drawImage(maskCanvas, 0, 0, maskCanvas.width / dpr, maskCanvas.height / dpr);
 
                 this.bgEffectTimer++;
                 
@@ -286,12 +299,13 @@ class ADVManager {
             const charImg2 = this.assets[currentMsg.character2];
             if (charImg2 && charImg2.naturalWidth > 0) {
                 const cols = 4;
+                // rowsの切り替えは、以前設定した通り
                 let rows = 3;
                 if (currentMsg.character2 === 'igari02.png') {
                     rows = 4;
                 } else if (currentMsg.character2 === 'kagami.png') {
                     rows = 4;
-                } else if (currentMsg.character2 === 'hiragi01.png') {
+                } else if (currentMsg.character2 === 'hiragi01.png') { 
                     rows = 4; 
                 }
                 
