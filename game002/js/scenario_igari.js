@@ -66,12 +66,12 @@ scenarios.igari = {
     },
     2: { 
         adv: [
-            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 10, character2: 'kagami.png', spriteIndex2: 0, speaker: '柊', text: '俊基。その女、誰？', delay: 60 },
-            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '千華!?　お前どうしてここに！' },
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: '俊基。その女、誰？', delay: 60 },
+            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩',character2: 'kagami.png', spriteIndex2: 0, text: '千華!?　お前どうしてここに！' },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '俊基の生命エネルギーが少し減ったのを感じたの' },
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: '心配になって来てみたら、女の人といて' },
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: '心配になって来てみたら、なんか女といるし' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 4, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: '俺の生命エネルギーなんてモニタリングしてんのか!?' },
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: '女の人と二人きり、身体は無事で、エネルギー消費・・・' },
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: '女と二人きり、身体は無事で、エネルギー消費・・・' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 12, character2: 'kagami.png', spriteIndex2: 9, speaker: '猪狩', text: '待て、なんか壮大な誤解をしてるぞお前' },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 12, speaker: '柊', text: '・・・浮気だ' },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 3, character2: 'kagami.png', spriteIndex2: 0, speaker: '猪狩', text: 'お、おい千華！' },
