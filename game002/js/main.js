@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.4"; // バージョン更新（シナリオファイルのバージョンチェック追加）
+const VER_MAIN = "0.2.5"; // バージョン更新（ステージ選択時のADVスキップバグ修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,11 +17,10 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
-// ステージ2のオカルト敵画像群をプリロードに追加
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
-    '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png',
+    '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png' 
 ];
 
@@ -80,7 +79,7 @@ function goToStageSelect() {
 
 initCharSelect();
 
-// --- ★修正：バージョン情報の収集と表示ロジック ---
+// --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
@@ -101,14 +100,12 @@ function showVersions() {
     verDiv.style.fontFamily = 'monospace'; 
     verDiv.style.zIndex = '100'; 
 
-    // システム系ファイル
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
     const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
 
-    // シナリオ系ファイル
     const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
     const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
     const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
@@ -254,11 +251,16 @@ function executeStart(stageNum) {
         const charData = characters.find(c => c.id === selectedCharId);
         stgManager = new STGManager(canvas, charData, currentStage);
         
-        gameState = 'PRE_STG_DIALOGUE';
-        advManager.start(scenarios[selectedCharId][currentStage].pre_stg, () => {
-            gameState = 'STAGE_START_TEXT';
-            transitionTimer = 90;
-            if (skipBtn) skipBtn.classList.add('hidden');
+        // ★修正：ステージ2以降を直接選んだ場合も、advパートから再生するように変更
+        gameState = 'ADV';
+        advManager.start(scenarios[selectedCharId][currentStage].adv, () => {
+            gameState = 'PRE_STG_DIALOGUE';
+            if (skipBtn) skipBtn.classList.remove('hidden');
+            advManager.start(scenarios[selectedCharId][currentStage].pre_stg, () => {
+                gameState = 'STAGE_START_TEXT';
+                transitionTimer = 90;
+                if (skipBtn) skipBtn.classList.add('hidden');
+            });
         });
         cancelAnimationFrame(gameLoopId);
         loop();
