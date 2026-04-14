@@ -1,4 +1,4 @@
-const VER_ADV = "0.3.5"; // バージョン更新（Kagami.png 4x4拡張対応、 rowsの切り替え）
+const VER_ADV = "0.3.6"; // バージョン更新（Hiragi01.png 4x4拡張対応、 rowsの切り替え）
 
 class ADVManager {
     constructor() {
@@ -15,7 +15,7 @@ class ADVManager {
         this.slideTimer = 0; 
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
-        this.whiteoutNextCalled = false; // ★追加：自動進行の重複防止フラグ
+        this.whiteoutNextCalled = false; // 自動進行の重複防止フラグ
     }
 
     preload(images, callback) {
@@ -60,7 +60,7 @@ class ADVManager {
         this.slideTimer = 0; 
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
-        this.whiteoutNextCalled = false; // ★追加
+        this.whiteoutNextCalled = false; 
         this.playSE(); 
     }
 
@@ -76,7 +76,7 @@ class ADVManager {
             this.slideTimer = 0; 
             this.fadeTimer = 0;  
             this.whiteoutAlpha = 0; 
-            this.whiteoutNextCalled = false; // ★追加
+            this.whiteoutNextCalled = false; 
             this.playSE(); 
         }
     }
@@ -223,12 +223,14 @@ class ADVManager {
             const charImg2 = this.assets[currentMsg.character2];
             if (charImg2 && charImg2.naturalWidth > 0) {
                 const cols = 4;
-                // ★修正：kagami.pngの場合は4行とする
+                // ★修正：kagami.pngとhiragi01.pngの場合は4行とする
                 let rows = 3;
                 if (currentMsg.character2 === 'igari02.png') {
                     rows = 4;
                 } else if (currentMsg.character2 === 'kagami.png') {
-                    rows = 4; // ★追加
+                    rows = 4;
+                } else if (currentMsg.character2 === 'hiragi01.png') { // ★追加
+                    rows = 4; // Hiragiも4行に更新
                 }
                 
                 const spriteWidth = charImg2.width / cols; 
@@ -240,7 +242,7 @@ class ADVManager {
 
                 // 画像上端のゴミを除去するため上方向(bleedTop)を深めにカット
                 const bleedX = 1;
-                const bleedTop = 3; // ★維持
+                const bleedTop = 3; 
                 const bleedBottom = 1;
                 const sx = Math.floor(col * spriteWidth) + bleedX;
                 const sy = Math.floor(row * spriteHeight) + bleedTop;
@@ -250,7 +252,7 @@ class ADVManager {
                 let charScale = 1.0;
                 let yOffset = 0; 
                 if (currentMsg.character2 === 'kagami.png') {
-                    charScale = 41 / 43; // ★維持
+                    charScale = 41 / 43; 
                 } else if (currentMsg.character2 === 'hiragi01.png') {
                     charScale = 10 / 11;
                 } else if (currentMsg.character2 === 'igari01.png' || currentMsg.character2 === 'igari02.png') {
@@ -265,18 +267,20 @@ class ADVManager {
                 let mainDrawWidth = drawWidth;
                 if (currentMsg.character && this.assets[currentMsg.character]) {
                     const mainImg = this.assets[currentMsg.character];
-                    // ★修正：メイン側のkagami.pngも4行とする
+                    // ★修正：メイン側のkagami.pngとhiragi01.pngも4行とする
                     let mainRows = 3;
                     if (currentMsg.character === 'igari02.png') {
                         mainRows = 4;
                     } else if (currentMsg.character === 'kagami.png') {
-                        mainRows = 4; // ★追加
+                        mainRows = 4;
+                    } else if (currentMsg.character === 'hiragi01.png') { // ★追加
+                        mainRows = 4; // Hiragiも4行に更新
                     }
                     const msWidth = Math.floor(mainImg.width / 4) - bleedX * 2;
                     const msHeight = Math.floor(mainImg.height / mainRows) - bleedTop - bleedBottom;
                     
                     let mScale = 1.0;
-                    if (currentMsg.character === 'kagami.png') { mScale = 41 / 43; } // ★維持
+                    if (currentMsg.character === 'kagami.png') { mScale = 41 / 43; } 
                     else if (currentMsg.character === 'hiragi01.png') { mScale = 10 / 11; }
                     else if (currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png') { mScale = 1.0; }
                     
@@ -314,12 +318,14 @@ class ADVManager {
             const charImg = this.assets[currentMsg.character];
             if (charImg && charImg.naturalWidth > 0) {
                 const cols = 4;
-                // ★修正：kagami.pngの場合は4行とする
+                // ★修正：kagami.pngとhiragi01.pngの場合は4行とする
                 let rows = 3;
                 if (currentMsg.character === 'igari02.png') {
                     rows = 4;
                 } else if (currentMsg.character === 'kagami.png') {
-                    rows = 4; // ★追加
+                    rows = 4;
+                } else if (currentMsg.character === 'hiragi01.png') { // ★追加
+                    rows = 4; // Hiragiも4行に更新
                 }
                 
                 const spriteWidth = charImg.width / cols; 
@@ -330,7 +336,7 @@ class ADVManager {
 
                 // 画像上端のゴミを除去するため上方向(bleedTop)を深めにカット
                 const bleedX = 1;
-                const bleedTop = 3; // ★維持
+                const bleedTop = 3; 
                 const bleedBottom = 1;
                 const sx = Math.floor(col * spriteWidth) + bleedX;
                 const sy = Math.floor(row * spriteHeight) + bleedTop;
@@ -340,7 +346,7 @@ class ADVManager {
                 let charScale = 1.0;
                 let yOffset = 0;
                 if (currentMsg.character === 'kagami.png') {
-                    charScale = 41 / 43; // ★維持
+                    charScale = 41 / 43; 
                 } else if (currentMsg.character === 'hiragi01.png') {
                     charScale = 10 / 11;
                 } else if (currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png') {
