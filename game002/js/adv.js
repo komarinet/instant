@@ -1,4 +1,4 @@
-const VER_ADV = "0.3.6"; // バージョン更新（Hiragi01.png 4x4拡張対応、 rowsの切り替え）
+const VER_ADV = "0.4.1"; // バージョン更新（Canvas合成による背景マスク侵食エフェクト実装）
 
 class ADVManager {
     constructor() {
@@ -15,7 +15,8 @@ class ADVManager {
         this.slideTimer = 0; 
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
-        this.whiteoutNextCalled = false; // 自動進行の重複防止フラグ
+        this.whiteoutNextCalled = false; 
+        this.bgEffectTimer = 0; 
     }
 
     preload(images, callback) {
@@ -61,6 +62,7 @@ class ADVManager {
         this.fadeTimer = 0;  
         this.whiteoutAlpha = 0; 
         this.whiteoutNextCalled = false; 
+        this.bgEffectTimer = 0; 
         this.playSE(); 
     }
 
@@ -77,6 +79,7 @@ class ADVManager {
             this.fadeTimer = 0;  
             this.whiteoutAlpha = 0; 
             this.whiteoutNextCalled = false; 
+            this.bgEffectTimer = 0; 
             this.playSE(); 
         }
     }
@@ -182,7 +185,67 @@ class ADVManager {
             slideX = -this.slideTimer;
         }
 
-        if (currentMsg.bg) {
+        // ★★★ 背景描画 / マスク侵食エフェクト ★★★
+        if (currentMsg.maskBg && currentMsg.bg) {
+            // 背景が2枚指定されている場合（侵食演出）
+            const topBg = this.assets[currentMsg.bg]; // 侵食されて消えていく手前の背景
+            const bottomBg = this.assets[currentMsg.maskBg]; // 露出してくる奥の背景
+            const delay = currentMsg.maskDelay || 90; // 演出にかけるフレーム数
+
+            if (topBg && bottomBg) {
+                // 背景の描画位置・サイズ計算（手前と奥で共通）
+                const bgRatio = topBg.width / topBg.height;
+                const visualRatio = gameWidth / visualAreaHeight; 
+                let drawW, drawH, drawX, drawY;
+
+                if (visualRatio > bgRatio) {
+                    drawW = gameWidth;
+                    drawH = gameWidth / bgRatio;
+                    drawX = gameX;
+                    drawY = gameY + (visualAreaHeight - drawH) / 2; 
+                } else {
+                    drawW = visualAreaHeight * bgRatio; 
+                    drawH = visualAreaHeight;
+                    drawX = gameX + (gameWidth - drawW) / 2;
+                    drawY = gameY;
+                }
+
+                // 1. まず奥の背景（侵食後の世界）を描画
+                ctx.drawImage(bottomBg, drawX + shakeX, drawY + shakeY, drawW, drawH);
+
+                // 2. マスク用に一時的なオフスクリーンCanvasを作成
+                const maskCanvas = document.createElement('canvas');
+                maskCanvas.width = canvas.width;
+                maskCanvas.height = canvas.height;
+                const mCtx = maskCanvas.getContext('2d');
+
+                // 手前の背景を描画
+                mCtx.drawImage(topBg, drawX + shakeX, drawY + shakeY, drawW, drawH);
+
+                // 3. destination-outで中心から円状に切り抜く
+                const progress = Math.min(1.0, this.bgEffectTimer / delay);
+                const maxRadius = Math.max(gameWidth, gameHeight) * 1.5; // 画面を覆い尽くすサイズ
+                const currentRadius = maxRadius * progress;
+
+                mCtx.globalCompositeOperation = 'destination-out';
+                mCtx.beginPath();
+                mCtx.arc(gameX + gameWidth / 2, gameY + visualAreaHeight / 2, currentRadius, 0, Math.PI * 2);
+                mCtx.fill();
+                mCtx.globalCompositeOperation = 'source-over';
+
+                // 4. メインのCanvasに、一部が切り抜かれた手前の背景を重ねる
+                ctx.drawImage(maskCanvas, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+
+                this.bgEffectTimer++;
+                
+                // 演出が完了したら自動で次へ
+                if (progress >= 1.0 && !this.whiteoutNextCalled) {
+                    this.whiteoutNextCalled = true;
+                    setTimeout(() => { this.next(); }, 300);
+                }
+            }
+        } else if (currentMsg.bg) {
+            // 通常の背景描画
             const bgImg = this.assets[currentMsg.bg];
             if (bgImg && bgImg.naturalWidth > 0) {
                 const bgRatio = bgImg.width / bgImg.height;
@@ -223,14 +286,13 @@ class ADVManager {
             const charImg2 = this.assets[currentMsg.character2];
             if (charImg2 && charImg2.naturalWidth > 0) {
                 const cols = 4;
-                // ★修正：kagami.pngとhiragi01.pngの場合は4行とする
                 let rows = 3;
                 if (currentMsg.character2 === 'igari02.png') {
                     rows = 4;
                 } else if (currentMsg.character2 === 'kagami.png') {
                     rows = 4;
-                } else if (currentMsg.character2 === 'hiragi01.png') { // ★追加
-                    rows = 4; // Hiragiも4行に更新
+                } else if (currentMsg.character2 === 'hiragi01.png') {
+                    rows = 4; 
                 }
                 
                 const spriteWidth = charImg2.width / cols; 
@@ -240,7 +302,6 @@ class ADVManager {
                 const col = spIndex2 % cols;
                 const row = Math.floor(spIndex2 / cols);
 
-                // 画像上端のゴミを除去するため上方向(bleedTop)を深めにカット
                 const bleedX = 1;
                 const bleedTop = 3; 
                 const bleedBottom = 1;
@@ -267,14 +328,13 @@ class ADVManager {
                 let mainDrawWidth = drawWidth;
                 if (currentMsg.character && this.assets[currentMsg.character]) {
                     const mainImg = this.assets[currentMsg.character];
-                    // ★修正：メイン側のkagami.pngとhiragi01.pngも4行とする
                     let mainRows = 3;
                     if (currentMsg.character === 'igari02.png') {
                         mainRows = 4;
                     } else if (currentMsg.character === 'kagami.png') {
                         mainRows = 4;
-                    } else if (currentMsg.character === 'hiragi01.png') { // ★追加
-                        mainRows = 4; // Hiragiも4行に更新
+                    } else if (currentMsg.character === 'hiragi01.png') { 
+                        mainRows = 4; 
                     }
                     const msWidth = Math.floor(mainImg.width / 4) - bleedX * 2;
                     const msHeight = Math.floor(mainImg.height / mainRows) - bleedTop - bleedBottom;
@@ -318,14 +378,13 @@ class ADVManager {
             const charImg = this.assets[currentMsg.character];
             if (charImg && charImg.naturalWidth > 0) {
                 const cols = 4;
-                // ★修正：kagami.pngとhiragi01.pngの場合は4行とする
                 let rows = 3;
                 if (currentMsg.character === 'igari02.png') {
                     rows = 4;
                 } else if (currentMsg.character === 'kagami.png') {
                     rows = 4;
-                } else if (currentMsg.character === 'hiragi01.png') { // ★追加
-                    rows = 4; // Hiragiも4行に更新
+                } else if (currentMsg.character === 'hiragi01.png') { 
+                    rows = 4; 
                 }
                 
                 const spriteWidth = charImg.width / cols; 
@@ -334,7 +393,6 @@ class ADVManager {
                 const col = currentMsg.spriteIndex % cols;
                 const row = Math.floor(currentMsg.spriteIndex / cols);
 
-                // 画像上端のゴミを除去するため上方向(bleedTop)を深めにカット
                 const bleedX = 1;
                 const bleedTop = 3; 
                 const bleedBottom = 1;
@@ -383,9 +441,10 @@ class ADVManager {
         
         ctx.globalAlpha = 1.0; 
 
-        // ホワイトアウト時は強制的にウインドウとタップアイコンを非表示にする
+        // 侵食中やホワイトアウト時は強制的にウインドウとタップアイコンを非表示にする
+        const isMasking = currentMsg.maskBg && this.bgEffectTimer > 0;
         const isWhiteouting = currentMsg.effect === 'whiteout' && this.whiteoutAlpha > 0;
-        const showTextWindow = !isWhiteouting; 
+        const showTextWindow = !isWhiteouting && !isMasking; 
 
         if (showTextWindow) {
             ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; 
@@ -451,22 +510,20 @@ class ADVManager {
                 ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
                 ctx.fillText('▼', dialogueX + dialogueWidth - 35, dialogueY + dynamicHeight - 15);
             }
-        } else if (!isWhiteouting) {
+        } else if (showTextWindow) {
             ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
             ctx.font = '24px "Segoe UI", sans-serif';
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
 
-        // ホワイトアウト演出と自動進行
         if (currentMsg.effect === 'whiteout') {
             this.whiteoutAlpha = Math.min(1.0, this.whiteoutAlpha + 0.02);
             ctx.fillStyle = `rgba(255, 255, 255, ${this.whiteoutAlpha})`;
             ctx.fillRect(gameX, gameY, gameWidth, gameHeight);
 
-            // 画面が完全に白くなったら自動で次へ（タップ不要）
             if (this.whiteoutAlpha >= 1.0 && !this.whiteoutNextCalled) {
                 this.whiteoutNextCalled = true;
-                setTimeout(() => { this.next(); }, 300); // 0.3秒待って自動で進める
+                setTimeout(() => { this.next(); }, 300);
             }
         }
 
