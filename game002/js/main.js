@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.0"; // バージョン更新（stgIdによるデータ駆動アーキテクチャの対応）
+const VER_MAIN = "0.3.1"; // バージョン更新（yakerin.pngへのファイル名修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,12 +17,13 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
+// ★修正：burned_mountain.png を yakerin.png に変更しました
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
-    'hospital.png', 'mountain.png', 'yakerin.png',
+    'hospital.png', 'mountain.png', 'yakerin.png', // ← ココを修正
     'shiina.png', 'urashiina.png'
 ];
 
@@ -107,7 +108,6 @@ function showVersions() {
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
     const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
 
-    // 新たに分割したSTG系のバージョン取得
     const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
     const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
     const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
@@ -175,7 +175,7 @@ window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 30
 resizeCanvas(); 
 
 
-// ★追加：スキップ機能★
+// --- スキップ機能 ---
 function skipADV() {
     advManager.isActive = false;
     if (gameState === 'ADV') {
@@ -183,7 +183,6 @@ function skipADV() {
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
         if (!stgManager) {
-            // ★修正：シナリオデータからstgIdを取得してセット
             const stgId = scenarios[selectedCharId][currentStage].stgId;
             stgManager = new STGManager(canvas, charData, stgId);
         }
@@ -196,7 +195,7 @@ function skipADV() {
 }
 
 
-// ★変更：Promise.allによる並行バックグラウンド・プリロード処理★
+// --- Promise.allによる並行バックグラウンド・プリロード処理 ---
 let isPreloadCompleted = false;
 let pendingStageStart = null;
 
@@ -245,7 +244,6 @@ function executeStart(stageNum) {
         advManager.start(scenarios[selectedCharId]['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
-            // ★修正：シナリオデータからstgIdを取得してセット
             const stgId = scenarios[selectedCharId][currentStage].stgId;
             stgManager = new STGManager(canvas, charData, stgId);
             
@@ -264,7 +262,6 @@ function executeStart(stageNum) {
     } else {
         currentStage = stageNum;
         const charData = characters.find(c => c.id === selectedCharId);
-        // ★修正：シナリオデータからstgIdを取得してセット
         const stgId = scenarios[selectedCharId][currentStage].stgId;
         stgManager = new STGManager(canvas, charData, stgId);
         
@@ -418,7 +415,6 @@ function loop() {
         if(transitionTimer <= 0) {
             currentStage++;
             if (scenarios[selectedCharId] && scenarios[selectedCharId][currentStage]) {
-                // ★修正：シナリオデータからstgIdを取得してセット
                 const stgId = scenarios[selectedCharId][currentStage].stgId;
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
                 
