@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.2"; // バージョン更新（stgId未定義時の自動判別セーフティ機能を追加）
+const VER_STG_CORE = "0.5.3"; // バージョン更新（完全防弾仕様＆画面上へのエラー通知機能追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -106,8 +106,19 @@ class Enemy {
         }
         this.config = window.StageConfigs[stgId] || {};
 
-        const data = this.config.getEnemyData ? this.config.getEnemyData(type) : { imgSrc: null, size: 20, hp: 1, maxHp: 1 };
-        this.imgSrc = data.imgSrc; this.size = data.size; this.hp = data.hp; this.maxHp = data.maxHp || data.hp;
+        // ★修正：getEnemyDataが失敗・欠損していても絶対にクラッシュさせないセーフティネット
+        let data = null;
+        if (this.config.getEnemyData) {
+            data = this.config.getEnemyData(type);
+        }
+        if (!data) {
+            data = { imgSrc: null, size: 20, hp: 1, maxHp: 1 };
+        }
+
+        this.imgSrc = data.imgSrc; 
+        this.size = data.size || 20; 
+        this.hp = data.hp || 1; 
+        this.maxHp = data.maxHp || data.hp || 1;
         if(data.init) data.init(this);
     }
     update(canvas, player) {
@@ -216,11 +227,16 @@ class STGManager {
     draw(ctx) {
         const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
         
-        if (this.config.drawBackground) {
+        // ★修正：万が一設定ファイルが読み込まれていない場合、画面に原因を直接表示してフリーズやブラックアウトを防ぐ
+        if (this.config && this.config.drawBackground) {
             this.config.drawBackground(this, ctx, sW, sH);
         } else {
-            // ★修正：万が一背景データが未設定でも、画面を残像で汚さないための保険の黒塗り
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
+            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif';
+            ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
+            ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
+            ctx.fillText(`・stg_${this.stgId}.js が index.html に記述されているか確認してください。`, 20, 90);
+            ctx.fillText("・記述が正しい場合は、ブラウザのキャッシュをクリア（スーパーリロード）してください。", 20, 115);
         }
 
         this.player.bullets.forEach(b => b.draw(ctx)); this.enemies.forEach(e => e.draw(ctx));
