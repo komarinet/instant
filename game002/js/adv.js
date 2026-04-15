@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.3"; // バージョン更新（コードの最適化・AudioContextのメモリリーク対策）
+const VER_ADV = "0.4.5"; // バージョン更新（キャラクター左右振り分けのハードコードを撤廃しデータ駆動に修正）
 
 class ADVManager {
     constructor() {
@@ -17,7 +17,7 @@ class ADVManager {
         this.whiteoutAlpha = 0; 
         this.whiteoutNextCalled = false; 
         this.bgEffectTimer = 0; 
-        this.audioCtx = null; // ★最適化：AudioContextを使い回すために保持
+        this.audioCtx = null; 
     }
 
     preload(images, callback) {
@@ -94,7 +94,6 @@ class ADVManager {
 
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             if (AudioContext) {
-                // ★最適化：毎回newせず、1つのContextを使い回す（ブラウザのクラッシュ防止）
                 if (!this.audioCtx) this.audioCtx = new AudioContext();
                 const ctx = this.audioCtx;
 
@@ -261,24 +260,24 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // ★★★ キャラクター描画（最適化版） ★★★
-        // メインキャラの幅と立ち位置を先に計算（背面キャラの配置に必要）
+        // ★★★ キャラクター描画（最適化版・行数判定＆左右指定処理） ★★★
+        const getRows = (key) => key === 'urashiina.png' ? 2 : (key === 'shiina.png' ? 3 : 4);
+
         let mainDrawWidth = 0;
         let alignRight = true;
         if (currentMsg.character && this.assets[currentMsg.character]) {
             const mainImg = this.assets[currentMsg.character];
-            let mainRows = (currentMsg.character === 'igari02.png' || currentMsg.character === 'kagami.png' || currentMsg.character === 'hiragi01.png') ? 4 : 3;
-            const msHeight = Math.floor(mainImg.height / mainRows) - 4; // bleedTop 3 + bleedBottom 1
+            const msHeight = Math.floor(mainImg.height / getRows(currentMsg.character)) - 4; 
             let mScale = 1.0;
             if (currentMsg.character === 'kagami.png') mScale = 41 / 43; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
             mainDrawWidth = (Math.floor(mainImg.width / 4) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
+            // ★修正：シナリオデータでの explicit な指示を最優先。指定がなければ主人公（igari）のみ右をデフォルトとする。
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
             alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
         }
 
-        // 配列化してループ処理にすることで、長大なコピペコードを排除
         const charsToDraw = [
             { key: currentMsg.character2, spIndex: currentMsg.spriteIndex2, isMain: false },
             { key: currentMsg.character, spIndex: currentMsg.spriteIndex, isMain: true }
@@ -289,7 +288,7 @@ class ADVManager {
             const charImg = this.assets[cData.key];
             if (charImg && charImg.naturalWidth > 0) {
                 const cols = 4;
-                let rows = (cData.key === 'igari02.png' || cData.key === 'kagami.png' || cData.key === 'hiragi01.png') ? 4 : 3;
+                let rows = getRows(cData.key);
                 const index = cData.spIndex || 0;
                 
                 const bleedX = 1, bleedTop = 3, bleedBottom = 1;
@@ -355,6 +354,8 @@ class ADVManager {
                     speakerName = '柊 千華'; speakerRuby = 'ひいらぎ ちか'; nameColor = '#cc33ff';
                 } else if (currentMsg.speaker === '各務') {
                     speakerName = '各務 栞'; speakerRuby = 'かがみ しおり'; nameColor = '#33ff33';
+                } else if (currentMsg.speaker === '椎名') {
+                    speakerName = '椎名 護'; speakerRuby = 'しいな まもる'; nameColor = '#33ccff';
                 }
 
                 ctx.fillStyle = nameColor;
@@ -413,14 +414,20 @@ class ADVManager {
             for (let i = 0; i < cssWidth; i += 100) {
                 for (let j = 0; j < cssHeight; j += 15) {
                     if (Math.random() > 0.3) {
-                        ctx.fillText(`${i.toString(16)}:${j.toString(16)} [${Math.floor(Math.random() * 0xffff).toString(16).toUpperCase()}]`, i, j);
+                        const randomHex = Math.floor(Math.random() * 0xffff).toString(16).toUpperCase();
+                        ctx.fillText(`${i.toString(16)}:${j.toString(16)} [${randomHex}]`, i, j);
                     }
                 }
             }
 
             if (visualAreaHeight) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 1; ctx.beginPath();
-                ctx.moveTo(gameX, gameY + visualAreaHeight); ctx.lineTo(gameX + gameWidth, gameY + visualAreaHeight); ctx.stroke();
+                const borderY = gameY + visualAreaHeight;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(gameX, borderY);
+                ctx.lineTo(gameX + gameWidth, borderY);
+                ctx.stroke();
             }
         }
 
@@ -436,7 +443,8 @@ class ADVManager {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillRect(gameX + gameWidth - 140, gameY + visualAreaHeight - dynamicHeight - 10, 140, 50); 
             ctx.fillStyle = '#ff3366'; ctx.font = 'bold 12px "Courier New"'; ctx.textAlign = 'right';
-            const infoX = gameX + gameWidth - 10, infoPaddingY = gameY + visualAreaHeight - dynamicHeight - 10; 
+            const infoX = gameX + gameWidth - 10;
+            const infoPaddingY = gameY + visualAreaHeight - dynamicHeight - 10; 
             if (placeText) ctx.fillText(`Loc: ${placeText}`, infoX, infoPaddingY + 20); 
             if (timeText) ctx.fillText(`Time: ${timeText}`, infoX, infoPaddingY + 35); 
             ctx.textAlign = 'left'; 
@@ -444,12 +452,15 @@ class ADVManager {
     }
 
     wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-        let words = text.split(''), line = '';
+        let words = text.split('');
+        let line = '';
         for (let n = 0; n < words.length; n++) {
             let testLine = line + words[n];
             if (ctx.measureText(testLine).width > maxWidth && n > 0) {
                 ctx.fillText(line, x, y); line = words[n]; y += lineHeight;
-            } else line = testLine;
+            } else {
+                line = testLine;
+            }
         }
         ctx.fillText(line, x, y);
     }
