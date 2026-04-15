@@ -1,4 +1,4 @@
-const VER_MAIN = "0.2.5"; // バージョン更新（ステージ選択時のADVスキップバグ修正）
+const VER_MAIN = "0.3.0"; // バージョン更新（stgIdによるデータ駆動アーキテクチャの対応）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -21,7 +21,9 @@ const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
-    'darkcandle.png' 
+    'darkcandle.png',
+    'hospital.png', 'mountain.png', 'burned_mountain.png',
+    'shiina.png', 'urashiina.png'
 ];
 
 const imagesToPreload3D = [
@@ -102,9 +104,14 @@ function showVersions() {
 
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
-    const sVer = typeof VER_STG !== 'undefined' ? VER_STG : '---';
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
     const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
+
+    // 新たに分割したSTG系のバージョン取得
+    const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
+    const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
+    const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
+    const stgShiina = typeof VER_STG_SHIINA !== 'undefined' ? VER_STG_SHIINA : '---';
 
     const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
     const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
@@ -116,9 +123,13 @@ function showVersions() {
     verDiv.innerHTML = `
         core : v${dVer}<br>
         adv  : v${aVer}<br>
-        stg  : v${sVer}<br>
         3dbg : v${b3Ver}<br>
         main : v${mVer}<br>
+        <hr style="border-color: rgba(255,255,255,0.2); margin: 2px 0;">
+        stg_core  : v${stgCore}<br>
+        stg_kagami: v${stgKagami}<br>
+        stg_hiragi: v${stgHiragi}<br>
+        stg_shiina: v${stgShiina}<br>
         <hr style="border-color: rgba(255,255,255,0.2); margin: 2px 0;">
         sc_igari : v${scIgari}<br>
         sc_mamoru: v${scMamoru}<br>
@@ -172,7 +183,9 @@ function skipADV() {
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
         if (!stgManager) {
-            stgManager = new STGManager(canvas, charData, currentStage);
+            // ★修正：シナリオデータからstgIdを取得してセット
+            const stgId = scenarios[selectedCharId][currentStage].stgId;
+            stgManager = new STGManager(canvas, charData, stgId);
         }
     } else {
         gameState = 'STAGE_START_TEXT';
@@ -232,7 +245,9 @@ function executeStart(stageNum) {
         advManager.start(scenarios[selectedCharId]['opening'], () => { 
             currentStage = 1;
             const charData = characters.find(c => c.id === selectedCharId);
-            stgManager = new STGManager(canvas, charData, currentStage);
+            // ★修正：シナリオデータからstgIdを取得してセット
+            const stgId = scenarios[selectedCharId][currentStage].stgId;
+            stgManager = new STGManager(canvas, charData, stgId);
             
             gameState = 'ADV';
             advManager.start(scenarios[selectedCharId]['kagami_arrival'], () => {
@@ -249,9 +264,10 @@ function executeStart(stageNum) {
     } else {
         currentStage = stageNum;
         const charData = characters.find(c => c.id === selectedCharId);
-        stgManager = new STGManager(canvas, charData, currentStage);
+        // ★修正：シナリオデータからstgIdを取得してセット
+        const stgId = scenarios[selectedCharId][currentStage].stgId;
+        stgManager = new STGManager(canvas, charData, stgId);
         
-        // ★修正：ステージ2以降を直接選んだ場合も、advパートから再生するように変更
         gameState = 'ADV';
         advManager.start(scenarios[selectedCharId][currentStage].adv, () => {
             gameState = 'PRE_STG_DIALOGUE';
@@ -402,7 +418,9 @@ function loop() {
         if(transitionTimer <= 0) {
             currentStage++;
             if (scenarios[selectedCharId] && scenarios[selectedCharId][currentStage]) {
-                stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), currentStage);
+                // ★修正：シナリオデータからstgIdを取得してセット
+                const stgId = scenarios[selectedCharId][currentStage].stgId;
+                stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
                 
                 gameState = 'ADV';
                 advManager.start(scenarios[selectedCharId][currentStage].adv, () => {
