@@ -1,7 +1,10 @@
-const VER_SCENARIO_IGARI = "0.3.2"; // バージョン更新（stgIdの連携を追加）
+const VER_SCENARIO_IGARI = "0.3.3"; // バージョン更新（オープニングの飛行機爆破シーン追加）
+
+// 猪狩 俊基ルートのシナリオデータ
 
 scenarios.igari = {
-    'opening': [ /* 前回と全く同じなので省略せずにそのままのデータです */
+    'opening': [
+        // fadeInを削除し、delay（待機）のみを残しました
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな', delay: 120 },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'まあまあ、今回は修行で行くんだし' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '一緒に行ってもどこへも行けないよ？' },
@@ -20,7 +23,10 @@ scenarios.igari = {
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 10, effect: 'slideOutLeft', text: '' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '全く。魔女ってやつはみんなあんなに嫉妬深いのかな' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', effect: 'shake', text: '' },
-        { bg: 'airport.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'うわーーーー！', effect: 'whiteout' }
+        // ★修正：爆破された飛行機背景への切り替えと、絶望の叫び
+        { bg: 'breakplane.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'あれは！　千華の乗った飛行機！' },
+        { bg: 'breakplane.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '千華！　千華ァーーーー！' },
+        { bg: 'breakplane.png', place: 'Airport', time: '2026.04', effect: 'whiteout', text: '' }
     ],
     'kagami_arrival': [
         { bg: 'room.png', place: 'Room', time: '2025.04', se: 'alarm.mp3', text: '' },
@@ -51,7 +57,7 @@ scenarios.igari = {
         { bg: 'igni.png', place: 'Room', time: '2025.04', speaker: '猪狩', text: 'イグニッション' } 
     ],
     1: {
-        stgId: 'kagami', // ★追加！
+        stgId: 'kagami',
         adv: [], 
         pre_stg: [
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいだろう。第１関門は合格だ' },
@@ -63,7 +69,7 @@ scenarios.igari = {
         post_stg: []
     },
     2: { 
-        stgId: 'hiragi', // ★追加！
+        stgId: 'hiragi', 
         adv: [
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: '俊基。その女、誰？', delay: 60, isRight: false },
             { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩',character2: 'kagami.png', spriteIndex2: 0, text: '千華!?　お前どうしてここに！', isRight: true },
@@ -117,7 +123,7 @@ scenarios.igari = {
         ] 
     },
     3: {
-        stgId: 'shiina', // ★追加！
+        stgId: 'shiina',
         adv: [
             { bg: 'hospital.png', place: 'Hospital', time: '2025.05', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '・・・病院？', delay: 60, isRight: true },
             { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'こんなところに助っ人がいるの？', isRight: true },
