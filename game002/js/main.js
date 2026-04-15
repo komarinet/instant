@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.1"; // バージョン更新（yakerin.pngへのファイル名修正）
+const VER_MAIN = "0.3.2"; // バージョン更新（breakplane.pngのプリロード追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -17,13 +17,14 @@ let stgManager = null;
 // 3D背景マネージャーのグローバル変数
 let bgManager3D = null;
 
-// ★修正：burned_mountain.png を yakerin.png に変更しました
+// ★修正：breakplane.png を追加しました
 const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
+    'breakplane.png', // ← ココに追加
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
-    'hospital.png', 'mountain.png', 'yakerin.png', // ← ココを修正
+    'hospital.png', 'mountain.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png'
 ];
 
