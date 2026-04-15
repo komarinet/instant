@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.0"; // バージョン更新（STGシステムとステージデータの完全分離）
+const VER_STG_CORE = "0.5.2"; // バージョン更新（stgId未定義時の自動判別セーフティ機能を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -91,9 +91,22 @@ class Enemy {
     constructor(type, x, y, charData, advManager, stgId) {
         this.type = type; this.x = x; this.y = y; this.startX = x; this.startY = y;
         this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
-        this.advManager = advManager; this.config = window.StageConfigs[stgId];
+        this.advManager = advManager; 
+        
+        // ★修正：シナリオ側でstgIdが未定義（他キャラ等）だった場合、自動でフォールバックしてエラー落ちを防ぐ
+        if (!stgId) {
+            if (typeof currentStage !== 'undefined') {
+                if (currentStage === 1) stgId = 'kagami';
+                else if (currentStage === 2) stgId = 'hiragi';
+                else if (currentStage === 3) stgId = 'shiina';
+                else stgId = 'kagami';
+            } else {
+                stgId = 'kagami';
+            }
+        }
+        this.config = window.StageConfigs[stgId] || {};
 
-        const data = this.config.getEnemyData(type);
+        const data = this.config.getEnemyData ? this.config.getEnemyData(type) : { imgSrc: null, size: 20, hp: 1, maxHp: 1 };
         this.imgSrc = data.imgSrc; this.size = data.size; this.hp = data.hp; this.maxHp = data.maxHp || data.hp;
         if(data.init) data.init(this);
     }
@@ -128,10 +141,23 @@ class STGManager {
     constructor(canvas, charData, stgId) {
         this.player = new Player(charData); this.player.initPosition(canvas);
         this.enemies = []; this.enemyBullets = []; this.items = []; this.frame = 0; this.bossSpawned = false;
-        this.stageTimer = 0; this.isStageClear = false; this.stgId = stgId;
+        this.stageTimer = 0; this.isStageClear = false; 
         this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
         
-        this.config = window.StageConfigs[stgId];
+        // ★修正：シナリオ側でstgIdが未定義（他キャラ等）だった場合、進行不能を回避して自動判別
+        this.stgId = stgId;
+        if (!this.stgId) {
+            if (typeof currentStage !== 'undefined') {
+                if (currentStage === 1) this.stgId = 'kagami';
+                else if (currentStage === 2) this.stgId = 'hiragi';
+                else if (currentStage === 3) this.stgId = 'shiina';
+                else this.stgId = 'kagami';
+            } else {
+                this.stgId = 'kagami';
+            }
+        }
+        
+        this.config = window.StageConfigs[this.stgId] || {};
         if (this.config && this.config.init) this.config.init(this, canvas);
     }
     updateEntrance() { const c = document.getElementById('gameCanvas'); this.player.update(c); return !this.player.isEntering; }
@@ -190,7 +216,12 @@ class STGManager {
     draw(ctx) {
         const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
         
-        if (this.config.drawBackground) this.config.drawBackground(this, ctx, sW, sH);
+        if (this.config.drawBackground) {
+            this.config.drawBackground(this, ctx, sW, sH);
+        } else {
+            // ★修正：万が一背景データが未設定でも、画面を残像で汚さないための保険の黒塗り
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
+        }
 
         this.player.bullets.forEach(b => b.draw(ctx)); this.enemies.forEach(e => e.draw(ctx));
         this.enemyBullets.forEach(eb => eb.draw(ctx)); this.items.forEach(it => it.draw(ctx)); 
