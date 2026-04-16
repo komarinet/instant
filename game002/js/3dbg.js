@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.4"; // バージョン更新（ロウソクをさらに極小化＆5倍の2000本に大増量）
+const VER_3DBG = "0.2.5"; // バージョン更新（炎のシェーダーをリアル化し、ロウソク本体の明るさと透け感を向上）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -254,8 +254,9 @@ class BGManager3D {
     }
 
     createCandles() {
-        const numCandles = 2000; // ★5倍の2000本に大増量！
+        const numCandles = 2000; 
 
+        // ★修正：炎のシェーダーをより「リアルな火の形」と「明るさ」に書き換え
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0.0 } },
             vertexShader: `
@@ -276,19 +277,26 @@ class BGManager3D {
                 void main() {
                     vec2 p = vUv * 2.0 - 1.0; 
                     float offset = rand(vWorldPosition.xz);
-                    float t = uTime * 3.0 + offset * 10.0;
-                    p.x += sin(t + p.y * 3.0) * 0.15 * p.y;
-                    float d = length(vec2(p.x, max(0.0, p.y - 0.2))) * 1.5;
-                    float alpha = smoothstep(0.8, 0.2, d + p.y * 0.5);
-                    vec3 colorBottom = vec3(0.0, 0.4, 0.6); 
-                    vec3 colorMid = vec3(0.8, 0.0, 0.4);    
-                    vec3 colorTop = vec3(1.0, 0.5, 0.0);    
-                    vec3 colorCore = vec3(1.0, 1.0, 0.8);   
-                    vec3 col = mix(colorBottom, colorMid, smoothstep(-0.5, 0.0, p.y));
-                    col = mix(col, colorTop, smoothstep(0.0, 0.5, p.y));
+                    float t = uTime * 4.0 + offset * 10.0;
+                    
+                    // 上に行くほど風で揺れるような動き
+                    p.x += sin(t + p.y * 3.0) * 0.15 * max(0.0, p.y + 0.5);
+                    
+                    // 下が丸く、上がシュッと細くなるティアードロップ型
+                    float d = length(vec2(p.x * (1.5 - p.y), p.y + 0.3));
+                    float alpha = smoothstep(0.9, 0.1, d);
+                    
+                    // 炎のリアルな色の層（根本の青→オレンジ→黄）
+                    vec3 col = mix(vec3(0.0, 0.3, 0.8), vec3(1.0, 0.3, 0.0), smoothstep(-0.8, -0.3, p.y));
+                    col = mix(col, vec3(1.0, 0.8, 0.1), smoothstep(-0.3, 0.5, p.y));
+                    
+                    // 芯の強い白飛び（グロー感の強調）
                     float core = smoothstep(0.3, 0.0, d);
-                    col = mix(col, colorCore, core);
-                    float flicker = 0.7 + 0.3 * sin(t * 5.0 + offset);
+                    col = mix(col, vec3(1.0, 1.0, 1.0), core);
+                    
+                    // チカチカする自然な揺らぎ
+                    float flicker = 0.85 + 0.15 * sin(t * 3.0 + offset * 20.0);
+                    
                     gl_FragColor = vec4(col * flicker, alpha * flicker);
                 }
             `,
@@ -299,14 +307,17 @@ class BGManager3D {
         const baseWickGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 4);
         const baseFlameGeo = new THREE.PlaneGeometry(1, 1.5);
 
-        const sideMat = this.textures.candle ? new THREE.MeshPhongMaterial({ map: this.textures.candle }) : new THREE.MeshPhongMaterial({ color: 0x883311 });
-        const topMat = new THREE.MeshPhongMaterial({ color: 0x331100 }); 
-        const wickMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); 
+        // ★修正：ロウソク本体を明るい色にし、「Emissive（自己発光）」を足して透けて光っているように変更
+        const sideMat = this.textures.candle 
+            ? new THREE.MeshPhongMaterial({ map: this.textures.candle, emissive: 0x331100 }) 
+            : new THREE.MeshPhongMaterial({ color: 0xddccaa, emissive: 0x442211, shininess: 30 });
+        // ロウソクの上面（火に近い部分）はより強く透けて光る
+        const topMat = new THREE.MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
+        const wickMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
 
-        // ★サイズを劇的に小さく変更（元の約1/4サイズ）
-        const r = 0.8;  // 太さ
-        const h = 8;    // 高さ
-        const flameSize = r * 4.0; // 炎のサイズ（本体に対して少し大きめに主張させる）
+        const r = 0.8;  
+        const h = 8;    
+        const flameSize = r * 4.0; 
 
         for (let i = 0; i < numCandles; i++) {
             const candleGroup = new THREE.Group();
@@ -326,7 +337,6 @@ class BGManager3D {
             flameMesh.position.y = h + 1 + flameSize * 0.4; 
             candleGroup.add(flameMesh);
 
-            // ★数が増えたので、密集しすぎて重ならないように幅と奥行きの配置範囲を拡大
             candleGroup.position.x = (Math.random() - 0.5) * 400; 
             candleGroup.position.y = 0; 
             candleGroup.position.z = (Math.random() - 0.5) * 800 - 100; 
@@ -361,7 +371,6 @@ class BGManager3D {
             c.position.z += this.scrollSpeed;
 
             if (c.position.z > 40) {
-                // ★奥行きを広くしたので、手前から奥に戻る時のワープ位置もさらに奥へ変更
                 c.position.z -= 800; 
                 c.position.x = (Math.random() - 0.5) * 400;
             }
