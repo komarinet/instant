@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.1"; // バージョン更新（ロウソクを小型化し、無数に空中に浮かせる表現に変更）
+const VER_3DBG = "0.2.2"; // バージョン更新（ロウソクをワンサイズ統一＆400本に倍増し地面に林立させる）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -253,9 +253,9 @@ class BGManager3D {
         }
     }
 
-    // ★修正：ちっさいロウソクが無数に浮かぶ演出に変更
+    // ★修正：ワンサイズ統一＆400本の大量コピペで迫力ある群れに変更
     createCandles() {
-        const numCandles = 200; // ★大量に配置して群れを形成
+        const numCandles = 400; // ★一気に400本に！
 
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0.0 } },
@@ -296,6 +296,7 @@ class BGManager3D {
             transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
         });
 
+        // ベースとなる形（ジオメトリ）はたった1つだけ！これを使い回します。
         const baseBodyGeo = new THREE.CylinderGeometry(0.8, 1, 1, 8); 
         const baseWickGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 4);
         const baseFlameGeo = new THREE.PlaneGeometry(1, 1.5);
@@ -304,12 +305,13 @@ class BGManager3D {
         const topMat = new THREE.MeshPhongMaterial({ color: 0x331100 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); 
 
+        // ★サイズを完全に統一
+        const r = 3.5;  // 太さ
+        const h = 25;   // 高さ
+        const flameSize = r * 3.0; // 炎のサイズ
+
         for (let i = 0; i < numCandles; i++) {
             const candleGroup = new THREE.Group();
-
-            // ★サイズを劇的に小さくする
-            const r = Math.random() * 0.4 + 0.2; // 太さ
-            const h = Math.random() * 4 + 2;     // 高さ
 
             // 1. ロウソク本体
             const bodyMesh = new THREE.Mesh(baseBodyGeo, [sideMat, topMat, sideMat]); 
@@ -319,27 +321,20 @@ class BGManager3D {
 
             // 2. 黒い芯
             const wickMesh = new THREE.Mesh(baseWickGeo, wickMat);
-            wickMesh.scale.set(r, 1, r); // 芯も細く
-            wickMesh.position.y = h + 0.5; 
+            wickMesh.scale.set(1, 1, 1);
+            wickMesh.position.y = h + 1; 
             candleGroup.add(wickMesh);
 
-            // 3. 不安な炎（本体に対して少し大きめに）
-            const flameSize = r * 5.0; 
+            // 3. 炎
             const flameMesh = new THREE.Mesh(baseFlameGeo, this.flameMaterial);
             flameMesh.scale.set(flameSize, flameSize, 1);
-            flameMesh.position.y = h + 0.5 + flameSize * 0.4; 
+            flameMesh.position.y = h + 1 + flameSize * 0.4; 
             candleGroup.add(flameMesh);
 
-            // ★空中に配置する
-            candleGroup.position.x = (Math.random() - 0.5) * 200;
-            candleGroup.position.y = Math.random() * 60 + 5; // 高さ5～65の空間を漂う
-            candleGroup.position.z = (Math.random() - 0.5) * 400 - 50;
-
-            // ★個別の揺らぎパラメータを持たせる
-            candleGroup.userData = {
-                bobSpeed: Math.random() * 0.02 + 0.01,
-                bobOffset: Math.random() * Math.PI * 2
-            };
+            // ★地面にピッタリくっつけて、広い範囲に散らす
+            candleGroup.position.x = (Math.random() - 0.5) * 300; // 横幅を広めに
+            candleGroup.position.y = 0; // 高さは地面(0)で統一
+            candleGroup.position.z = (Math.random() - 0.5) * 600 - 100; // 奥行きも広めに
 
             candleGroup.visible = false; 
 
@@ -368,17 +363,12 @@ class BGManager3D {
         this.candles.forEach(c => {
             if (!c.visible) return; 
             
-            // 手前にスクロール
             c.position.z += this.scrollSpeed;
-            
-            // ★フワフワと上下に漂うアニメーション
-            c.position.y += Math.sin(this.flameMaterial.uniforms.uTime.value * c.userData.bobSpeed * 100 + c.userData.bobOffset) * 0.05;
 
-            // 画面手前を過ぎたら奥へリセット
+            // 画面の手前を過ぎたら奥へワープさせる
             if (c.position.z > 40) {
-                c.position.z -= 400;
-                c.position.x = (Math.random() - 0.5) * 200;
-                c.position.y = Math.random() * 60 + 5; // 高さも再配置
+                c.position.z -= 600; // 400本配置して奥行きを広くしたので、戻る位置も奥へ
+                c.position.x = (Math.random() - 0.5) * 300;
             }
             
             // 炎が常にカメラ（プレイヤー）の方を向くように
