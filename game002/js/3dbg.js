@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.3"; // バージョン更新（地面のスクロール方向が逆だった問題を修正）
+const VER_3DBG = "0.2.4"; // バージョン更新（ロウソクをさらに極小化＆5倍の2000本に大増量）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -254,7 +254,7 @@ class BGManager3D {
     }
 
     createCandles() {
-        const numCandles = 400; // 400本のまま
+        const numCandles = 2000; // ★5倍の2000本に大増量！
 
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0.0 } },
@@ -303,9 +303,10 @@ class BGManager3D {
         const topMat = new THREE.MeshPhongMaterial({ color: 0x331100 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); 
 
-        const r = 3.5;  
-        const h = 25;   
-        const flameSize = r * 3.0; 
+        // ★サイズを劇的に小さく変更（元の約1/4サイズ）
+        const r = 0.8;  // 太さ
+        const h = 8;    // 高さ
+        const flameSize = r * 4.0; // 炎のサイズ（本体に対して少し大きめに主張させる）
 
         for (let i = 0; i < numCandles; i++) {
             const candleGroup = new THREE.Group();
@@ -325,9 +326,10 @@ class BGManager3D {
             flameMesh.position.y = h + 1 + flameSize * 0.4; 
             candleGroup.add(flameMesh);
 
-            candleGroup.position.x = (Math.random() - 0.5) * 300; 
+            // ★数が増えたので、密集しすぎて重ならないように幅と奥行きの配置範囲を拡大
+            candleGroup.position.x = (Math.random() - 0.5) * 400; 
             candleGroup.position.y = 0; 
-            candleGroup.position.z = (Math.random() - 0.5) * 600 - 100; 
+            candleGroup.position.z = (Math.random() - 0.5) * 800 - 100; 
 
             candleGroup.visible = false; 
 
@@ -346,7 +348,6 @@ class BGManager3D {
         }
 
         if (this.ground && this.ground.material.map) {
-            // ★修正：地面の流れる向きを逆に修正（+= から -= に変更）
             this.ground.material.map.offset.y -= (this.scrollSpeed / 40);
         }
 
@@ -360,8 +361,9 @@ class BGManager3D {
             c.position.z += this.scrollSpeed;
 
             if (c.position.z > 40) {
-                c.position.z -= 600; 
-                c.position.x = (Math.random() - 0.5) * 300;
+                // ★奥行きを広くしたので、手前から奥に戻る時のワープ位置もさらに奥へ変更
+                c.position.z -= 800; 
+                c.position.x = (Math.random() - 0.5) * 400;
             }
             
             const flame = c.children[2];
