@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.5"; // バージョン更新（キャラクター左右振り分けのハードコードを撤廃しデータ駆動に修正）
+const VER_ADV = "0.4.6"; // バージョン更新（スプライトの余白を考慮し4行分割に統一）
 
 class ADVManager {
     constructor() {
@@ -261,7 +261,12 @@ class ADVManager {
         ctx.globalAlpha = charAlpha; 
 
         // ★★★ キャラクター描画（最適化版・行数判定＆左右指定処理） ★★★
-        const getRows = (key) => key === 'urashiina.png' ? 2 : (key === 'shiina.png' ? 3 : 4);
+        const getRows = (key) => {
+            // 画像ファイルが4x4の規格で作られている場合、絵がない行があっても全体としては4で割るのが正解です
+            if (key === 'shiina.png' || key === 'urashiina.png') return 4; 
+            if (key === 'igari01.png') return 3;
+            return 4; // kagami, hiragi01, igari02 など基本の立ち絵は4行フォーマット
+        };
 
         let mainDrawWidth = 0;
         let alignRight = true;
@@ -273,7 +278,6 @@ class ADVManager {
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
             mainDrawWidth = (Math.floor(mainImg.width / 4) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
-            // ★修正：シナリオデータでの explicit な指示を最優先。指定がなければ主人公（igari）のみ右をデフォルトとする。
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
             alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
         }
