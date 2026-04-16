@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.4"; // バージョン更新（スキップボタンの表示タイミングとクリア後のスキップ遷移先を修正）
+const VER_MAIN = "0.3.5"; // バージョン更新（手動修正の保持 ＋ スキップボタンの表示タイミングと遷移先を修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -23,7 +23,7 @@ const imagesToPreload = [
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
-    'hospital.png', 'mountain.png', 'yakerin.png', 
+    'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png'
 ];
 
@@ -65,7 +65,7 @@ function updatePreview() {
 function changeScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
-    
+   
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) {
         if (gameState.includes('ADV') || gameState.includes('DIALOGUE')) {
@@ -86,7 +86,7 @@ initCharSelect();
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
-    
+   
     const oldVerText = document.querySelector('.version-info-panel');
     if (oldVerText) oldVerText.remove();
 
@@ -147,10 +147,10 @@ showVersions();
 let dpr = 1;
 function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
-    
+   
     const width = document.documentElement.clientWidth;
     const height = document.documentElement.clientHeight;
-    
+   
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     canvas.width = width * dpr;
@@ -178,7 +178,7 @@ resizeCanvas();
 // --- スキップ機能 ---
 function skipADV() {
     advManager.isActive = false;
-    
+   
     // ★修正1：クリア後のADV（POST_STG）でスキップした場合は、STAGE_STARTではなくSTAGE_CLEARへ移行させる
     if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE') {
         gameState = 'STAGE_START_TEXT';
@@ -196,7 +196,7 @@ function skipADV() {
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
     }
-    
+   
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) skipBtn.classList.add('hidden');
 }
@@ -218,7 +218,7 @@ const load3D = new Promise((resolve) => {
 Promise.all([loadADV, load3D]).then(() => {
     bgManager3D.init(); 
     isPreloadCompleted = true;
-    
+   
     const stageList = document.getElementById('stage-list');
     if (stageList) {
         const stageTexts = [
@@ -267,7 +267,7 @@ function executeStart(stageNum) {
             currentStage = 1;
             const stgId = charScenario[currentStage].stgId || 'kagami';
             stgManager = new STGManager(canvas, charData, stgId);
-            
+           
             gameState = 'ADV';
             advManager.start(charScenario['kagami_arrival'], () => {
                 gameState = 'PRE_STG_DIALOGUE';
@@ -284,7 +284,7 @@ function executeStart(stageNum) {
     } else {
         currentStage = stageNum;
         const stageData = charScenario[currentStage];
-        
+       
         if (!stageData) {
             alert(`【エラー】ステージ ${currentStage} のデータがありません。\nscenario_${selectedCharId}.js を確認してください。`);
             changeScreen('title-screen');
@@ -293,7 +293,7 @@ function executeStart(stageNum) {
 
         const stgId = stageData.stgId || 'kagami';
         stgManager = new STGManager(canvas, charData, stgId);
-        
+       
         gameState = 'ADV';
         advManager.start(stageData.adv || [], () => {
             gameState = 'PRE_STG_DIALOGUE';
@@ -359,7 +359,7 @@ canvas.addEventListener('touchend', e => { isTouching = false; });
 // --- メインループ ---
 function loop() {
     if (gameState === 'UI') return;
-    
+   
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) {
         if (!gameState.includes('ADV') && !gameState.includes('DIALOGUE')) {
@@ -381,7 +381,7 @@ function loop() {
         stgManager.draw(ctx);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(0, canvas.height / dpr / 2 - 40, canvas.width / dpr, 80);
-        
+       
         ctx.fillStyle = '#fff';
         ctx.font = 'bold 30px "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
@@ -400,7 +400,7 @@ function loop() {
     else if (gameState === 'STG_PLAY') {
         const status = stgManager.updateGameplay();
         stgManager.draw(ctx);
-        
+       
         if (status === 'GAMEOVER') {
             gameState = 'UI';
             document.getElementById('result-title').innerText = "GAME OVER";
@@ -426,7 +426,7 @@ function loop() {
         stgManager.draw(ctx);
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
         ctx.fillRect(0, canvas.height / dpr / 2 - 40, canvas.width / dpr, 80);
-        
+       
         ctx.fillStyle = '#00ffff';
         ctx.font = 'bold 30px "Segoe UI", sans-serif';
         ctx.textAlign = 'center';
@@ -441,7 +441,7 @@ function loop() {
     }
     else if (gameState === 'TRANSITION_FADE') {
         ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-        
+       
         transitionTimer--;
         if(transitionTimer <= 0) {
             currentStage++;
@@ -450,11 +450,11 @@ function loop() {
                 const stageData = charScenario[currentStage];
                 const stgId = stageData.stgId || 'kagami';
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
-                
+               
                 gameState = 'ADV';
-                // ★修正2：次のステージ（例: ステージ3）のADV開始時にスキップボタンを表示する処理を追加！
+                // ★修正2：次のステージのADV開始時にスキップボタンを表示する処理を追加！
                 if (skipBtn) skipBtn.classList.remove('hidden');
-                
+
                 advManager.start(stageData.adv || [], () => {
                     gameState = 'PRE_STG_DIALOGUE';
                     if (skipBtn) skipBtn.classList.remove('hidden');
