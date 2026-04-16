@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.3.4"; // バージョン更新（第1話のpost_stgがpre_stgに混入していたミスを修正）
+const VER_SCENARIO_IGARI = "0.3.6"; // バージョン更新（ステージ2のpost_stgにおけるカンマ抜けを今度こそ完全に修正）
 
 // 猪狩 俊基ルートのシナリオデータ
 
@@ -58,14 +58,14 @@ scenarios.igari = {
     1: {
         stgId: 'kagami',
         adv: [], 
-        // ★修正：ここに入っていた各務のセリフを削除し、正しく post_stg に移動しました
         pre_stg: [], 
         post_stg: [
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいだろう。第１関門は合格だ' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '私が君をタイムリープさせた' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）だ' },
-                  ]
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
+        ]
     },
     2: { 
         stgId: 'hiragi', 
@@ -119,7 +119,7 @@ scenarios.igari = {
             { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '私がこの世界を１年間巻き戻したというわけだ', isRight: true },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 8, speaker: '柊', text: 'ちょっと待って。運命見てみる・・・', isRight: false },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'んんーー？　変わってないわよ', isRight: false },
-            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '世界を変えるのは簡単なことじゃない', isRight: true }
+            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '世界を変えるのは簡単なことじゃない', isRight: true }, // ★今度こそ確実にカンマを挿入しました！
             { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '協力者が必要だ。ついてこい', isRight: true }
         ] 
     },
