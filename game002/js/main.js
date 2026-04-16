@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.3"; // バージョン更新（シナリオデータ欠損時のフリーズ防止・警告アラート機能を追加）
+const VER_MAIN = "0.3.4"; // バージョン更新（スキップボタンの表示タイミングとクリア後のスキップ遷移先を修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -23,7 +23,7 @@ const imagesToPreload = [
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
-    'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
+    'hospital.png', 'mountain.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png'
 ];
 
@@ -178,7 +178,9 @@ resizeCanvas();
 // --- スキップ機能 ---
 function skipADV() {
     advManager.isActive = false;
-    if (gameState === 'ADV') {
+    
+    // ★修正1：クリア後のADV（POST_STG）でスキップした場合は、STAGE_STARTではなくSTAGE_CLEARへ移行させる
+    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE') {
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
         const charData = characters.find(c => c.id === selectedCharId);
@@ -187,10 +189,14 @@ function skipADV() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, charData, stgId);
         }
+    } else if (gameState === 'POST_STG_DIALOGUE') {
+        gameState = 'STAGE_CLEAR_TEXT';
+        transitionTimer = 90;
     } else {
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
     }
+    
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) skipBtn.classList.add('hidden');
 }
@@ -243,7 +249,6 @@ function executeStart(stageNum) {
     const charData = characters.find(c => c.id === selectedCharId);
     const charScenario = scenarios[selectedCharId];
 
-    // ★安全装置1：もし対象キャラのシナリオデータが空なら警告して戻る
     if (!charScenario || Object.keys(charScenario).length === 0) {
         alert(`【エラー】\nシナリオデータが読み込まれていません！\nscenario_${selectedCharId}.js の記述（カンマ抜け等の構文エラー）を確認してください。`);
         changeScreen('title-screen');
@@ -251,7 +256,6 @@ function executeStart(stageNum) {
     }
 
     if (stageNum === 1) {
-        // ★安全装置2：第1話のデータが欠損している場合
         if (!charScenario['opening'] || !charScenario[1]) {
             alert(`【エラー】第1話のデータがありません。\nscenario_${selectedCharId}.js を確認してください。`);
             changeScreen('title-screen');
@@ -281,7 +285,6 @@ function executeStart(stageNum) {
         currentStage = stageNum;
         const stageData = charScenario[currentStage];
         
-        // ★安全装置3：選択したステージのデータが欠損している場合
         if (!stageData) {
             alert(`【エラー】ステージ ${currentStage} のデータがありません。\nscenario_${selectedCharId}.js を確認してください。`);
             changeScreen('title-screen');
@@ -292,7 +295,6 @@ function executeStart(stageNum) {
         stgManager = new STGManager(canvas, charData, stgId);
         
         gameState = 'ADV';
-        // 万が一 adv が空でも、空配列を渡せば自動スキップされる
         advManager.start(stageData.adv || [], () => {
             gameState = 'PRE_STG_DIALOGUE';
             if (skipBtn) skipBtn.classList.remove('hidden');
@@ -450,6 +452,9 @@ function loop() {
                 stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
                 
                 gameState = 'ADV';
+                // ★修正2：次のステージ（例: ステージ3）のADV開始時にスキップボタンを表示する処理を追加！
+                if (skipBtn) skipBtn.classList.remove('hidden');
+                
                 advManager.start(stageData.adv || [], () => {
                     gameState = 'PRE_STG_DIALOGUE';
                     if (skipBtn) skipBtn.classList.remove('hidden');
