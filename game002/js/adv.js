@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.6"; // バージョン更新（スプライトの余白を考慮し4行分割に統一）
+const VER_ADV = "0.4.7"; // バージョン更新（urashiina.pngの2行分割対応）
 
 class ADVManager {
     constructor() {
@@ -185,7 +185,7 @@ class ADVManager {
             slideX = -this.slideTimer;
         }
 
-        // ★★★ 背景描画 / マスク侵食エフェクト ★★★
+        // 背景描画 / マスク侵食エフェクト
         if (currentMsg.maskBg && currentMsg.bg) {
             const topBg = this.assets[currentMsg.bg]; 
             const bottomBg = this.assets[currentMsg.maskBg]; 
@@ -260,12 +260,13 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // ★★★ キャラクター描画（最適化版・行数判定＆左右指定処理） ★★★
+        // キャラクター描画（最適化版・行数判定＆左右指定処理）
         const getRows = (key) => {
-            // 画像ファイルが4x4の規格で作られている場合、絵がない行があっても全体としては4で割るのが正解です
-            if (key === 'shiina.png' || key === 'urashiina.png') return 4; 
+            // ★修正：urashiina.pngのみ2行で計算。shiina.pngは余白ありの4行で計算。
+            if (key === 'urashiina.png') return 2; 
+            if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
-            return 4; // kagami, hiragi01, igari02 など基本の立ち絵は4行フォーマット
+            return 4; // 基本の立ち絵は4行フォーマット
         };
 
         let mainDrawWidth = 0;
