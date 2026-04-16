@@ -23,7 +23,7 @@ const imagesToPreload = [
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
-    'hospital.png', 'mountain.png', 'yakerin.png', 
+    'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png'
 ];
 
