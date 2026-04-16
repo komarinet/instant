@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.2"; // バージョン更新（ロウソクをワンサイズ統一＆400本に倍増し地面に林立させる）
+const VER_3DBG = "0.2.3"; // バージョン更新（地面のスクロール方向が逆だった問題を修正）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -253,9 +253,8 @@ class BGManager3D {
         }
     }
 
-    // ★修正：ワンサイズ統一＆400本の大量コピペで迫力ある群れに変更
     createCandles() {
-        const numCandles = 400; // ★一気に400本に！
+        const numCandles = 400; // 400本のまま
 
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0.0 } },
@@ -296,7 +295,6 @@ class BGManager3D {
             transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
         });
 
-        // ベースとなる形（ジオメトリ）はたった1つだけ！これを使い回します。
         const baseBodyGeo = new THREE.CylinderGeometry(0.8, 1, 1, 8); 
         const baseWickGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 4);
         const baseFlameGeo = new THREE.PlaneGeometry(1, 1.5);
@@ -305,36 +303,31 @@ class BGManager3D {
         const topMat = new THREE.MeshPhongMaterial({ color: 0x331100 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x000000 }); 
 
-        // ★サイズを完全に統一
-        const r = 3.5;  // 太さ
-        const h = 25;   // 高さ
-        const flameSize = r * 3.0; // 炎のサイズ
+        const r = 3.5;  
+        const h = 25;   
+        const flameSize = r * 3.0; 
 
         for (let i = 0; i < numCandles; i++) {
             const candleGroup = new THREE.Group();
 
-            // 1. ロウソク本体
             const bodyMesh = new THREE.Mesh(baseBodyGeo, [sideMat, topMat, sideMat]); 
             bodyMesh.scale.set(r, h, r);
             bodyMesh.position.y = h / 2; 
             candleGroup.add(bodyMesh);
 
-            // 2. 黒い芯
             const wickMesh = new THREE.Mesh(baseWickGeo, wickMat);
             wickMesh.scale.set(1, 1, 1);
             wickMesh.position.y = h + 1; 
             candleGroup.add(wickMesh);
 
-            // 3. 炎
             const flameMesh = new THREE.Mesh(baseFlameGeo, this.flameMaterial);
             flameMesh.scale.set(flameSize, flameSize, 1);
             flameMesh.position.y = h + 1 + flameSize * 0.4; 
             candleGroup.add(flameMesh);
 
-            // ★地面にピッタリくっつけて、広い範囲に散らす
-            candleGroup.position.x = (Math.random() - 0.5) * 300; // 横幅を広めに
-            candleGroup.position.y = 0; // 高さは地面(0)で統一
-            candleGroup.position.z = (Math.random() - 0.5) * 600 - 100; // 奥行きも広めに
+            candleGroup.position.x = (Math.random() - 0.5) * 300; 
+            candleGroup.position.y = 0; 
+            candleGroup.position.z = (Math.random() - 0.5) * 600 - 100; 
 
             candleGroup.visible = false; 
 
@@ -353,7 +346,8 @@ class BGManager3D {
         }
 
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y += (this.scrollSpeed / 40);
+            // ★修正：地面の流れる向きを逆に修正（+= から -= に変更）
+            this.ground.material.map.offset.y -= (this.scrollSpeed / 40);
         }
 
         if (this.flameMaterial) {
@@ -365,13 +359,11 @@ class BGManager3D {
             
             c.position.z += this.scrollSpeed;
 
-            // 画面の手前を過ぎたら奥へワープさせる
             if (c.position.z > 40) {
-                c.position.z -= 600; // 400本配置して奥行きを広くしたので、戻る位置も奥へ
+                c.position.z -= 600; 
                 c.position.x = (Math.random() - 0.5) * 300;
             }
             
-            // 炎が常にカメラ（プレイヤー）の方を向くように
             const flame = c.children[2];
             if (flame && this.camera) {
                 flame.quaternion.copy(this.camera.quaternion);
