@@ -24,7 +24,7 @@ const imagesToPreload = [
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
     'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
-    'shiina.png', 'urashiina.png'
+    'shiina.png', 'urashiina.png','baku01.png'
 ];
 
 const imagesToPreload3D = [
