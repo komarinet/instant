@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.6"; // バージョン更新（リトライ時にステージ番号とSTGデータが正しくリセットされない進行不能バグを修正）
+const VER_MAIN = "0.3.8"; // バージョン更新（igari_jiki.png のファイル名を小文字に修正）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -24,7 +24,9 @@ const imagesToPreload = [
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
     'darkcandle.png',
     'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
-    'shiina.png', 'urashiina.png','baku01.png'
+    'shiina.png', 'urashiina.png',
+    'baku01.png',
+    'igari_jiki.png' // ★小文字に修正しました
 ];
 
 const imagesToPreload3D = [
@@ -245,7 +247,6 @@ function executeStart(stageNum) {
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) skipBtn.classList.remove('hidden');
 
-    // ★修正箇所：ゲーム開始時に即座に現在のステージ番号をセットし、古いSTGデータも破棄する！
     currentStage = stageNum;
     stgManager = null;
 
@@ -404,7 +405,7 @@ function loop() {
         
         if (status === 'GAMEOVER') {
             gameState = 'UI';
-            stgManager = null; // 念のためゲームオーバー時もリセット
+            stgManager = null; 
             document.getElementById('result-title').innerText = "GAME OVER";
             changeScreen('result-screen');
             return;
@@ -467,7 +468,7 @@ function loop() {
                 });
             } else {
                 gameState = 'UI';
-                stgManager = null; // 全クリ時にもリセット
+                stgManager = null; 
                 document.getElementById('result-title').innerText = "ALL CLEAR!";
                 document.getElementById('result-title').style.color = "#00ffff";
                 changeScreen('result-screen');
