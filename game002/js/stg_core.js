@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.6.1"; // バージョン更新（奥義の回数制限追加、カットイン画像を画面縦半分のサイズに調整）
+const VER_STG_CORE = "0.6.2"; // バージョン更新（カットインの1/3サイズ調整と、画像読み込み計算時のクラッシュ防止措置）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -7,7 +7,6 @@ class Player {
         this.id = charData.id; this.name = charData.name; this.color = charData.color;
         this.x = 0; this.y = 0; this.size = 20; this.speed = 5; this.bullets = []; this.isEntering = true; 
         this.maxHp = 5; this.hp = this.maxHp; this.invincibleTimer = 0; this.powerLevel = 0; 
-        // ★新規追加：奥義の使用可能回数（デフォルト3回）
         this.bombs = 3; 
     }
     initPosition(canvas) { const dpr = window.devicePixelRatio || 1; this.x = canvas.width / dpr / 2; this.y = canvas.height / dpr + this.size * 2; }
@@ -30,9 +29,9 @@ class Player {
             img = advManager.assets['igari_jiki.png'];
         }
 
-        if (img && img.naturalWidth > 0) {
+        if (img && img.naturalHeight > 0) {
             const drawWidth = 60;
-            const drawHeight = drawWidth * (img.height / img.width);
+            const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
             ctx.drawImage(img, this.x - drawWidth / 2, this.y - drawHeight / 2, drawWidth, drawHeight);
             
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
@@ -219,22 +218,25 @@ class BombLaser {
 
     draw(ctx) {
         ctx.save();
-        if (this.state === 'WINDUP') {
-            const gradient = ctx.createLinearGradient(0, this.sH, 0, this.sH - this.windupHeight);
-            gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-            gradient.addColorStop(0.5, 'rgba(200, 0, 255, 0.8)');
-            gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, this.sH - this.windupHeight, this.sW, this.windupHeight);
-            
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 10;
-            ctx.shadowColor = 'magenta';
-            ctx.shadowBlur = 20;
-            ctx.beginPath();
-            ctx.moveTo(0, this.sH - this.windupHeight);
-            ctx.lineTo(this.sW, this.sH - this.windupHeight);
-            ctx.stroke();
+        if (this.state === 'WINDUP' && this.windupHeight > 0) {
+            const targetY = Math.max(0, this.sH - this.windupHeight);
+            if (targetY < this.sH) {
+                const gradient = ctx.createLinearGradient(0, this.sH, 0, targetY);
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+                gradient.addColorStop(0.5, 'rgba(200, 0, 255, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, targetY, this.sW, this.windupHeight);
+                
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 10;
+                ctx.shadowColor = 'magenta';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.moveTo(0, targetY);
+                ctx.lineTo(this.sW, targetY);
+                ctx.stroke();
+            }
         }
         else if (this.state === 'BEAM') {
             ctx.globalAlpha = this.beamAlpha;
@@ -377,10 +379,9 @@ class STGManager {
     }
 
     triggerBomb() {
-        // ★奥義の残弾数が1以上の時だけ発動
         if (this.player.id !== 'igari' || this.bombState !== 'READY' || this.player.bombs <= 0) return;
         
-        this.player.bombs--; // 奥義を消費
+        this.player.bombs--; 
         
         this.bombState = 'ANIM_IN';
         this.bombTimer = 0;
@@ -389,7 +390,6 @@ class STGManager {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1;
         this.bombCutin.x = canvas.width / dpr; 
         
-        // ★中心位置を下げる（画面下半分にカットインを置くため）
         this.bombCutin.y = (canvas.height / dpr) * 0.7; 
         this.bombCutin.img = (this.advManager && this.advManager.assets) ? this.advManager.assets['igaribomb.png'] : null;
         
@@ -407,12 +407,17 @@ class STGManager {
             
             if (this.bombState === 'ANIM_IN') {
                 if (this.bombTimer < 30) {
-                    // ★カットインが画面縦半分のサイズになるように計算し、中心位置を止める
-                    const imgH = sH * 0.5;
-                    const imgW = this.bombCutin.img ? imgH * (this.bombCutin.img.width / this.bombCutin.img.height) : 200;
-                    const targetX = sW - (imgW * 0.5 + 20); 
+                    // ★安全にカットインの横幅と目標位置を計算する
+                    const imgH = sH / 3;
+                    let imgW = 200; // 計算失敗時の安全なデフォルト値
                     
-                    this.bombCutin.x -= (this.bombCutin.x - targetX) * 0.2; // 少しシュバッと入れる
+                    // naturalHeightが0(未ロード)のときに割り算するとNaNになりエラーで落ちるのを防ぐ
+                    if (this.bombCutin.img && this.bombCutin.img.naturalHeight > 0) {
+                        imgW = imgH * (this.bombCutin.img.naturalWidth / this.bombCutin.img.naturalHeight);
+                    }
+                    
+                    const targetX = sW - (imgW * 0.5 + 20); 
+                    this.bombCutin.x -= (this.bombCutin.x - targetX) * 0.2; 
                 }
                 else if (this.bombTimer >= 60 && this.bombTimer < 80) {
                     this.bombCutin.x -= 20; 
@@ -557,7 +562,10 @@ class STGManager {
             this.config.drawBackground(this, ctx, sW, sH);
         } else {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
-            // 3D背景がある場合は描画しない
+            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif';
+            ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
+            ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
+            ctx.fillText(`・stg_${this.stgId}.js が index.html に記述されているか確認してください。`, 20, 90);
         }
 
         this.player.bullets.forEach(b => b.draw(ctx)); 
@@ -568,19 +576,22 @@ class STGManager {
         
         this.player.draw(ctx, this.advManager); 
         
+        // ★安全にカットインを描画
         if (this.bombState === 'ANIM_IN' && this.bombCutin.img && this.bombTimer < 80) {
-            ctx.save();
-            ctx.translate(-shakeX, -shakeY); 
-            
-            // ★カットイン画像を「縦画面の半分(sH * 0.5)」のサイズで描画
-            const imgH = sH * 0.5;
-            const imgW = imgH * (this.bombCutin.img.width / this.bombCutin.img.height);
-            
-            ctx.drawImage(this.bombCutin.img, 
-                          this.bombCutin.x - imgW * 0.5, 
-                          this.bombCutin.y - imgH * 0.5,
-                          imgW, imgH);
-            ctx.restore();
+            // 画像が完全に読み込まれている場合のみ描画（NaNエラー防止）
+            if (this.bombCutin.img.naturalHeight > 0) {
+                ctx.save();
+                ctx.translate(-shakeX, -shakeY); 
+                
+                const imgH = sH / 3;
+                const imgW = imgH * (this.bombCutin.img.naturalWidth / this.bombCutin.img.naturalHeight);
+                
+                ctx.drawImage(this.bombCutin.img, 
+                              this.bombCutin.x - imgW * 0.5, 
+                              this.bombCutin.y - imgH * 0.5,
+                              imgW, imgH);
+                ctx.restore();
+            }
         }
         
         if (this.bombLaser) {
