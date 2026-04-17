@@ -1,256 +1,6 @@
-const VER_STG_CORE = "0.6.2"; // バージョン更新（カットインの1/3サイズ調整と、画像読み込み計算時のクラッシュ防止措置）
+const VER_STG_CORE = "0.7.0"; // バージョン大幅更新（Player, Bullet等の共通部品を分離・完全リファクタリング）
 
 window.StageConfigs = window.StageConfigs || {};
-
-class Player {
-    constructor(charData) {
-        this.id = charData.id; this.name = charData.name; this.color = charData.color;
-        this.x = 0; this.y = 0; this.size = 20; this.speed = 5; this.bullets = []; this.isEntering = true; 
-        this.maxHp = 5; this.hp = this.maxHp; this.invincibleTimer = 0; this.powerLevel = 0; 
-        this.bombs = 3; 
-    }
-    initPosition(canvas) { const dpr = window.devicePixelRatio || 1; this.x = canvas.width / dpr / 2; this.y = canvas.height / dpr + this.size * 2; }
-    update(canvas) {
-        const dpr = window.devicePixelRatio || 1;
-        if (this.invincibleTimer > 0) this.invincibleTimer--;
-        if (this.isEntering) {
-            const tY = canvas.height / dpr * 0.8; this.y -= (this.y - tY) * 0.05;
-            if (Math.abs(this.y - tY) < 1) { this.y = tY; this.isEntering = false; } return; 
-        }
-        if (this.x < this.size) this.x = this.size; if (this.x > canvas.width/dpr - this.size) this.x = canvas.width/dpr - this.size;
-        if (this.y < this.size) this.y = this.size; if (this.y > canvas.height/dpr - this.size) this.y = canvas.height/dpr - this.size;
-    }
-    
-    draw(ctx, advManager) {
-        if (this.invincibleTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) return; 
-        
-        let img = null;
-        if (this.id === 'igari' && advManager && advManager.assets) {
-            img = advManager.assets['igari_jiki.png'];
-        }
-
-        if (img && img.naturalHeight > 0) {
-            const drawWidth = 60;
-            const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
-            ctx.drawImage(img, this.x - drawWidth / 2, this.y - drawHeight / 2, drawWidth, drawHeight);
-            
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, 4, 0, Math.PI*2);
-            ctx.fill();
-        } else {
-            ctx.fillStyle = this.color; ctx.beginPath();
-            ctx.moveTo(this.x, this.y - this.size); ctx.lineTo(this.x - this.size, this.y + this.size); ctx.lineTo(this.x + this.size, this.y + this.size);
-            ctx.closePath(); ctx.fill();
-        }
-    }
-    
-    shoot() {
-        if (this.isEntering) return;
-        const bS = 10;
-        if (this.powerLevel === 0) { this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id)); }
-        else if (this.powerLevel === 1) { this.bullets.push(new Bullet(this.x - 5, this.y - this.size, 0, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0, -bS, this.color, null, this.id)); }
-        else if (this.powerLevel === 2) {
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color, null, this.id));
-        }
-        else if (this.powerLevel === 3) {
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color, null, this.id));
-        }
-        else if (this.powerLevel === 4) {
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2, -bS, this.color, null, this.id));
-        }
-        else if (this.powerLevel === 5) {
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color, null, this.id));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2.5, -bS, this.color, null, this.id));
-        }
-        else if (this.powerLevel === 6) { for (let i = -3; i <= 3; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color, null, this.id)); }
-        else if (this.powerLevel === 7) { for (let i = -3; i <= 4; i++) this.bullets.push(new Bullet(this.x - 2.5, this.y - this.size, (i - 0.5) * 1.0, -bS, this.color, null, this.id)); }
-        else if (this.powerLevel >= 8) { for (let i = -4; i <= 4; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color, null, this.id)); }
-    }
-}
-
-class Bullet {
-    constructor(x, y, vx, vy, color, text = null, shooterId = null) {
-        this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.size = text ? 12 : 4; this.color = color; this.text = text; this.alive = true;
-        this.shooterId = shooterId; 
-    }
-    update(canvas) {
-        this.x += this.vx; this.y += this.vy; const dpr = window.devicePixelRatio || 1;
-        if (this.y < -this.size * 4 || this.y > canvas.height/dpr + this.size * 4 || this.x < -this.size * 4 || this.x > canvas.width/dpr + this.size * 4) this.alive = false;
-    }
-    draw(ctx) {
-        if (this.text) {
-            ctx.fillStyle = this.color; ctx.font = 'bold 20px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(255,255,255,0.8)'; ctx.shadowBlur = 5; ctx.fillText(this.text, this.x, this.y);
-            ctx.shadowBlur = 0; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        } else if (this.shooterId === 'igari') {
-            ctx.save();
-            ctx.translate(this.x, this.y);
-            const angle = Math.atan2(this.vy, this.vx);
-            ctx.rotate(angle);
-            const length = this.size * 2.5; 
-            ctx.shadowColor = this.color;
-            ctx.shadowBlur = this.size * 2.5; 
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = this.size;
-            ctx.lineCap = 'round'; 
-            ctx.beginPath();
-            ctx.moveTo(-length, 0);
-            ctx.lineTo(length, 0);
-            ctx.stroke();
-            ctx.shadowBlur = 0; 
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = this.size * 0.4;
-            ctx.beginPath();
-            ctx.moveTo(-length * 0.8, 0);
-            ctx.lineTo(length * 0.8, 0);
-            ctx.stroke();
-            ctx.restore();
-        } else {
-            ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
-        }
-    }
-}
-
-class Item {
-    constructor(type, x, y) { this.type = type; this.x = x; this.y = y; this.size = 15; this.alive = true; this.vy = 2; this.angle = 0; }
-    update(canvas) { this.y += this.vy; this.angle += 0.1; this.x += Math.sin(this.angle) * 1; if (this.y > canvas.height/(window.devicePixelRatio||1) + this.size) this.alive = false; }
-    draw(ctx) {
-        ctx.fillStyle = this.type === 'power' ? '#ffaa00' : '#33ff33'; ctx.beginPath();
-        if (this.type === 'power') {
-            for (let i = 0; i < 5; i++) { const ang = i * Math.PI * 2 / 5 - Math.PI / 2; ctx.lineTo(this.x + Math.cos(ang) * this.size, this.y + Math.sin(ang) * this.size); }
-        } else {
-            ctx.rect(this.x - this.size, this.y - this.size / 3, this.size * 2, this.size / 1.5); ctx.fill(); ctx.beginPath(); ctx.rect(this.x - this.size / 3, this.y - this.size, this.size / 1.5, this.size * 2);
-        }
-        ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(this.type === 'power' ? 'P' : 'H', this.x, this.y + 6); ctx.textAlign = 'left'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    }
-}
-
-class Explosion {
-    constructor(x, y, targetSize, advManager) {
-        this.x = x; 
-        this.y = y;
-        this.targetSize = targetSize * 1.5; 
-        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.png'] : null;
-        this.isDead = false;
-
-        this.cols = 3; 
-        this.rows = 3; 
-        this.frameIndex = 0;
-        this.totalFrames = this.cols * this.rows; 
-        
-        this.timer = 0;
-        this.interval = 3; 
-
-        if (this.img && this.img.naturalWidth > 0) {
-            this.sw = this.img.width / this.cols;
-            this.sh = this.img.height / this.rows;
-        } else {
-            this.isDead = true; 
-        }
-    }
-
-    update() {
-        if (this.isDead) return;
-        this.timer++;
-        if (this.timer >= this.interval) {
-            this.timer = 0;
-            this.frameIndex++;
-            if (this.frameIndex >= this.totalFrames) {
-                this.isDead = true; 
-            }
-        }
-    }
-
-    draw(ctx) {
-        if (this.isDead || !this.img) return;
-        const fx = this.frameIndex % this.cols;
-        const fy = Math.floor(this.frameIndex / this.cols);
-        const cx = fx * this.sw;
-        const cy = fy * this.sh;
-
-        ctx.drawImage(
-            this.img,
-            cx, cy, this.sw, this.sh,
-            this.x - this.targetSize / 2, this.y - this.targetSize / 2, this.targetSize, this.targetSize
-        );
-    }
-}
-
-class BombLaser {
-    constructor(canvasWidth, canvasHeight) {
-        this.sW = canvasWidth;
-        this.sH = canvasHeight;
-        this.alive = true;
-        this.state = 'WINDUP'; 
-        this.timer = 0;
-        this.windupHeight = 0;
-        this.windupDuration = 30; 
-        this.beamDuration = 60; 
-        this.beamAlpha = 1.0;
-    }
-
-    update() {
-        this.timer++;
-        if (this.state === 'WINDUP') {
-            const progress = this.timer / this.windupDuration;
-            this.windupHeight = this.sH * progress; 
-            if (this.timer >= this.windupDuration) {
-                this.state = 'BEAM';
-                this.timer = 0;
-            }
-        } 
-        else if (this.state === 'BEAM') {
-            this.beamAlpha = Math.max(0, 1.0 - (this.timer / this.beamDuration));
-            if (this.timer >= this.beamDuration) {
-                this.state = 'DONE';
-                this.alive = false;
-            }
-        }
-    }
-
-    draw(ctx) {
-        ctx.save();
-        if (this.state === 'WINDUP' && this.windupHeight > 0) {
-            const targetY = Math.max(0, this.sH - this.windupHeight);
-            if (targetY < this.sH) {
-                const gradient = ctx.createLinearGradient(0, this.sH, 0, targetY);
-                gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
-                gradient.addColorStop(0.5, 'rgba(200, 0, 255, 0.8)');
-                gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, targetY, this.sW, this.windupHeight);
-                
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 10;
-                ctx.shadowColor = 'magenta';
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                ctx.moveTo(0, targetY);
-                ctx.lineTo(this.sW, targetY);
-                ctx.stroke();
-            }
-        }
-        else if (this.state === 'BEAM') {
-            ctx.globalAlpha = this.beamAlpha;
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(0, 0, this.sW, this.sH);
-            ctx.fillStyle = 'rgba(100, 0, 255, 0.5)';
-            ctx.shadowColor = 'magenta';
-            ctx.shadowBlur = 50;
-            ctx.fillRect(0, 0, this.sW, this.sH);
-        }
-        ctx.restore();
-    }
-}
-
 
 class Enemy {
     constructor(type, x, y, charData, advManager, stgId) {
@@ -274,12 +24,8 @@ class Enemy {
         this.config = window.StageConfigs[stgId] || {};
 
         let data = null;
-        if (this.config.getEnemyData) {
-            data = this.config.getEnemyData(type);
-        }
-        if (!data) {
-            data = { imgSrc: null, size: 20, hp: 1, maxHp: 1 };
-        }
+        if (this.config.getEnemyData) { data = this.config.getEnemyData(type); }
+        if (!data) { data = { imgSrc: null, size: 20, hp: 1, maxHp: 1 }; }
 
         this.imgSrc = data.imgSrc; 
         this.size = data.size || 20; 
@@ -321,8 +67,7 @@ class Enemy {
                     ctx.imageSmoothingEnabled = false; 
                     ctx.globalAlpha = Math.max(0, 1.0 - progress); 
                     ctx.drawImage(this.mosaicCanvas, -dW/2, -dH/2, dW, dH);
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.globalAlpha = 1.0;
+                    ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1.0;
                 } else {
                     ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
                 }
@@ -347,19 +92,16 @@ class Enemy {
 class STGManager {
     constructor(canvas, charData, stgId) {
         this.player = new Player(charData); this.player.initPosition(canvas);
-        
         this.enemies = []; this.enemyBullets = []; this.items = []; this.explosions = []; this.frame = 0; this.bossSpawned = false;
-        
         this.stageTimer = 0; this.isStageClear = false; 
         this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
         
-        this.flashTimer = 0; 
-        this.shakeTimer = 0;
+        this.flashTimer = 0; this.shakeTimer = 0;
 
+        // ボムのデータは完全にキャラ別ファイルに委譲
         this.bombState = 'READY'; 
         this.bombTimer = 0;
-        this.bombCutin = { x: 0, y: 0, img: null };
-        this.bombLaser = null;
+        this.bombData = null; 
         this.isTimeStopped = false; 
         
         this.stgId = stgId;
@@ -369,9 +111,7 @@ class STGManager {
                 else if (currentStage === 2) this.stgId = 'hiragi';
                 else if (currentStage === 3) this.stgId = 'shiina';
                 else this.stgId = 'kagami';
-            } else {
-                this.stgId = 'kagami';
-            }
+            } else { this.stgId = 'kagami'; }
         }
         
         this.config = window.StageConfigs[this.stgId] || {};
@@ -379,22 +119,7 @@ class STGManager {
     }
 
     triggerBomb() {
-        if (this.player.id !== 'igari' || this.bombState !== 'READY' || this.player.bombs <= 0) return;
-        
-        this.player.bombs--; 
-        
-        this.bombState = 'ANIM_IN';
-        this.bombTimer = 0;
-        this.isTimeStopped = true; 
-        
-        const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1;
-        this.bombCutin.x = canvas.width / dpr; 
-        
-        this.bombCutin.y = (canvas.height / dpr) * 0.7; 
-        this.bombCutin.img = (this.advManager && this.advManager.assets) ? this.advManager.assets['igaribomb.png'] : null;
-        
-        this.enemyBullets = [];
-        this.explosions.push(new Explosion(this.player.x, this.player.y, this.player.size * 4, this.advManager));
+        this.player.triggerBomb(this);
     }
     
     updateEntrance() { const c = document.getElementById('gameCanvas'); this.player.update(c); return !this.player.isEntering; }
@@ -402,62 +127,9 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
+        // ボム時間停止中の処理（キャラ別ファイルへ委譲）
         if (this.isTimeStopped) {
-            this.bombTimer++;
-            
-            if (this.bombState === 'ANIM_IN') {
-                if (this.bombTimer < 30) {
-                    // ★安全にカットインの横幅と目標位置を計算する
-                    const imgH = sH / 3;
-                    let imgW = 200; // 計算失敗時の安全なデフォルト値
-                    
-                    // naturalHeightが0(未ロード)のときに割り算するとNaNになりエラーで落ちるのを防ぐ
-                    if (this.bombCutin.img && this.bombCutin.img.naturalHeight > 0) {
-                        imgW = imgH * (this.bombCutin.img.naturalWidth / this.bombCutin.img.naturalHeight);
-                    }
-                    
-                    const targetX = sW - (imgW * 0.5 + 20); 
-                    this.bombCutin.x -= (this.bombCutin.x - targetX) * 0.2; 
-                }
-                else if (this.bombTimer >= 60 && this.bombTimer < 80) {
-                    this.bombCutin.x -= 20; 
-                }
-                else if (this.bombTimer >= 80) {
-                    if (!this.bombLaser) {
-                        this.bombLaser = new BombLaser(sW, sH);
-                        this.flashTimer = 10;
-                        this.shakeTimer = 30;
-                    }
-                    this.bombLaser.update();
-                    
-                    if (this.bombLaser.state === 'BEAM') {
-                        this.enemies.forEach(e => {
-                            if (!e.isDying && e.type !== 'typeboss') {
-                                e.alive = false;
-                                this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
-                            } else if (e.type === 'typeboss') {
-                                e.hp -= 20; 
-                                if (e.hp <= 0 && !e.isDying) {
-                                    e.isDying = true; e.deathTimer = 0; this.enemyBullets = [];
-                                }
-                            }
-                        });
-                        
-                        this.flashTimer = 20;
-                        this.shakeTimer = 60;
-                        this.bombState = 'BEAM'; 
-                    }
-                }
-            }
-            else if (this.bombState === 'BEAM') {
-                this.bombLaser.update();
-                if (this.bombLaser.state === 'DONE') {
-                    this.isTimeStopped = false; 
-                    this.bombState = 'DONE';
-                    this.bombLaser = null;
-                }
-            }
-            
+            this.player.updateBomb(this, sW, sH);
             return 'PLAYING'; 
         }
 
@@ -477,26 +149,17 @@ class STGManager {
         this.enemies.forEach(e => {
             if (e.isDying) {
                 e.deathTimer++;
-                
                 if (e.deathTimer === 1) this.flashTimer = 15;
                 if (e.deathTimer === 30) this.flashTimer = 15;
-                
-                if (e.deathTimer === 60) {
-                    this.flashTimer = 20;
-                    this.shakeTimer = 120; 
-                }
-                
+                if (e.deathTimer === 60) { this.flashTimer = 20; this.shakeTimer = 120; }
                 if (e.deathTimer >= 60 && e.deathTimer < 180) {
                     if (this.frame % 4 === 0) {
-                        const exX = e.x + (Math.random() - 0.5) * e.size * 2.5;
-                        const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
+                        const exX = e.x + (Math.random() - 0.5) * e.size * 2.5; const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
                         this.explosions.push(new Explosion(exX, exY, (e.size * 2) * (Math.random() * 0.5 + 0.5), this.advManager));
                     }
                 }
-                
                 if (e.deathTimer >= 180) {
-                    e.alive = false;
-                    this.isStageClear = true;
+                    e.alive = false; this.isStageClear = true;
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                 }
                 return; 
@@ -510,12 +173,9 @@ class STGManager {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
                         if (e.type === 'typeboss') {
-                            e.isDying = true; 
-                            e.deathTimer = 0;
-                            this.enemyBullets = []; 
+                            e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
-                            e.alive = false;
-                            this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                            e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
                         }
                     }
@@ -547,25 +207,19 @@ class STGManager {
 
     draw(ctx) {
         const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
-        
         ctx.save();
         
         let shakeX = 0, shakeY = 0;
         if (this.shakeTimer > 0) {
-            shakeX = (Math.random() - 0.5) * 15;
-            shakeY = (Math.random() - 0.5) * 15;
+            shakeX = (Math.random() - 0.5) * 15; shakeY = (Math.random() - 0.5) * 15;
             ctx.translate(shakeX, shakeY);
             if (!this.isTimeStopped) this.shakeTimer--;
         }
 
-        if (this.config && this.config.drawBackground) {
-            this.config.drawBackground(this, ctx, sW, sH);
-        } else {
+        if (this.config && this.config.drawBackground) { this.config.drawBackground(this, ctx, sW, sH); } 
+        else {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
-            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif';
-            ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
-            ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
-            ctx.fillText(`・stg_${this.stgId}.js が index.html に記述されているか確認してください。`, 20, 90);
+            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif'; ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
         }
 
         this.player.bullets.forEach(b => b.draw(ctx)); 
@@ -576,34 +230,14 @@ class STGManager {
         
         this.player.draw(ctx, this.advManager); 
         
-        // ★安全にカットインを描画
-        if (this.bombState === 'ANIM_IN' && this.bombCutin.img && this.bombTimer < 80) {
-            // 画像が完全に読み込まれている場合のみ描画（NaNエラー防止）
-            if (this.bombCutin.img.naturalHeight > 0) {
-                ctx.save();
-                ctx.translate(-shakeX, -shakeY); 
-                
-                const imgH = sH / 3;
-                const imgW = imgH * (this.bombCutin.img.naturalWidth / this.bombCutin.img.naturalHeight);
-                
-                ctx.drawImage(this.bombCutin.img, 
-                              this.bombCutin.x - imgW * 0.5, 
-                              this.bombCutin.y - imgH * 0.5,
-                              imgW, imgH);
-                ctx.restore();
-            }
-        }
-        
-        if (this.bombLaser) {
-            this.bombLaser.draw(ctx); 
-        }
+        // ボムの描画（キャラ別ファイルへ委譲）
+        this.player.drawBomb(this, ctx, sW, sH, shakeX, shakeY);
 
         if (this.flashTimer > 0) {
             ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; 
             ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
             if (!this.isTimeStopped) this.flashTimer--;
         }
-        
         ctx.restore();
         
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 290, 40); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 290, 40);
