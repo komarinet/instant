@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.5"; // バージョン更新（ボス撃破時のリッチな死亡・モザイク爆発演出を追加）
+const VER_STG_CORE = "0.5.9"; // バージョン更新（猪狩専用のレーザー弾と専用自機画像の適用、他キャラはデフォルト仕様）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -19,56 +19,111 @@ class Player {
         if (this.x < this.size) this.x = this.size; if (this.x > canvas.width/dpr - this.size) this.x = canvas.width/dpr - this.size;
         if (this.y < this.size) this.y = this.size; if (this.y > canvas.height/dpr - this.size) this.y = canvas.height/dpr - this.size;
     }
-    draw(ctx) {
+    
+    draw(ctx, advManager) {
         if (this.invincibleTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) return; 
-        ctx.fillStyle = this.color; ctx.beginPath();
-        ctx.moveTo(this.x, this.y - this.size); ctx.lineTo(this.x - this.size, this.y + this.size); ctx.lineTo(this.x + this.size, this.y + this.size);
-        ctx.closePath(); ctx.fill();
+        
+        let img = null;
+        if (this.id === 'igari' && advManager && advManager.assets) {
+            img = advManager.assets['igari_jiki.png'];
+        }
+
+        if (img && img.naturalWidth > 0) {
+            const drawWidth = 60;
+            const drawHeight = drawWidth * (img.height / img.width);
+            ctx.drawImage(img, this.x - drawWidth / 2, this.y - drawHeight / 2, drawWidth, drawHeight);
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 4, 0, Math.PI*2);
+            ctx.fill();
+        } else {
+            ctx.fillStyle = this.color; ctx.beginPath();
+            ctx.moveTo(this.x, this.y - this.size); ctx.lineTo(this.x - this.size, this.y + this.size); ctx.lineTo(this.x + this.size, this.y + this.size);
+            ctx.closePath(); ctx.fill();
+        }
     }
+    
     shoot() {
         if (this.isEntering) return;
         const bS = 10;
-        if (this.powerLevel === 0) { this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color)); }
-        else if (this.powerLevel === 1) { this.bullets.push(new Bullet(this.x - 5, this.y - this.size, 0, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0, -bS, this.color)); }
+        // 弾を生成する際、撃ったキャラクターのIDを Bullet に渡す
+        if (this.powerLevel === 0) { this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id)); }
+        else if (this.powerLevel === 1) { this.bullets.push(new Bullet(this.x - 5, this.y - this.size, 0, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0, -bS, this.color, null, this.id)); }
         else if (this.powerLevel === 2) {
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color));
-            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color));
+            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color, null, this.id));
         }
         else if (this.powerLevel === 3) {
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color, null, this.id));
         }
         else if (this.powerLevel === 4) {
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2, -bS, this.color));
+            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2, -bS, this.color, null, this.id));
         }
         else if (this.powerLevel === 5) {
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color));
-            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2.5, -bS, this.color)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2.5, -bS, this.color));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -0.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 0.5, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -1.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 1.5, -bS, this.color, null, this.id));
+            this.bullets.push(new Bullet(this.x - 5, this.y - this.size, -2.5, -bS, this.color, null, this.id)); this.bullets.push(new Bullet(this.x + 5, this.y - this.size, 2.5, -bS, this.color, null, this.id));
         }
-        else if (this.powerLevel === 6) { for (let i = -3; i <= 3; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color)); }
-        else if (this.powerLevel === 7) { for (let i = -3; i <= 4; i++) this.bullets.push(new Bullet(this.x - 2.5, this.y - this.size, (i - 0.5) * 1.0, -bS, this.color)); }
-        else if (this.powerLevel >= 8) { for (let i = -4; i <= 4; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color)); }
+        else if (this.powerLevel === 6) { for (let i = -3; i <= 3; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color, null, this.id)); }
+        else if (this.powerLevel === 7) { for (let i = -3; i <= 4; i++) this.bullets.push(new Bullet(this.x - 2.5, this.y - this.size, (i - 0.5) * 1.0, -bS, this.color, null, this.id)); }
+        else if (this.powerLevel >= 8) { for (let i = -4; i <= 4; i++) this.bullets.push(new Bullet(this.x, this.y - this.size, i * 1.0, -bS, this.color, null, this.id)); }
     }
 }
 
 class Bullet {
-    constructor(x, y, vx, vy, color, text = null) {
+    // shooterId（誰が撃ったか）を受け取るように修正
+    constructor(x, y, vx, vy, color, text = null, shooterId = null) {
         this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.size = text ? 12 : 4; this.color = color; this.text = text; this.alive = true;
+        this.shooterId = shooterId; 
     }
     update(canvas) {
         this.x += this.vx; this.y += this.vy; const dpr = window.devicePixelRatio || 1;
-        if (this.y < -this.size || this.y > canvas.height/dpr + this.size || this.x < -this.size || this.x > canvas.width/dpr + this.size) this.alive = false;
+        if (this.y < -this.size * 4 || this.y > canvas.height/dpr + this.size * 4 || this.x < -this.size * 4 || this.x > canvas.width/dpr + this.size * 4) this.alive = false;
     }
     draw(ctx) {
         if (this.text) {
             ctx.fillStyle = this.color; ctx.font = 'bold 20px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.shadowColor = 'rgba(255,255,255,0.8)'; ctx.shadowBlur = 5; ctx.fillText(this.text, this.x, this.y);
             ctx.shadowBlur = 0; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        } else { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); }
+        } else if (this.shooterId === 'igari') {
+            // ★猪狩専用のレーザー描画
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            
+            const angle = Math.atan2(this.vy, this.vx);
+            ctx.rotate(angle);
+
+            const length = this.size * 2.5; 
+
+            ctx.shadowColor = this.color;
+            ctx.shadowBlur = this.size * 2.5; 
+
+            ctx.strokeStyle = this.color;
+            ctx.lineWidth = this.size;
+            ctx.lineCap = 'round'; 
+            ctx.beginPath();
+            ctx.moveTo(-length, 0);
+            ctx.lineTo(length, 0);
+            ctx.stroke();
+
+            ctx.shadowBlur = 0; 
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = this.size * 0.4;
+            ctx.beginPath();
+            ctx.moveTo(-length * 0.8, 0);
+            ctx.lineTo(length * 0.8, 0);
+            ctx.stroke();
+
+            ctx.restore();
+        } else {
+            // ★他キャラや敵弾は元の丸い弾を描画
+            ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        }
     }
 }
 
@@ -144,7 +199,6 @@ class Enemy {
         this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
         this.advManager = advManager; 
         
-        // ★新規追加：ボスの死亡演出用パラメータ
         this.isDying = false; 
         this.deathTimer = 0;
         
@@ -191,10 +245,9 @@ class Enemy {
             const ar = img.width / img.height; let dW, dH;
             if (ar > 1) { dW = this.size * 2; dH = dW / ar; } else { dH = this.size * 2; dW = dH * ar; }
             
-            // ★新規追加：ボス撃破時のモザイク状に消えていく演出
             if (this.isDying && this.deathTimer >= 60) {
-                const progress = (this.deathTimer - 60) / 120; // 0.0 ~ 1.0
-                const block = Math.max(1, Math.floor(progress * 15)); // 時間経過でモザイクのブロックが荒くなる
+                const progress = (this.deathTimer - 60) / 120; 
+                const block = Math.max(1, Math.floor(progress * 15)); 
                 
                 if (block > 1) {
                     if (!this.mosaicCanvas) {
@@ -206,8 +259,8 @@ class Enemy {
                     this.mosaicCtx.clearRect(0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
                     this.mosaicCtx.drawImage(img, 0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
                     
-                    ctx.imageSmoothingEnabled = false; // ピクセルをくっきりさせてモザイク感を出す
-                    ctx.globalAlpha = Math.max(0, 1.0 - progress); // だんだん透けて消える
+                    ctx.imageSmoothingEnabled = false; 
+                    ctx.globalAlpha = Math.max(0, 1.0 - progress); 
                     ctx.drawImage(this.mosaicCanvas, -dW/2, -dH/2, dW, dH);
                     ctx.imageSmoothingEnabled = true;
                     ctx.globalAlpha = 1.0;
@@ -222,7 +275,6 @@ class Enemy {
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
-        // 死亡演出中はHPバーを表示しない
         if (this.type === 'typeboss' && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -242,7 +294,6 @@ class STGManager {
         this.stageTimer = 0; this.isStageClear = false; 
         this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
         
-        // ★新規追加：フラッシュと画面揺れ用のタイマー
         this.flashTimer = 0; 
         this.shakeTimer = 0;
         
@@ -280,23 +331,17 @@ class STGManager {
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
         this.enemies.forEach(e => {
-            // ★新規追加：ボスが死亡演出中の場合のタイムライン処理
             if (e.isDying) {
                 e.deathTimer++;
                 
-                // 1. フラッシュ1回目
                 if (e.deathTimer === 1) this.flashTimer = 15;
-                
-                // 2. フラッシュ2回目
                 if (e.deathTimer === 30) this.flashTimer = 15;
                 
-                // 3. 画面全体がゴゴゴと揺れ始める（フラッシュ3回目）
                 if (e.deathTimer === 60) {
                     this.flashTimer = 20;
-                    this.shakeTimer = 120; // 約2秒間揺れる
+                    this.shakeTimer = 120; 
                 }
                 
-                // 4. モザイク＆振動中、ボスの体の上で連鎖爆発！
                 if (e.deathTimer >= 60 && e.deathTimer < 180) {
                     if (this.frame % 4 === 0) {
                         const exX = e.x + (Math.random() - 0.5) * e.size * 2.5;
@@ -305,13 +350,12 @@ class STGManager {
                     }
                 }
                 
-                // 5. 演出完了。最後に大爆発して完全に消滅＆クリア
                 if (e.deathTimer >= 180) {
                     e.alive = false;
                     this.isStageClear = true;
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                 }
-                return; // 死亡演出中は移動や弾の発射を行わない
+                return; 
             }
 
             e.update(canvas, this.player);
@@ -321,11 +365,10 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        // ★修正：ボスか雑魚敵かで撃破時の処理を分岐
                         if (e.type === 'typeboss') {
-                            e.isDying = true; // 死亡演出ステートに移行
+                            e.isDying = true; 
                             e.deathTimer = 0;
-                            this.enemyBullets = []; // ボスを倒した瞬間に画面の敵弾を全消去して安全に！
+                            this.enemyBullets = []; 
                         } else {
                             e.alive = false;
                             this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
@@ -363,12 +406,13 @@ class STGManager {
         
         ctx.save();
         
-        // ★新規追加：画面揺れ（シェイク）の適用。UIには影響させないよう背景とキャラのみ揺らす
         let shakeX = 0, shakeY = 0;
         if (this.shakeTimer > 0) {
             shakeX = (Math.random() - 0.5) * 15;
             shakeY = (Math.random() - 0.5) * 15;
             ctx.translate(shakeX, shakeY);
+            // 揺れをだんだん収める
+            this.shakeTimer--;
         }
 
         if (this.config && this.config.drawBackground) {
@@ -386,18 +430,17 @@ class STGManager {
         this.explosions.forEach(ex => ex.draw(ctx)); 
         this.enemyBullets.forEach(eb => eb.draw(ctx)); 
         this.items.forEach(it => it.draw(ctx)); 
-        this.player.draw(ctx);
         
-        // ★新規追加：フラッシュ（白画面）の適用
+        this.player.draw(ctx, this.advManager); 
+        
         if (this.flashTimer > 0) {
-            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; // 時間経過でだんだん透明に
-            // 画面揺れで隙間ができないように少し広めに塗りつぶす
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; 
             ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
+            this.flashTimer--;
         }
         
         ctx.restore();
         
-        // --- 以降はUI（体力バーなど）。画面揺れの影響を受けずに静止して描画される ---
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 290, 40); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 290, 40);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('HP:', 20, sH - 25);
         ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(55, sH - 37, 100, 15);
