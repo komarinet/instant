@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.0"; // バージョン大幅更新（Player, Bullet等の共通部品を分離・完全リファクタリング）
+const VER_STG_CORE = "0.7.1"; // バージョン更新（敵撃破時や連鎖爆発時にSEを鳴らす処理を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -156,11 +156,13 @@ class STGManager {
                     if (this.frame % 4 === 0) {
                         const exX = e.x + (Math.random() - 0.5) * e.size * 2.5; const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
                         this.explosions.push(new Explosion(exX, exY, (e.size * 2) * (Math.random() * 0.5 + 0.5), this.advManager));
+                        if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★ボスの連爆時SE追加
                     }
                 }
                 if (e.deathTimer >= 180) {
                     e.alive = false; this.isStageClear = true;
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
+                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★ボス完全消滅時SE追加
                 }
                 return; 
             }
@@ -176,6 +178,7 @@ class STGManager {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★通常時の雑魚撃破時SE追加
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
                         }
                     }
