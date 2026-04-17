@@ -1,3 +1,5 @@
+const VER_PLAYER_IGARI = "0.2.0"; // バージョン更新（奥義カットインのアニメーションを絶対座標のイージング計算に修正）
+
 window.PlayerControllers = window.PlayerControllers || {};
 
 // 猪狩専用の奥義レーザーエフェクト
@@ -5,13 +7,14 @@ class BombLaserIgari {
     constructor(canvasWidth, canvasHeight) {
         this.sW = canvasWidth; this.sH = canvasHeight;
         this.alive = true; this.state = 'WINDUP'; this.timer = 0;
-        this.windupHeight = 0; this.windupDuration = 30; 
+        this.windupHeight = 0; this.windupDuration = 20; 
         this.beamDuration = 60; this.beamAlpha = 1.0;
     }
     update() {
         this.timer++;
         if (this.state === 'WINDUP') {
-            this.windupHeight = this.sH * (this.timer / this.windupDuration); 
+            const progress = this.timer / this.windupDuration;
+            this.windupHeight = this.sH * (progress * progress); 
             if (this.timer >= this.windupDuration) { this.state = 'BEAM'; this.timer = 0; }
         } else if (this.state === 'BEAM') {
             this.beamAlpha = Math.max(0, 1.0 - (this.timer / this.beamDuration));
@@ -32,7 +35,7 @@ class BombLaserIgari {
         } else if (this.state === 'BEAM') {
             ctx.globalAlpha = this.beamAlpha;
             ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, this.sW, this.sH);
-            ctx.fillStyle = 'rgba(100, 0, 255, 0.5)'; ctx.shadowColor = 'magenta'; ctx.shadowBlur = 50; ctx.fillRect(0, 0, this.sW, this.sH);
+            ctx.fillStyle = 'rgba(150, 0, 255, 0.7)'; ctx.shadowColor = 'magenta'; ctx.shadowBlur = 50; ctx.fillRect(0, 0, this.sW, this.sH);
         }
         ctx.restore();
     }
@@ -107,12 +110,7 @@ window.PlayerControllers['igari'] = {
         stg.bombTimer = 0;
         stg.isTimeStopped = true; 
         
-        const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1;
-        
-        // ★修正：カットインが完全に画面右外からスタートするように「+ 500」を追加
         stg.bombData = {
-            x: (canvas.width / dpr) + 500, 
-            y: (canvas.height / dpr) * 0.65, // 顔が見えやすいように少しだけ上に調整
             img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.png'] : null,
             laser: null
         };
@@ -125,24 +123,7 @@ window.PlayerControllers['igari'] = {
         let bd = stg.bombData;
         
         if (stg.bombState === 'ANIM_IN') {
-            if (stg.bombTimer < 40) { // ★カットインの時間を少し延ばして見栄え良くした
-                const imgH = sH / 3;
-                let imgW = 200; 
-                if (bd.img && bd.img.naturalHeight > 0) { imgW = imgH * (bd.img.naturalWidth / bd.img.naturalHeight); }
-                
-                // 目標位置（画面の右寄りに配置）
-                const targetX = sW - (imgW * 0.5) - 10; 
-                
-                // ★修正：目標位置に向かってシュッと減速しながら入ってくる計算（イージング）
-                bd.x += (targetX - bd.x) * 0.15; 
-            }
-            // 一瞬止まって（40〜60フレーム）
-            // 左へハケる
-            else if (stg.bombTimer >= 60 && stg.bombTimer < 80) { 
-                bd.x -= 40; 
-            }
-            // レーザー発射
-            else if (stg.bombTimer >= 80) {
+            if (stg.bombTimer >= 70) {
                 if (!bd.laser) {
                     bd.laser = new BombLaserIgari(sW, sH);
                     stg.flashTimer = 10; stg.shakeTimer = 30;
@@ -176,15 +157,55 @@ window.PlayerControllers['igari'] = {
         let bd = stg.bombData;
         if (!bd) return;
 
-        if (stg.bombState === 'ANIM_IN' && bd.img && stg.bombTimer < 80) {
-            if (bd.img.naturalHeight > 0) {
-                ctx.save(); ctx.translate(-shakeX, -shakeY); 
-                const imgH = sH / 3;
-                const imgW = imgH * (bd.img.naturalWidth / bd.img.naturalHeight);
-                ctx.drawImage(bd.img, bd.x - imgW * 0.5, bd.y - imgH * 0.5, imgW, imgH);
-                ctx.restore();
+        // ★カットインの座標計算を描画側（drawBomb）で絶対座標として計算する
+        if (stg.bombState === 'ANIM_IN' && stg.bombTimer < 70) {
+            ctx.save(); 
+            ctx.translate(-shakeX, -shakeY); // 揺れ無効化
+            
+            ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.6, stg.bombTimer / 15)})`;
+            ctx.fillRect(0, 0, sW, sH);
+
+            const stripH = sH * 0.35; 
+            const stripY = (sH - stripH) / 2; 
+            
+            ctx.fillStyle = 'rgba(200, 0, 100, 0.4)';
+            ctx.fillRect(0, stripY, sW, stripH);
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, stripY, sW, stripH);
+
+            if (bd.img && bd.img.naturalHeight > 0) {
+                const img = bd.img;
+                const imgH = stripH * 1.3; 
+                const imgW = img.naturalWidth * (imgH / img.naturalHeight);
+
+                let currentX = sW + imgW; // 完全に画面右外
+                const t = stg.bombTimer;
+                const targetX = sW / 2; 
+
+                // ★イージングによる滑らかな座標計算
+                if (t < 15) {
+                    const p = t / 15;
+                    const ease = 1 - Math.pow(1 - p, 3); 
+                    currentX = (sW + imgW) - ((sW + imgW) - (targetX + 40)) * ease;
+                } else if (t < 55) {
+                    const p = (t - 15) / 40;
+                    currentX = (targetX + 40) - 80 * p; 
+                } else {
+                    const p = (t - 55) / 15;
+                    const ease = p * p; 
+                    currentX = (targetX - 40) - ((targetX - 40) - (-imgW)) * ease;
+                }
+
+                ctx.drawImage(img, currentX - imgW / 2, sH / 2 - imgH / 2, imgW, imgH);
+            } else if (stg.bombTimer > 15) {
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText('NIL-ELEC-MAGNETIC', sW/2, sH/2 - 10);
+                ctx.fillText('ACCELERATOR', sW/2, sH/2 + 20);
             }
+            ctx.restore();
         }
+        
         if (bd.laser) bd.laser.draw(ctx); 
     }
 };
