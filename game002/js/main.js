@@ -1,4 +1,4 @@
-const VER_MAIN = "0.4.0"; // バージョン更新（ボムボタンの実装とigaribomb.pngのプリロード追加）
+const VER_MAIN = "0.4.1"; // バージョン更新（ボムボタンを「奥義」に変更し、回数表示を追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -26,8 +26,7 @@ const imagesToPreload = [
     'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png',
     'baku01.png',
-    'igari_jiki.png',
-    'igaribomb.png' // ★ボム演出用画像を追加
+    'igari_jiki.png' // ★小文字に修正しました
 ];
 
 const imagesToPreload3D = [
@@ -114,12 +113,15 @@ function createBombButton() {
     btn.style.color = '#fff';
     btn.style.fontWeight = 'bold';
     btn.style.display = 'flex';
+    btn.style.flexDirection = 'column'; // ★縦並びにする
     btn.style.alignItems = 'center';
     btn.style.justifyContent = 'center';
     btn.style.zIndex = '1000';
     btn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
     btn.style.userSelect = 'none';
-    btn.innerText = 'BOMB';
+    
+    // ★「奥義」と「回数」の表示に変更
+    btn.innerHTML = `<span style="font-size:16px;">奥義</span><span id="bomb-count-val" style="font-size:18px; margin-top:2px;">3</span>`;
     
     btn.addEventListener('touchstart', (e) => {
         e.preventDefault();
@@ -419,11 +421,20 @@ function loop() {
         }
     }
 
-    // ★ボムボタンの表示更新
+    // ★ボムボタンの表示更新（奥義回数の更新とボタンの暗転処理を追加）
     const bombBtn = document.getElementById('bomb-btn');
     if (bombBtn) {
         if (gameState === 'STG_PLAY' && selectedCharId === 'igari') {
             bombBtn.classList.remove('hidden');
+            const bVal = document.getElementById('bomb-count-val');
+            if (bVal && stgManager) {
+                bVal.innerText = stgManager.player.bombs;
+                // 回数が0になったらボタンを暗くする
+                if (stgManager.player.bombs <= 0) {
+                    bombBtn.style.background = 'rgba(100, 100, 100, 0.8)';
+                    bombBtn.style.boxShadow = 'none';
+                }
+            }
         } else {
             bombBtn.classList.add('hidden');
         }
