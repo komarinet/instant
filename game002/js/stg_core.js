@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.3"; // バージョン更新（完全防弾仕様＆画面上へのエラー通知機能追加）
+const VER_STG_CORE = "0.5.4"; // バージョン更新（既存の構造に3x3爆発アニメーションシステムを実装）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -87,13 +87,66 @@ class Item {
     }
 }
 
+// ==========================================
+// ★新規追加：爆発アニメーションクラス
+// ==========================================
+class Explosion {
+    constructor(x, y, targetSize, advManager) {
+        this.x = x; 
+        this.y = y;
+        this.targetSize = targetSize * 1.5; // 敵のサイズより少し大きめに爆発させる
+        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.png'] : null;
+        this.isDead = false;
+
+        this.cols = 3; // 3列
+        this.rows = 3; // 3行
+        this.frameIndex = 0;
+        this.totalFrames = this.cols * this.rows; // 全9コマ
+        
+        this.timer = 0;
+        this.interval = 3; // コマ送りの速度（数字が小さいほど速く爆発する）
+
+        if (this.img && this.img.naturalWidth > 0) {
+            this.sw = this.img.width / this.cols;
+            this.sh = this.img.height / this.rows;
+        } else {
+            this.isDead = true; 
+        }
+    }
+
+    update() {
+        if (this.isDead) return;
+        this.timer++;
+        if (this.timer >= this.interval) {
+            this.timer = 0;
+            this.frameIndex++;
+            if (this.frameIndex >= this.totalFrames) {
+                this.isDead = true; // アニメーション終了で削除フラグ
+            }
+        }
+    }
+
+    draw(ctx) {
+        if (this.isDead || !this.img) return;
+        const fx = this.frameIndex % this.cols;
+        const fy = Math.floor(this.frameIndex / this.cols);
+        const cx = fx * this.sw;
+        const cy = fy * this.sh;
+
+        ctx.drawImage(
+            this.img,
+            cx, cy, this.sw, this.sh,
+            this.x - this.targetSize / 2, this.y - this.targetSize / 2, this.targetSize, this.targetSize
+        );
+    }
+}
+
 class Enemy {
     constructor(type, x, y, charData, advManager, stgId) {
         this.type = type; this.x = x; this.y = y; this.startX = x; this.startY = y;
         this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
         this.advManager = advManager; 
         
-        // ★修正：シナリオ側でstgIdが未定義（他キャラ等）だった場合、自動でフォールバックしてエラー落ちを防ぐ
         if (!stgId) {
             if (typeof currentStage !== 'undefined') {
                 if (currentStage === 1) stgId = 'kagami';
@@ -106,7 +159,6 @@ class Enemy {
         }
         this.config = window.StageConfigs[stgId] || {};
 
-        // ★修正：getEnemyDataが失敗・欠損していても絶対にクラッシュさせないセーフティネット
         let data = null;
         if (this.config.getEnemyData) {
             data = this.config.getEnemyData(type);
@@ -151,11 +203,13 @@ class Enemy {
 class STGManager {
     constructor(canvas, charData, stgId) {
         this.player = new Player(charData); this.player.initPosition(canvas);
-        this.enemies = []; this.enemyBullets = []; this.items = []; this.frame = 0; this.bossSpawned = false;
+        
+        // ★修正：explosions 配列を追加
+        this.enemies = []; this.enemyBullets = []; this.items = []; this.explosions = []; this.frame = 0; this.bossSpawned = false;
+        
         this.stageTimer = 0; this.isStageClear = false; 
         this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
         
-        // ★修正：シナリオ側でstgIdが未定義（他キャラ等）だった場合、進行不能を回避して自動判別
         this.stgId = stgId;
         if (!this.stgId) {
             if (typeof currentStage !== 'undefined') {
@@ -185,6 +239,9 @@ class STGManager {
         this.player.bullets.forEach(b => b.update(canvas)); this.enemyBullets.forEach(b => b.update(canvas));
         this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
         this.items.forEach(it => it.update(canvas)); this.items = this.items.filter(it => it.alive);
+        
+        // ★新規追加：爆発の更新とクリーンアップ
+        this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
         this.enemies.forEach(e => {
             e.update(canvas, this.player);
@@ -195,6 +252,10 @@ class STGManager {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
                         e.alive = false;
+                        
+                        // ★新規追加：敵が倒されたら、その場に爆発エフェクトを生成！
+                        this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                        
                         if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
                         if(e.type === 'typeboss') this.isStageClear = true; 
                     }
@@ -227,7 +288,6 @@ class STGManager {
     draw(ctx) {
         const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
         
-        // ★修正：万が一設定ファイルが読み込まれていない場合、画面に原因を直接表示してフリーズやブラックアウトを防ぐ
         if (this.config && this.config.drawBackground) {
             this.config.drawBackground(this, ctx, sW, sH);
         } else {
@@ -239,8 +299,14 @@ class STGManager {
             ctx.fillText("・記述が正しい場合は、ブラウザのキャッシュをクリア（スーパーリロード）してください。", 20, 115);
         }
 
-        this.player.bullets.forEach(b => b.draw(ctx)); this.enemies.forEach(e => e.draw(ctx));
-        this.enemyBullets.forEach(eb => eb.draw(ctx)); this.items.forEach(it => it.draw(ctx)); 
+        this.player.bullets.forEach(b => b.draw(ctx)); 
+        this.enemies.forEach(e => e.draw(ctx));
+        
+        // ★新規追加：敵を描画した後に爆発エフェクトを重ねて描画する
+        this.explosions.forEach(ex => ex.draw(ctx)); 
+        
+        this.enemyBullets.forEach(eb => eb.draw(ctx)); 
+        this.items.forEach(it => it.draw(ctx)); 
         this.player.draw(ctx);
         
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 290, 40); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 290, 40);
