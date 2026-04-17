@@ -1,4 +1,4 @@
-const VER_MAIN = "0.4.1"; // バージョン更新（ボムボタンを「奥義」に変更し、回数表示を追加）
+const VER_MAIN = "0.4.2"; // バージョン更新（バージョンチェック表示を3列の横並びデバッグ風UIに改修し、新規ファイルを追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -26,7 +26,8 @@ const imagesToPreload = [
     'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png',
     'baku01.png',
-    'igari_jiki.png' // ★小文字に修正しました
+    'igari_jiki.png',
+    'igaribomb.png'
 ];
 
 const imagesToPreload3D = [
@@ -77,7 +78,6 @@ function changeScreen(screenId) {
         }
     }
 
-    // ★ボムボタンの表示制御
     const bombBtn = document.getElementById('bomb-btn');
     if (bombBtn) {
         if (screenId === '' && gameState === 'STG_PLAY' && selectedCharId === 'igari') {
@@ -101,7 +101,7 @@ function createBombButton() {
 
     const btn = document.createElement('div');
     btn.id = 'bomb-btn';
-    btn.classList.add('hidden'); // 初期は隠す
+    btn.classList.add('hidden'); 
     btn.style.position = 'absolute';
     btn.style.right = '20px';
     btn.style.bottom = '100px';
@@ -113,14 +113,13 @@ function createBombButton() {
     btn.style.color = '#fff';
     btn.style.fontWeight = 'bold';
     btn.style.display = 'flex';
-    btn.style.flexDirection = 'column'; // ★縦並びにする
+    btn.style.flexDirection = 'column'; 
     btn.style.alignItems = 'center';
     btn.style.justifyContent = 'center';
     btn.style.zIndex = '1000';
     btn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
     btn.style.userSelect = 'none';
     
-    // ★「奥義」と「回数」の表示に変更
     btn.innerHTML = `<span style="font-size:16px;">奥義</span><span id="bomb-count-val" style="font-size:18px; margin-top:2px;">3</span>`;
     
     btn.addEventListener('touchstart', (e) => {
@@ -135,8 +134,7 @@ function createBombButton() {
 }
 createBombButton();
 
-
-// --- バージョン情報の収集と表示ロジック ---
+// --- バージョン情報の表示ロジック（横並び3列のデバッグUI風に進化） ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
@@ -147,26 +145,33 @@ function showVersions() {
     const verDiv = document.createElement('div');
     verDiv.className = 'version-info-panel'; 
     verDiv.style.position = 'absolute';
-    verDiv.style.bottom = '15px';
-    verDiv.style.right = '20px';
-    verDiv.style.fontSize = '0.75rem';
-    verDiv.style.color = 'rgba(255, 255, 255, 0.4)'; 
-    verDiv.style.textAlign = 'right';
+    verDiv.style.bottom = '10px';
+    verDiv.style.width = '100%';
+    verDiv.style.display = 'flex';
+    verDiv.style.justifyContent = 'center';
+    verDiv.style.gap = '20px';
+    verDiv.style.fontSize = '0.65rem';
+    verDiv.style.color = 'rgba(255, 255, 255, 0.5)'; 
     verDiv.style.pointerEvents = 'none';
-    verDiv.style.lineHeight = '1.2';
+    verDiv.style.lineHeight = '1.3';
     verDiv.style.fontFamily = 'monospace'; 
     verDiv.style.zIndex = '100'; 
 
+    // SYS系
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
     const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
 
+    // STG系（新規追加分を含む）
     const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
+    const stgCom = typeof VER_STG_COMMON !== 'undefined' ? VER_STG_COMMON : '---';
+    const plIgari = typeof VER_PLAYER_IGARI !== 'undefined' ? VER_PLAYER_IGARI : '---';
     const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
     const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
     const stgShiina = typeof VER_STG_SHIINA !== 'undefined' ? VER_STG_SHIINA : '---';
 
+    // SCENARIO系
     const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
     const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
     const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
@@ -175,22 +180,31 @@ function showVersions() {
     const scJingu = typeof VER_SCENARIO_JINGU !== 'undefined' ? VER_SCENARIO_JINGU : '---';
 
     verDiv.innerHTML = `
-        core : v${dVer}<br>
-        adv  : v${aVer}<br>
-        3dbg : v${b3Ver}<br>
-        main : v${mVer}<br>
-        <hr style="border-color: rgba(255,255,255,0.2); margin: 2px 0;">
-        stg_core  : v${stgCore}<br>
-        stg_kagami: v${stgKagami}<br>
-        stg_hiragi: v${stgHiragi}<br>
-        stg_shiina: v${stgShiina}<br>
-        <hr style="border-color: rgba(255,255,255,0.2); margin: 2px 0;">
-        sc_igari : v${scIgari}<br>
-        sc_mamoru: v${scMamoru}<br>
-        sc_hiragi: v${scHiragi}<br>
-        sc_kagami: v${scKagami}<br>
-        sc_godai : v${scGodai}<br>
-        sc_jingu : v${scJingu}
+        <div style="text-align: left;">
+            <span style="color:#00ffff">[SYS]</span><br>
+            data : v${dVer}<br>
+            adv  : v${aVer}<br>
+            3dbg : v${b3Ver}<br>
+            main : v${mVer}
+        </div>
+        <div style="text-align: left;">
+            <span style="color:#ffaa00">[STG]</span><br>
+            core  : v${stgCore}<br>
+            common: v${stgCom}<br>
+            p_iga : v${plIgari}<br>
+            s_kaga: v${stgKagami}<br>
+            s_hira: v${stgHiragi}<br>
+            s_shii: v${stgShiina}
+        </div>
+        <div style="text-align: left;">
+            <span style="color:#ff3366">[SCENARIO]</span><br>
+            igari : v${scIgari}<br>
+            mamoru: v${scMamoru}<br>
+            hiragi: v${scHiragi}<br>
+            kagami: v${scKagami}<br>
+            godai : v${scGodai}<br>
+            jingu : v${scJingu}
+        </div>
     `;
     titleScreen.appendChild(verDiv);
 }
@@ -421,7 +435,6 @@ function loop() {
         }
     }
 
-    // ★ボムボタンの表示更新（奥義回数の更新とボタンの暗転処理を追加）
     const bombBtn = document.getElementById('bomb-btn');
     if (bombBtn) {
         if (gameState === 'STG_PLAY' && selectedCharId === 'igari') {
@@ -429,7 +442,6 @@ function loop() {
             const bVal = document.getElementById('bomb-count-val');
             if (bVal && stgManager) {
                 bVal.innerText = stgManager.player.bombs;
-                // 回数が0になったらボタンを暗くする
                 if (stgManager.player.bombs <= 0) {
                     bombBtn.style.background = 'rgba(100, 100, 100, 0.8)';
                     bombBtn.style.boxShadow = 'none';
