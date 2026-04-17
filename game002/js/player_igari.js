@@ -57,7 +57,6 @@ window.PlayerControllers['igari'] = {
 
     shoot: function(player) {
         const bS = 10;
-        // igari専用のレーザーとして生成
         const pL = player.powerLevel;
         if (pL === 0) { player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, player.color)); }
         else if (pL === 1) { player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, 0, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0, -bS, player.color)); }
@@ -85,7 +84,6 @@ window.PlayerControllers['igari'] = {
         else if (pL >= 8) { for (let i = -4; i <= 4; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, player.color)); }
     },
     
-    // レーザーを描画するように改造された特別なBulletを生成する
     createLaser: function(x, y, vx, vy, color) {
         let b = new Bullet(x, y, vx, vy, color, null, 'igari');
         b.draw = function(ctx) {
@@ -110,9 +108,11 @@ window.PlayerControllers['igari'] = {
         stg.isTimeStopped = true; 
         
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1;
+        
+        // ★修正：カットインが完全に画面右外からスタートするように「+ 500」を追加
         stg.bombData = {
-            x: canvas.width / dpr,
-            y: (canvas.height / dpr) * 0.7,
+            x: (canvas.width / dpr) + 500, 
+            y: (canvas.height / dpr) * 0.65, // 顔が見えやすいように少しだけ上に調整
             img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.png'] : null,
             laser: null
         };
@@ -125,14 +125,23 @@ window.PlayerControllers['igari'] = {
         let bd = stg.bombData;
         
         if (stg.bombState === 'ANIM_IN') {
-            if (stg.bombTimer < 30) {
+            if (stg.bombTimer < 40) { // ★カットインの時間を少し延ばして見栄え良くした
                 const imgH = sH / 3;
                 let imgW = 200; 
                 if (bd.img && bd.img.naturalHeight > 0) { imgW = imgH * (bd.img.naturalWidth / bd.img.naturalHeight); }
-                const targetX = sW - (imgW * 0.5 + 20); 
-                bd.x -= (bd.x - targetX) * 0.2; 
+                
+                // 目標位置（画面の右寄りに配置）
+                const targetX = sW - (imgW * 0.5) - 10; 
+                
+                // ★修正：目標位置に向かってシュッと減速しながら入ってくる計算（イージング）
+                bd.x += (targetX - bd.x) * 0.15; 
             }
-            else if (stg.bombTimer >= 60 && stg.bombTimer < 80) { bd.x -= 20; }
+            // 一瞬止まって（40〜60フレーム）
+            // 左へハケる
+            else if (stg.bombTimer >= 60 && stg.bombTimer < 80) { 
+                bd.x -= 40; 
+            }
+            // レーザー発射
             else if (stg.bombTimer >= 80) {
                 if (!bd.laser) {
                     bd.laser = new BombLaserIgari(sW, sH);
@@ -157,7 +166,7 @@ window.PlayerControllers['igari'] = {
             bd.laser.update();
             if (bd.laser.state === 'DONE') {
                 stg.isTimeStopped = false; 
-                stg.bombState = 'READY'; // もう一度撃てるようにリセット
+                stg.bombState = 'READY'; 
                 stg.bombData = null;
             }
         }
