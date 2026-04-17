@@ -1,4 +1,4 @@
-const VER_MAIN = "0.3.8"; // バージョン更新（igari_jiki.png のファイル名を小文字に修正）
+const VER_MAIN = "0.4.0"; // バージョン更新（ボムボタンの実装とigaribomb.pngのプリロード追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -26,7 +26,8 @@ const imagesToPreload = [
     'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png',
     'baku01.png',
-    'igari_jiki.png' // ★小文字に修正しました
+    'igari_jiki.png',
+    'igaribomb.png' // ★ボム演出用画像を追加
 ];
 
 const imagesToPreload3D = [
@@ -76,6 +77,16 @@ function changeScreen(screenId) {
             skipBtn.classList.add('hidden');
         }
     }
+
+    // ★ボムボタンの表示制御
+    const bombBtn = document.getElementById('bomb-btn');
+    if (bombBtn) {
+        if (screenId === '' && gameState === 'STG_PLAY' && selectedCharId === 'igari') {
+            bombBtn.classList.remove('hidden');
+        } else {
+            bombBtn.classList.add('hidden');
+        }
+    }
 }
 
 function goToStageSelect() { 
@@ -83,6 +94,45 @@ function goToStageSelect() {
 }
 
 initCharSelect();
+
+// --- ボムボタンの作成 ---
+function createBombButton() {
+    const oldBtn = document.getElementById('bomb-btn');
+    if (oldBtn) oldBtn.remove();
+
+    const btn = document.createElement('div');
+    btn.id = 'bomb-btn';
+    btn.classList.add('hidden'); // 初期は隠す
+    btn.style.position = 'absolute';
+    btn.style.right = '20px';
+    btn.style.bottom = '100px';
+    btn.style.width = '70px';
+    btn.style.height = '70px';
+    btn.style.background = 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(100,0,0,0.8) 100%)';
+    btn.style.border = '3px solid #fff';
+    btn.style.borderRadius = '50%';
+    btn.style.color = '#fff';
+    btn.style.fontWeight = 'bold';
+    btn.style.display = 'flex';
+    btn.style.alignItems = 'center';
+    btn.style.justifyContent = 'center';
+    btn.style.zIndex = '1000';
+    btn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
+    btn.style.userSelect = 'none';
+    btn.innerText = 'BOMB';
+    
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (stgManager && gameState === 'STG_PLAY') {
+            stgManager.triggerBomb();
+        }
+    });
+
+    document.getElementById('game-container').appendChild(btn);
+}
+createBombButton();
+
 
 // --- バージョン情報の収集と表示ロジック ---
 function showVersions() {
@@ -366,6 +416,16 @@ function loop() {
     if (skipBtn) {
         if (!gameState.includes('ADV') && !gameState.includes('DIALOGUE')) {
             skipBtn.classList.add('hidden');
+        }
+    }
+
+    // ★ボムボタンの表示更新
+    const bombBtn = document.getElementById('bomb-btn');
+    if (bombBtn) {
+        if (gameState === 'STG_PLAY' && selectedCharId === 'igari') {
+            bombBtn.classList.remove('hidden');
+        } else {
+            bombBtn.classList.add('hidden');
         }
     }
 
