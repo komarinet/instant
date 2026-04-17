@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.9"; // バージョン更新（猪狩専用のレーザー弾と専用自機画像の適用、他キャラはデフォルト仕様）
+const VER_STG_CORE = "0.6.0"; // バージョン更新（猪狩専用のボム演出、時間停止、全画面レーザー機能を統合）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -193,12 +193,81 @@ class Explosion {
     }
 }
 
+// ==========================================
+// ★新規追加：ボムレーザークラス
+// ==========================================
+class BombLaser {
+    constructor(canvasWidth, canvasHeight) {
+        this.sW = canvasWidth;
+        this.sH = canvasHeight;
+        this.alive = true;
+        this.state = 'WINDUP'; 
+        this.timer = 0;
+        this.windupHeight = 0;
+        this.windupDuration = 30; 
+        this.beamDuration = 60; 
+        this.beamAlpha = 1.0;
+    }
+
+    update() {
+        this.timer++;
+        if (this.state === 'WINDUP') {
+            const progress = this.timer / this.windupDuration;
+            this.windupHeight = this.sH * progress; 
+            if (this.timer >= this.windupDuration) {
+                this.state = 'BEAM';
+                this.timer = 0;
+            }
+        } 
+        else if (this.state === 'BEAM') {
+            this.beamAlpha = Math.max(0, 1.0 - (this.timer / this.beamDuration));
+            if (this.timer >= this.beamDuration) {
+                this.state = 'DONE';
+                this.alive = false;
+            }
+        }
+    }
+
+    draw(ctx) {
+        ctx.save();
+        if (this.state === 'WINDUP') {
+            const gradient = ctx.createLinearGradient(0, this.sH, 0, this.sH - this.windupHeight);
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            gradient.addColorStop(0.5, 'rgba(200, 0, 255, 0.8)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 1)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, this.sH - this.windupHeight, this.sW, this.windupHeight);
+            
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 10;
+            ctx.shadowColor = 'magenta';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.moveTo(0, this.sH - this.windupHeight);
+            ctx.lineTo(this.sW, this.sH - this.windupHeight);
+            ctx.stroke();
+        }
+        else if (this.state === 'BEAM') {
+            ctx.globalAlpha = this.beamAlpha;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, this.sW, this.sH);
+            ctx.fillStyle = 'rgba(100, 0, 255, 0.5)';
+            ctx.shadowColor = 'magenta';
+            ctx.shadowBlur = 50;
+            ctx.fillRect(0, 0, this.sW, this.sH);
+        }
+        ctx.restore();
+    }
+}
+
+
 class Enemy {
     constructor(type, x, y, charData, advManager, stgId) {
         this.type = type; this.x = x; this.y = y; this.startX = x; this.startY = y;
         this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
         this.advManager = advManager; 
         
+        // ★ボスの死亡演出用パラメータ
         this.isDying = false; 
         this.deathTimer = 0;
         
@@ -296,6 +365,13 @@ class STGManager {
         
         this.flashTimer = 0; 
         this.shakeTimer = 0;
+
+        // ★新規追加：ボムの状態管理
+        this.bombState = 'READY'; 
+        this.bombTimer = 0;
+        this.bombCutin = { x: 0, y: 0, img: null };
+        this.bombLaser = null;
+        this.isTimeStopped = false; 
         
         this.stgId = stgId;
         if (!this.stgId) {
@@ -312,12 +388,82 @@ class STGManager {
         this.config = window.StageConfigs[this.stgId] || {};
         if (this.config && this.config.init) this.config.init(this, canvas);
     }
+
+    // ★新規追加：ボム発動処理
+    triggerBomb() {
+        if (this.player.id !== 'igari' || this.bombState !== 'READY') return;
+        
+        this.bombState = 'ANIM_IN';
+        this.bombTimer = 0;
+        this.isTimeStopped = true; 
+        
+        const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1;
+        this.bombCutin.x = canvas.width / dpr; 
+        this.bombCutin.y = (canvas.height / dpr) * 0.7; 
+        this.bombCutin.img = (this.advManager && this.advManager.assets) ? this.advManager.assets['igaribomb.png'] : null;
+        
+        this.enemyBullets = [];
+        this.explosions.push(new Explosion(this.player.x, this.player.y, this.player.size * 4, this.advManager));
+    }
     
     updateEntrance() { const c = document.getElementById('gameCanvas'); this.player.update(c); return !this.player.isEntering; }
 
     updateGameplay() {
-        this.frame++; this.stageTimer++;
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
+
+        // ★新規追加：ボム中の時間停止＆アニメーション処理
+        if (this.isTimeStopped) {
+            this.bombTimer++;
+            
+            if (this.bombState === 'ANIM_IN') {
+                if (this.bombTimer < 30) {
+                    const imgW = this.bombCutin.img ? this.bombCutin.img.width : 200;
+                    const targetX = sW - (imgW * 0.5 + 20); 
+                    this.bombCutin.x -= (this.bombCutin.x - targetX) * 0.1;
+                }
+                else if (this.bombTimer >= 60 && this.bombTimer < 80) {
+                    this.bombCutin.x -= 20; 
+                }
+                else if (this.bombTimer >= 80) {
+                    if (!this.bombLaser) {
+                        this.bombLaser = new BombLaser(sW, sH);
+                        this.flashTimer = 10;
+                        this.shakeTimer = 30;
+                    }
+                    this.bombLaser.update();
+                    
+                    if (this.bombLaser.state === 'BEAM') {
+                        this.enemies.forEach(e => {
+                            if (!e.isDying && e.type !== 'typeboss') {
+                                e.alive = false;
+                                this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                            } else if (e.type === 'typeboss') {
+                                e.hp -= 20; 
+                                if (e.hp <= 0 && !e.isDying) {
+                                    e.isDying = true; e.deathTimer = 0; this.enemyBullets = [];
+                                }
+                            }
+                        });
+                        
+                        this.flashTimer = 20;
+                        this.shakeTimer = 60;
+                        this.bombState = 'BEAM'; 
+                    }
+                }
+            }
+            else if (this.bombState === 'BEAM') {
+                this.bombLaser.update();
+                if (this.bombLaser.state === 'DONE') {
+                    this.isTimeStopped = false; 
+                    this.bombState = 'DONE';
+                    this.bombLaser = null;
+                }
+            }
+            
+            return 'PLAYING'; 
+        }
+
+        this.frame++; this.stageTimer++;
         
         this.player.update(canvas); if (!this.player.isEntering && this.frame % 8 === 0) this.player.shoot(); 
         
@@ -411,8 +557,7 @@ class STGManager {
             shakeX = (Math.random() - 0.5) * 15;
             shakeY = (Math.random() - 0.5) * 15;
             ctx.translate(shakeX, shakeY);
-            // 揺れをだんだん収める
-            this.shakeTimer--;
+            if (!this.isTimeStopped) this.shakeTimer--;
         }
 
         if (this.config && this.config.drawBackground) {
@@ -433,10 +578,24 @@ class STGManager {
         
         this.player.draw(ctx, this.advManager); 
         
+        // ★新規追加：ボムカットイン＆レーザーの描画
+        if (this.bombState === 'ANIM_IN' && this.bombCutin.img && this.bombTimer < 80) {
+            ctx.save();
+            ctx.translate(-shakeX, -shakeY); // 揺れを無効化
+            ctx.drawImage(this.bombCutin.img, 
+                          this.bombCutin.x - this.bombCutin.img.width * 0.5, 
+                          this.bombCutin.y - this.bombCutin.img.height * 0.5);
+            ctx.restore();
+        }
+        
+        if (this.bombLaser) {
+            this.bombLaser.draw(ctx); 
+        }
+
         if (this.flashTimer > 0) {
             ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; 
             ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
-            this.flashTimer--;
+            if (!this.isTimeStopped) this.flashTimer--;
         }
         
         ctx.restore();
