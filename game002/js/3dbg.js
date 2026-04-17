@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.5"; // バージョン更新（炎のシェーダーをリアル化し、ロウソク本体の明るさと透け感を向上）
+const VER_3DBG = "0.2.6"; // バージョン更新（ステージ1と2で地面のスクロール方向が逆転する問題を完全修正）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -142,6 +142,7 @@ class BGManager3D {
                 this.ground.material.map = this.textures.ground2;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
                 this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                // ★ステージ2は repeat.y がマイナス (-10)
                 this.ground.material.map.repeat.set(4, -10); 
                 this.ground.material.needsUpdate = true;
             }
@@ -152,6 +153,7 @@ class BGManager3D {
                 this.ground.material.map = this.textures.ground;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
                 this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                // ★ステージ1は repeat.y がプラス (10)
                 this.ground.material.map.repeat.set(4, 10);
                 this.ground.material.needsUpdate = true;
             }
@@ -256,7 +258,6 @@ class BGManager3D {
     createCandles() {
         const numCandles = 2000; 
 
-        // ★修正：炎のシェーダーをより「リアルな火の形」と「明るさ」に書き換え
         this.flameMaterial = new THREE.ShaderMaterial({
             uniforms: { uTime: { value: 0.0 } },
             vertexShader: `
@@ -279,22 +280,17 @@ class BGManager3D {
                     float offset = rand(vWorldPosition.xz);
                     float t = uTime * 4.0 + offset * 10.0;
                     
-                    // 上に行くほど風で揺れるような動き
                     p.x += sin(t + p.y * 3.0) * 0.15 * max(0.0, p.y + 0.5);
                     
-                    // 下が丸く、上がシュッと細くなるティアードロップ型
                     float d = length(vec2(p.x * (1.5 - p.y), p.y + 0.3));
                     float alpha = smoothstep(0.9, 0.1, d);
                     
-                    // 炎のリアルな色の層（根本の青→オレンジ→黄）
                     vec3 col = mix(vec3(0.0, 0.3, 0.8), vec3(1.0, 0.3, 0.0), smoothstep(-0.8, -0.3, p.y));
                     col = mix(col, vec3(1.0, 0.8, 0.1), smoothstep(-0.3, 0.5, p.y));
                     
-                    // 芯の強い白飛び（グロー感の強調）
                     float core = smoothstep(0.3, 0.0, d);
                     col = mix(col, vec3(1.0, 1.0, 1.0), core);
                     
-                    // チカチカする自然な揺らぎ
                     float flicker = 0.85 + 0.15 * sin(t * 3.0 + offset * 20.0);
                     
                     gl_FragColor = vec4(col * flicker, alpha * flicker);
@@ -307,11 +303,9 @@ class BGManager3D {
         const baseWickGeo = new THREE.CylinderGeometry(0.3, 0.3, 2, 4);
         const baseFlameGeo = new THREE.PlaneGeometry(1, 1.5);
 
-        // ★修正：ロウソク本体を明るい色にし、「Emissive（自己発光）」を足して透けて光っているように変更
         const sideMat = this.textures.candle 
             ? new THREE.MeshPhongMaterial({ map: this.textures.candle, emissive: 0x331100 }) 
             : new THREE.MeshPhongMaterial({ color: 0xddccaa, emissive: 0x442211, shininess: 30 });
-        // ロウソクの上面（火に近い部分）はより強く透けて光る
         const topMat = new THREE.MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
 
@@ -358,7 +352,8 @@ class BGManager3D {
         }
 
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y -= (this.scrollSpeed / 40);
+            // ★完全修正：テクスチャの張り方（repeat.y の符号）に合わせて自動でスクロール方向を補正！
+            this.ground.material.map.offset.y += (this.scrollSpeed / 40) * Math.sign(this.ground.material.map.repeat.y);
         }
 
         if (this.flameMaterial) {
