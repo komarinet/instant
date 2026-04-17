@@ -1,4 +1,4 @@
-const VER_STG_KAGAMI = "0.1.0";
+const VER_STG_KAGAMI = "0.2.0"; // バージョン更新（ステージの延長、緩急をつけたウェーブ設計、ボスの1.5倍巨大化）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['kagami'] = {
@@ -8,26 +8,41 @@ window.StageConfigs['kagami'] = {
         ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.fillRect(0, 0, sW, sH);
     },
     getEnemyData: function(type) {
-        if (type === 'typea') return { imgSrc: 'typea.png', size: 16, hp: 2 };
-        if (type === 'typeb') return { imgSrc: 'typeb.png', size: 20, hp: 4 };
-        if (type === 'typec') return { imgSrc: 'typec.png', size: 18, hp: 3 };
-        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 75, hp: 150 };
+        // ★修正：新しいHPバー表示に対応するため maxHp を追加
+        if (type === 'typea') return { imgSrc: 'typea.png', size: 16, hp: 2, maxHp: 2 };
+        if (type === 'typeb') return { imgSrc: 'typeb.png', size: 20, hp: 4, maxHp: 4 };
+        if (type === 'typec') return { imgSrc: 'typec.png', size: 18, hp: 3, maxHp: 3 };
+        // ★修正：ボスを1.5倍の大きさに（75 × 1.5 ＝ 約112）
+        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 112, hp: 150, maxHp: 150 };
     },
     updateWaves: function(stg, timer, sW, sH) {
-        if (timer > 120 && timer < 600 && timer % 60 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-        if (timer === 400 || timer === 430 || timer === 460) for (let i = 0; i < 3; i++) stg.enemies.push(new Enemy('typec', sW * 0.25 + i * sW * 0.25, -50, stg.player.charData, stg.advManager, stg.stgId));
-        if (timer > 700 && timer < 1200 && timer % 150 === 0) stg.enemies.push(new Enemy('typeb', sW * 0.2 + Math.random() * sW * 0.6, -50, stg.player.charData, stg.advManager, stg.stgId));
-        if (timer > 1000 && timer < 1800 && timer % 80 === 0) {
-            stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 160 === 0) stg.enemies.push(new Enemy('typec', (timer % 160 === 0) ? 50 : sW - 50, -50, stg.player.charData, stg.advManager, stg.stgId));
+        // ★修正：ステージを全体で約4800フレーム（約80秒）に延長し、比率に緩急をつける
+        
+        // 前半 (100〜1500フレーム): typea 多め
+        if (timer > 100 && timer < 1500) {
+            if (timer % 60 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer === 500 || timer === 1000) {
+                for (let i = 0; i < 3; i++) stg.enemies.push(new Enemy('typea', sW * 0.25 + i * sW * 0.25, -50, stg.player.charData, stg.advManager, stg.stgId));
+            }
         }
-        if (timer > 2000 && timer < 3000) {
-            if (timer % 40 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 100 === 0) stg.enemies.push(new Enemy('typeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 120 === 0) stg.enemies.push(new Enemy('typec', sW / 2 + Math.sin(timer) * sW / 2, -50, stg.player.charData, stg.advManager, stg.stgId));
+        
+        // 中盤 (1500〜3000フレーム): typeb 多め
+        if (timer > 1500 && timer < 3000) {
+            if (timer % 80 === 0) stg.enemies.push(new Enemy('typeb', sW * 0.1 + Math.random() * sW * 0.8, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 150 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
         }
-        if (timer === 3200 && !stg.bossSpawned) {
-            stg.enemies.push(new Enemy('typeboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); stg.bossSpawned = true;
+        
+        // 後半 (3000〜4500フレーム): typec 多め
+        if (timer > 3000 && timer < 4500) {
+            if (timer % 90 === 0) stg.enemies.push(new Enemy('typec', sW * 0.2 + Math.random() * sW * 0.6, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 120 === 0) stg.enemies.push(new Enemy('typeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 200 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+        }
+        
+        // ボス登場 (4800フレーム)
+        if (timer === 4800 && !stg.bossSpawned) {
+            stg.enemies.push(new Enemy('typeboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
+            stg.bossSpawned = true;
         }
     },
     updateEnemy: function(e, canvas, player) {
