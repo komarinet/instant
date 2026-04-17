@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.5.4"; // バージョン更新（既存の構造に3x3爆発アニメーションシステムを実装）
+const VER_STG_CORE = "0.5.5"; // バージョン更新（ボス撃破時のリッチな死亡・モザイク爆発演出を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -87,24 +87,21 @@ class Item {
     }
 }
 
-// ==========================================
-// ★新規追加：爆発アニメーションクラス
-// ==========================================
 class Explosion {
     constructor(x, y, targetSize, advManager) {
         this.x = x; 
         this.y = y;
-        this.targetSize = targetSize * 1.5; // 敵のサイズより少し大きめに爆発させる
+        this.targetSize = targetSize * 1.5; 
         this.img = (advManager && advManager.assets) ? advManager.assets['baku01.png'] : null;
         this.isDead = false;
 
-        this.cols = 3; // 3列
-        this.rows = 3; // 3行
+        this.cols = 3; 
+        this.rows = 3; 
         this.frameIndex = 0;
-        this.totalFrames = this.cols * this.rows; // 全9コマ
+        this.totalFrames = this.cols * this.rows; 
         
         this.timer = 0;
-        this.interval = 3; // コマ送りの速度（数字が小さいほど速く爆発する）
+        this.interval = 3; 
 
         if (this.img && this.img.naturalWidth > 0) {
             this.sw = this.img.width / this.cols;
@@ -121,7 +118,7 @@ class Explosion {
             this.timer = 0;
             this.frameIndex++;
             if (this.frameIndex >= this.totalFrames) {
-                this.isDead = true; // アニメーション終了で削除フラグ
+                this.isDead = true; 
             }
         }
     }
@@ -146,6 +143,10 @@ class Enemy {
         this.type = type; this.x = x; this.y = y; this.startX = x; this.startY = y;
         this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
         this.advManager = advManager; 
+        
+        // ★新規追加：ボスの死亡演出用パラメータ
+        this.isDying = false; 
+        this.deathTimer = 0;
         
         if (!stgId) {
             if (typeof currentStage !== 'undefined') {
@@ -173,11 +174,13 @@ class Enemy {
         this.maxHp = data.maxHp || data.hp || 1;
         if(data.init) data.init(this);
     }
+    
     update(canvas, player) {
         if(this.config.updateEnemy) this.config.updateEnemy(this, canvas, player);
         const dpr = window.devicePixelRatio || 1;
         if (this.y > canvas.height/dpr + this.size * 2 || (this.state === 'leave' && this.y < -this.size * 2)) this.alive = false;
     }
+    
     draw(ctx) {
         const img = (this.advManager && this.advManager.assets) ? this.advManager.assets[this.imgSrc] : null;
         ctx.save(); ctx.translate(this.x, this.y);
@@ -187,10 +190,40 @@ class Enemy {
         if (img && img.naturalWidth > 0) {
             const ar = img.width / img.height; let dW, dH;
             if (ar > 1) { dW = this.size * 2; dH = dW / ar; } else { dH = this.size * 2; dW = dH * ar; }
-            ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
-        } else { ctx.fillStyle = this.type === 'typeboss' ? '#ff00ff' : '#00ffff'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); }
+            
+            // ★新規追加：ボス撃破時のモザイク状に消えていく演出
+            if (this.isDying && this.deathTimer >= 60) {
+                const progress = (this.deathTimer - 60) / 120; // 0.0 ~ 1.0
+                const block = Math.max(1, Math.floor(progress * 15)); // 時間経過でモザイクのブロックが荒くなる
+                
+                if (block > 1) {
+                    if (!this.mosaicCanvas) {
+                        this.mosaicCanvas = document.createElement('canvas');
+                        this.mosaicCtx = this.mosaicCanvas.getContext('2d');
+                    }
+                    this.mosaicCanvas.width = Math.max(1, Math.floor(dW / block));
+                    this.mosaicCanvas.height = Math.max(1, Math.floor(dH / block));
+                    this.mosaicCtx.clearRect(0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
+                    this.mosaicCtx.drawImage(img, 0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
+                    
+                    ctx.imageSmoothingEnabled = false; // ピクセルをくっきりさせてモザイク感を出す
+                    ctx.globalAlpha = Math.max(0, 1.0 - progress); // だんだん透けて消える
+                    ctx.drawImage(this.mosaicCanvas, -dW/2, -dH/2, dW, dH);
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
+                }
+            } else {
+                ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
+            }
+        } else { 
+            ctx.fillStyle = this.type === 'typeboss' ? '#ff00ff' : '#00ffff'; 
+            ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
+        }
 
-        if (this.type === 'typeboss' && this.hp > 0) {
+        // 死亡演出中はHPバーを表示しない
+        if (this.type === 'typeboss' && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
             ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(this.hp/this.maxHp), bH);
@@ -204,11 +237,14 @@ class STGManager {
     constructor(canvas, charData, stgId) {
         this.player = new Player(charData); this.player.initPosition(canvas);
         
-        // ★修正：explosions 配列を追加
         this.enemies = []; this.enemyBullets = []; this.items = []; this.explosions = []; this.frame = 0; this.bossSpawned = false;
         
         this.stageTimer = 0; this.isStageClear = false; 
         this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
+        
+        // ★新規追加：フラッシュと画面揺れ用のタイマー
+        this.flashTimer = 0; 
+        this.shakeTimer = 0;
         
         this.stgId = stgId;
         if (!this.stgId) {
@@ -225,6 +261,7 @@ class STGManager {
         this.config = window.StageConfigs[this.stgId] || {};
         if (this.config && this.config.init) this.config.init(this, canvas);
     }
+    
     updateEntrance() { const c = document.getElementById('gameCanvas'); this.player.update(c); return !this.player.isEntering; }
 
     updateGameplay() {
@@ -240,24 +277,60 @@ class STGManager {
         this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
         this.items.forEach(it => it.update(canvas)); this.items = this.items.filter(it => it.alive);
         
-        // ★新規追加：爆発の更新とクリーンアップ
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
         this.enemies.forEach(e => {
+            // ★新規追加：ボスが死亡演出中の場合のタイムライン処理
+            if (e.isDying) {
+                e.deathTimer++;
+                
+                // 1. フラッシュ1回目
+                if (e.deathTimer === 1) this.flashTimer = 15;
+                
+                // 2. フラッシュ2回目
+                if (e.deathTimer === 30) this.flashTimer = 15;
+                
+                // 3. 画面全体がゴゴゴと揺れ始める（フラッシュ3回目）
+                if (e.deathTimer === 60) {
+                    this.flashTimer = 20;
+                    this.shakeTimer = 120; // 約2秒間揺れる
+                }
+                
+                // 4. モザイク＆振動中、ボスの体の上で連鎖爆発！
+                if (e.deathTimer >= 60 && e.deathTimer < 180) {
+                    if (this.frame % 4 === 0) {
+                        const exX = e.x + (Math.random() - 0.5) * e.size * 2.5;
+                        const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
+                        this.explosions.push(new Explosion(exX, exY, (e.size * 2) * (Math.random() * 0.5 + 0.5), this.advManager));
+                    }
+                }
+                
+                // 5. 演出完了。最後に大爆発して完全に消滅＆クリア
+                if (e.deathTimer >= 180) {
+                    e.alive = false;
+                    this.isStageClear = true;
+                    this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
+                }
+                return; // 死亡演出中は移動や弾の発射を行わない
+            }
+
             e.update(canvas, this.player);
             if (e.alive && !this.player.isEntering && this.config.shootEnemy) this.config.shootEnemy(e, this);
 
             this.player.bullets.forEach(b => {
-                if (b.alive && e.alive && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
+                if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        e.alive = false;
-                        
-                        // ★新規追加：敵が倒されたら、その場に爆発エフェクトを生成！
-                        this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
-                        
-                        if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
-                        if(e.type === 'typeboss') this.isStageClear = true; 
+                        // ★修正：ボスか雑魚敵かで撃破時の処理を分岐
+                        if (e.type === 'typeboss') {
+                            e.isDying = true; // 死亡演出ステートに移行
+                            e.deathTimer = 0;
+                            this.enemyBullets = []; // ボスを倒した瞬間に画面の敵弾を全消去して安全に！
+                        } else {
+                            e.alive = false;
+                            this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                            if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
+                        }
                     }
                 }
             });
@@ -288,6 +361,16 @@ class STGManager {
     draw(ctx) {
         const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
         
+        ctx.save();
+        
+        // ★新規追加：画面揺れ（シェイク）の適用。UIには影響させないよう背景とキャラのみ揺らす
+        let shakeX = 0, shakeY = 0;
+        if (this.shakeTimer > 0) {
+            shakeX = (Math.random() - 0.5) * 15;
+            shakeY = (Math.random() - 0.5) * 15;
+            ctx.translate(shakeX, shakeY);
+        }
+
         if (this.config && this.config.drawBackground) {
             this.config.drawBackground(this, ctx, sW, sH);
         } else {
@@ -296,19 +379,25 @@ class STGManager {
             ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
             ctx.fillStyle = '#fff'; ctx.font = '14px sans-serif';
             ctx.fillText(`・stg_${this.stgId}.js が index.html に記述されているか確認してください。`, 20, 90);
-            ctx.fillText("・記述が正しい場合は、ブラウザのキャッシュをクリア（スーパーリロード）してください。", 20, 115);
         }
 
         this.player.bullets.forEach(b => b.draw(ctx)); 
         this.enemies.forEach(e => e.draw(ctx));
-        
-        // ★新規追加：敵を描画した後に爆発エフェクトを重ねて描画する
         this.explosions.forEach(ex => ex.draw(ctx)); 
-        
         this.enemyBullets.forEach(eb => eb.draw(ctx)); 
         this.items.forEach(it => it.draw(ctx)); 
         this.player.draw(ctx);
         
+        // ★新規追加：フラッシュ（白画面）の適用
+        if (this.flashTimer > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; // 時間経過でだんだん透明に
+            // 画面揺れで隙間ができないように少し広めに塗りつぶす
+            ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
+        }
+        
+        ctx.restore();
+        
+        // --- 以降はUI（体力バーなど）。画面揺れの影響を受けずに静止して描画される ---
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 290, 40); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 290, 40);
         ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('HP:', 20, sH - 25);
         ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(55, sH - 37, 100, 15);
