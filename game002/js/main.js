@@ -1,4 +1,4 @@
-const VER_MAIN = "0.4.2"; // バージョン更新（バージョンチェック表示を3列の横並びデバッグ風UIに改修し、新規ファイルを追加）
+const VER_MAIN = "0.4.3"; // バージョン更新（BGMおよびSEの音声管理システムを追加）
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -37,6 +37,50 @@ const imagesToPreload3D = [
     { key: 'ground2', src: 'ground02.png' }, 
     { key: 'candle', src: 'candle.png' } 
 ];
+
+// ==========================================
+// ★新規追加：音声管理マネージャー
+// ==========================================
+const soundManager = {
+    bgm: {},
+    se: {},
+    currentBGM: null,
+    init: function() {
+        // BGMの読み込み
+        this.bgm['kagami'] = new Audio('bgm/stage_kagami.mp3');
+        this.bgm['kagami'].loop = true;
+        this.bgm['kagami'].volume = 0.4; // ボリューム調整（BGMがうるさすぎないように）
+
+        // SEの読み込み
+        this.se['smallb'] = new Audio('se/smallb.mp3');
+        this.se['smallb'].volume = 0.6;
+    },
+    playBGM: function(id) {
+        if (this.currentBGM) {
+            this.currentBGM.pause();
+            this.currentBGM.currentTime = 0;
+        }
+        if (this.bgm[id]) {
+            this.currentBGM = this.bgm[id];
+            this.currentBGM.play().catch(e => console.log("BGM play failed (ブラウザの自動再生制限の可能性):", e));
+        }
+    },
+    stopBGM: function() {
+        if (this.currentBGM) {
+            this.currentBGM.pause();
+            this.currentBGM.currentTime = 0;
+            this.currentBGM = null;
+        }
+    },
+    playSE: function(id) {
+        if (this.se[id]) {
+            // 連続して鳴らせるようにクローンを作成して再生
+            const se = this.se[id].cloneNode();
+            se.volume = this.se[id].volume;
+            se.play().catch(e => console.log("SE play failed:", e));
+        }
+    }
+};
 
 // --- UI操作系 ---
 function initCharSelect() {
@@ -86,6 +130,11 @@ function changeScreen(screenId) {
             bombBtn.classList.add('hidden');
         }
     }
+    
+    // UI画面に戻る時はBGMを止める
+    if (screenId === 'title-screen' || screenId === 'char-select-screen') {
+        soundManager.stopBGM();
+    }
 }
 
 function goToStageSelect() { 
@@ -134,7 +183,7 @@ function createBombButton() {
 }
 createBombButton();
 
-// --- バージョン情報の表示ロジック（横並び3列のデバッグUI風に進化） ---
+// --- バージョン情報の表示ロジック ---
 function showVersions() {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
@@ -157,21 +206,16 @@ function showVersions() {
     verDiv.style.fontFamily = 'monospace'; 
     verDiv.style.zIndex = '100'; 
 
-    // SYS系
     const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
     const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
     const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
     const mVer = typeof VER_MAIN !== 'undefined' ? VER_MAIN : '---';
-
-    // STG系（新規追加分を含む）
     const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
     const stgCom = typeof VER_STG_COMMON !== 'undefined' ? VER_STG_COMMON : '---';
     const plIgari = typeof VER_PLAYER_IGARI !== 'undefined' ? VER_PLAYER_IGARI : '---';
     const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
     const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
     const stgShiina = typeof VER_STG_SHIINA !== 'undefined' ? VER_STG_SHIINA : '---';
-
-    // SCENARIO系
     const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
     const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
     const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
@@ -210,15 +254,12 @@ function showVersions() {
 }
 showVersions();
 
-
 // --- 解像度対策と100vh対策 ---
 let dpr = 1;
 function resizeCanvas() {
     dpr = window.devicePixelRatio || 1;
-    
     const width = document.documentElement.clientWidth;
     const height = document.documentElement.clientHeight;
-    
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     canvas.width = width * dpr;
@@ -241,7 +282,6 @@ function resizeCanvas() {
 window.addEventListener('resize', () => { requestAnimationFrame(resizeCanvas); });
 window.addEventListener('orientationchange', () => { setTimeout(resizeCanvas, 300); });
 resizeCanvas(); 
-
 
 // --- スキップ機能 ---
 function skipADV() {
@@ -268,7 +308,6 @@ function skipADV() {
     if (skipBtn) skipBtn.classList.add('hidden');
 }
 
-
 // --- Promise.allによる並行バックグラウンド・プリロード処理 ---
 let isPreloadCompleted = false;
 let pendingStageStart = null;
@@ -284,6 +323,9 @@ const load3D = new Promise((resolve) => {
 
 Promise.all([loadADV, load3D]).then(() => {
     bgManager3D.init(); 
+    // ★プリロードが完了したら音声を準備する
+    soundManager.init();
+    
     isPreloadCompleted = true;
     
     const stageList = document.getElementById('stage-list');
@@ -305,7 +347,6 @@ Promise.all([loadADV, load3D]).then(() => {
         executeStart(pendingStageStart);
     }
 });
-
 
 // --- ゲーム進行フロー ---
 function executeStart(stageNum) {
@@ -352,7 +393,6 @@ function executeStart(stageNum) {
 
     } else {
         const stageData = charScenario[currentStage];
-        
         if (!stageData) {
             alert(`【エラー】ステージ ${currentStage} のデータがありません。\nscenario_${selectedCharId}.js を確認してください。`);
             changeScreen('title-screen');
@@ -393,7 +433,6 @@ function startGame(stageNum) {
     executeStart(stageNum);
 }
 
-
 // --- 入力制御（スマホタッチ） ---
 let touchX = 0, touchY = 0, isTouching = false;
 
@@ -422,7 +461,6 @@ canvas.addEventListener('touchmove', e => {
 }, { passive: false });
 
 canvas.addEventListener('touchend', e => { isTouching = false; });
-
 
 // --- メインループ ---
 function loop() {
@@ -480,6 +518,8 @@ function loop() {
         stgManager.draw(ctx);
         if (stgManager.updateEntrance()) {
             gameState = 'STG_PLAY';
+            // ★シューティングパート開始時にBGMを再生
+            if (currentStage === 1) soundManager.playBGM('kagami');
         }
     }
     else if (gameState === 'STG_PLAY') {
@@ -489,11 +529,13 @@ function loop() {
         if (status === 'GAMEOVER') {
             gameState = 'UI';
             stgManager = null; 
+            soundManager.stopBGM(); // ★ゲームオーバー時にBGM停止
             document.getElementById('result-title').innerText = "GAME OVER";
             changeScreen('result-screen');
             return;
         } else if (status === 'STAGE_CLEAR') {
             gameState = 'POST_STG_DIALOGUE';
+            soundManager.stopBGM(); // ★クリア時にBGM停止
             if (skipBtn) skipBtn.classList.remove('hidden');
             const charScenario = scenarios[selectedCharId];
             const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
