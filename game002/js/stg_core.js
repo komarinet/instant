@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.1"; // バージョン更新（敵撃破時や連鎖爆発時にSEを鳴らす処理を追加）
+const VER_STG_CORE = "0.7.2"; // バージョン更新（時間停止中も爆発エフェクトをアニメーションさせるように修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -98,7 +98,6 @@ class STGManager {
         
         this.flashTimer = 0; this.shakeTimer = 0;
 
-        // ボムのデータは完全にキャラ別ファイルに委譲
         this.bombState = 'READY'; 
         this.bombTimer = 0;
         this.bombData = null; 
@@ -127,9 +126,12 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
-        // ボム時間停止中の処理（キャラ別ファイルへ委譲）
+        // ★時間停止中の処理
         if (this.isTimeStopped) {
             this.player.updateBomb(this, sW, sH);
+            // ★修正：時間停止中でも爆発エフェクトだけはアニメーションを進める！
+            this.explosions.forEach(ex => ex.update());
+            this.explosions = this.explosions.filter(ex => !ex.isDead);
             return 'PLAYING'; 
         }
 
@@ -156,13 +158,13 @@ class STGManager {
                     if (this.frame % 4 === 0) {
                         const exX = e.x + (Math.random() - 0.5) * e.size * 2.5; const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
                         this.explosions.push(new Explosion(exX, exY, (e.size * 2) * (Math.random() * 0.5 + 0.5), this.advManager));
-                        if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★ボスの連爆時SE追加
+                        if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                     }
                 }
                 if (e.deathTimer >= 180) {
                     e.alive = false; this.isStageClear = true;
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
-                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★ボス完全消滅時SE追加
+                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
                 return; 
             }
@@ -178,7 +180,7 @@ class STGManager {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
-                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); // ★通常時の雑魚撃破時SE追加
+                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
                         }
                     }
@@ -232,8 +234,6 @@ class STGManager {
         this.items.forEach(it => it.draw(ctx)); 
         
         this.player.draw(ctx, this.advManager); 
-        
-        // ボムの描画（キャラ別ファイルへ委譲）
         this.player.drawBomb(this, ctx, sW, sH, shakeX, shakeY);
 
         if (this.flashTimer > 0) {
