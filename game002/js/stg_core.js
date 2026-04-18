@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.2"; // バージョン更新（時間停止中も爆発エフェクトをアニメーションさせるように修正）
+const VER_STG_CORE = "0.7.3"; // バージョン更新（HP0時に正しくゲームオーバーにならない致命的なバグを修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -126,10 +126,8 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
-        // ★時間停止中の処理
         if (this.isTimeStopped) {
             this.player.updateBomb(this, sW, sH);
-            // ★修正：時間停止中でも爆発エフェクトだけはアニメーションを進める！
             this.explosions.forEach(ex => ex.update());
             this.explosions = this.explosions.filter(ex => !ex.isDead);
             return 'PLAYING'; 
@@ -148,7 +146,8 @@ class STGManager {
         
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
-        this.enemies.forEach(e => {
+        // ★修正: forEachではなく、for...ofループにして確実にreturnできるようにする
+        for (let e of this.enemies) {
             if (e.isDying) {
                 e.deathTimer++;
                 if (e.deathTimer === 1) this.flashTimer = 15;
@@ -166,7 +165,7 @@ class STGManager {
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                     if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
-                return; 
+                continue; // returnの代わりに次の敵へ
             }
 
             e.update(canvas, this.player);
@@ -186,17 +185,24 @@ class STGManager {
                     }
                 }
             });
+            
+            // 敵本体との当たり判定
             if (e.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((e.x-this.player.x)**2 + (e.y-this.player.y)**2) < (e.size+this.player.size)/2) {
-                this.player.hp--; this.player.invincibleTimer = 90; if (this.player.hp <= 0) return 'GAMEOVER';
+                this.player.hp--; this.player.invincibleTimer = 90; 
+                // ★ここで正しく関数全体からGAMEOVERが返される
+                if (this.player.hp <= 0) return 'GAMEOVER';
             }
-        });
+        }
         this.enemies = this.enemies.filter(e => e.alive);
         
-        this.enemyBullets.forEach(eb => {
+        // ★修正: 敵弾の当たり判定もfor...ofループに変更
+        for (let eb of this.enemyBullets) {
             if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
-                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; if (this.player.hp <= 0) return 'GAMEOVER';
+                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
+                // ★ここで正しく関数全体からGAMEOVERが返される
+                if (this.player.hp <= 0) return 'GAMEOVER';
             }
-        });
+        }
         
         this.items.forEach(it => {
             if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
