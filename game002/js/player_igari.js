@@ -1,8 +1,7 @@
-const VER_PLAYER_IGARI = "0.2.0"; // バージョン更新（奥義カットインのアニメーションを絶対座標のイージング計算に修正）
+const VER_PLAYER_IGARI = "0.2.2"; // バージョン更新（奥義による敵一掃時にもアイテムがドロップするように修正）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
-// 猪狩専用の奥義レーザーエフェクト
 class BombLaserIgari {
     constructor(canvasWidth, canvasHeight) {
         this.sW = canvasWidth; this.sH = canvasHeight;
@@ -41,7 +40,6 @@ class BombLaserIgari {
     }
 }
 
-// 猪狩の行動コントローラー
 window.PlayerControllers['igari'] = {
     draw: function(player, ctx, advManager) {
         let img = (advManager && advManager.assets) ? advManager.assets['igari_jiki.png'] : null;
@@ -133,7 +131,14 @@ window.PlayerControllers['igari'] = {
                 if (bd.laser.state === 'BEAM') {
                     stg.enemies.forEach(e => {
                         if (!e.isDying && e.type !== 'typeboss') {
-                            e.alive = false; stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
+                            e.alive = false; 
+                            stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
+                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                            
+                            // ★修正：奥義による雑魚敵一掃時にもアイテムをドロップさせる
+                            if (Math.random() < 0.1) stg.items.push(new Item('power', e.x, e.y)); 
+                            else if (Math.random() < 0.15) stg.items.push(new Item('recover', e.x, e.y));
+                            
                         } else if (e.type === 'typeboss') {
                             e.hp -= 20; 
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; }
@@ -157,10 +162,9 @@ window.PlayerControllers['igari'] = {
         let bd = stg.bombData;
         if (!bd) return;
 
-        // ★カットインの座標計算を描画側（drawBomb）で絶対座標として計算する
         if (stg.bombState === 'ANIM_IN' && stg.bombTimer < 70) {
             ctx.save(); 
-            ctx.translate(-shakeX, -shakeY); // 揺れ無効化
+            ctx.translate(-shakeX, -shakeY); 
             
             ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.6, stg.bombTimer / 15)})`;
             ctx.fillRect(0, 0, sW, sH);
@@ -179,11 +183,10 @@ window.PlayerControllers['igari'] = {
                 const imgH = stripH * 1.3; 
                 const imgW = img.naturalWidth * (imgH / img.naturalHeight);
 
-                let currentX = sW + imgW; // 完全に画面右外
+                let currentX = sW + imgW; 
                 const t = stg.bombTimer;
                 const targetX = sW / 2; 
 
-                // ★イージングによる滑らかな座標計算
                 if (t < 15) {
                     const p = t / 15;
                     const ease = 1 - Math.pow(1 - p, 3); 
