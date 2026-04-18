@@ -1,10 +1,9 @@
-const VER_SCENARIO_IGARI = "0.3.6"; // バージョン更新（ステージ2のpost_stgにおけるカンマ抜けを今度こそ完全に修正）
- 
-// 猪狩 俊基ルートのシナリオデータ
- 
+const VER_SCENARIO_IGARI = "0.3.7"; // バージョン更新（第1話・第3話の台詞、表情、演出の調整を反映）
+
+window.scenarios = window.scenarios || {};
+
 scenarios.igari = {
     'opening': [
-        // fadeInを削除し、delay（待機）のみを残しました
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '魔女の里かー。俺も仕事じゃなきゃ行きたかったな', delay: 120 },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'まあまあ、今回は修行で行くんだし' },
         { bg: 'airport.png', place: 'Airport', time: '2026.04', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '一緒に行ってもどこへも行けないよ？' },
@@ -63,8 +62,7 @@ scenarios.igari = {
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいだろう。第１関門は合格だ' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '私が君をタイムリープさせた' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）だ' },
-            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '詳しい話、聞かせてもらうぞ' }
+            { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合の各務（かがみ）だ' }
         ]
     },
     2: {
@@ -119,14 +117,14 @@ scenarios.igari = {
             { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '私がこの世界を１年間巻き戻したというわけだ', isRight: true },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 8, speaker: '柊', text: 'ちょっと待って。運命見てみる・・・', isRight: false },
             { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'んんーー？　変わってないわよ', isRight: false },
-            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '世界を変えるのは簡単なことじゃない', isRight: true }, // ★今度こそ確実にカンマを挿入しました！
+            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '世界を変えるのは簡単なことじゃない', isRight: true },
             { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '協力者が必要だ。ついてこい', isRight: true }
         ]
     },
     3: {
         stgId: 'shiina',
         adv: [
-            { bg: 'hospital.png', place: 'Hospital', time: '2025.05', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '・・・病院？', delay: 60, isRight: true },
+            { bg: 'hospital.png', place: 'Hospital', time: '2025.05', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・病院？', delay: 60, isRight: true },
             { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: 'こんなところに助っ人がいるの？', isRight: true },
             { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '助っ人でもあり、助けるべき人物でもある', isRight: true },
             { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'なんだそりゃ', isRight: true },
@@ -141,11 +139,11 @@ scenarios.igari = {
             { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '彼もまた、１年後に命を落とすことになって・・・', isRight: true },
             { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'あーーーー！　椎名家の跡目！', effect: 'shake', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 2, speaker: '椎名', text: 'そういう君は、魔女の柊さん', isRight: false },
-            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '知り合いか？', isRight: true },
+            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '知り合いか？', isRight: true },
             { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '知り合いも何も！　魔女の天敵よ！', effect: 'shake', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 4, speaker: '椎名', text: '心外だな。僕らは表立って敵対するつもりはないんだよ', isRight: false },
-            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '向こうは自覚がないようだが？', isRight: true },
-            { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '椎名家はね！　魔法を無効化する能力・・・むぐっ', effect: 'shake', isRight: true },
+            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '向こうは自覚がないようだが？', isRight: true },
+            { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '椎名家はね！　魔法を無効化する能力・・・むぐっ', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 8, speaker: '椎名', text: '勤務先で大声出さないで下さいよ', isRight: false },
             { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 12, speaker: '各務', text: '椎名くん、それで話を戻すが・・・', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'お断りします', isRight: false },
@@ -154,54 +152,54 @@ scenarios.igari = {
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: '僕自身は家業とは離れていたので、直接被害はありませんが', isRight: false },
             { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'いや、しかしな', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 4, speaker: '椎名', text: '例え僕がいいと言っても、仮面が何というか', isRight: false },
-            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '俺からも頼む。もう大切な人を失いたくない', isRight: true },
+            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '俺からも頼む。もう大切な人を失いたくない', isRight: true },
             { bg: 'hospital.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '俊基ーー', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: '・・・わかりました。それではテストをさせて下さい', isRight: false },
-            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'テスト？', isRight: true },
+            { bg: 'hospital.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'テスト？', isRight: true },
             { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'ここは人目が多い。移動しましょう', isRight: false }
         ],
         pre_stg: [
             { bg: 'sanrin.png', place: 'Sanrin', time: '2025.05', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: '・・・ここならいいか', delay: 60, isRight: false },
             { bg: 'sanrin.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: 'ここからは奴に任せます', isRight: false },
-            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '彼？', isRight: true },
-            { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'あ・・・ああっ', effect: 'shake', isRight: true },
-            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: 'ったく護のやつはよぉ。いつまでも待たせやがる', effect: 'shake', isRight: false },
-            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 8, speaker: '猪狩', text: 'あの・・・椎名さん？', isRight: true },
+            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '奴？', isRight: true },
+            { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'あ・・・ああっ', effect: 'shake', isRight: true },
+            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'ったく護のやつはよぉ。いつまでも待たせやがる', isRight: false },
+            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'あの・・・椎名さん？', isRight: true },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: 'ふふ・・・はははっ', isRight: false },
-            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '俺が貴様らを認めるわけねぇだろうが！', effect: 'shake', isRight: false },
+            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '俺が貴様らを認めるわけねぇだろうが！', effect: 'shake', isRight: false },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '特にそっちの魔女、ホイホイ付いてきやがって飛んで火に入る何とやらだ', isRight: false },
             { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名家はその多大なる能力を使うため、潜在意識と顕在意識をバイパスする', isRight: true },
-            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'つまり性格変わっちゃうわけね', isRight: true },
+            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'つまり性格変わっちゃうわけね', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '話も通じない化け物なんだよ、あいつらは！', isRight: true },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: 'あー、久々に外に出られて気分がいいぜ！', isRight: false },
-            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '誰でもいいからぶん殴りてぇ！', effect: 'shake', isRight: false },
-            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'なんとかなんないのか', isRight: true },
-            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'まあ、叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
-            { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: '来るよ!', effect: 'shake', isRight: true }
+            { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '誰でもいいからぶん殴りてぇ！', isRight: false },
+            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'なんとかなんないのか', isRight: true },
+            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'まあ、叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
+            { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '来るよ!', isRight: true }
         ],
         post_stg: [
-            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'あー、すっきりした。ありがとね、君たち', isRight: false },
-            { bg: 'yakerin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '・・・戻ったのか？', isRight: true },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: '一時的に主導権を取り戻したよ。そして・・・', isRight: false },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'あー、すっきりした。ありがとね、君たち', isRight: false },
+            { bg: 'yakerin.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '戻った・・・のか？', isRight: true },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: '一時的に主導権を取り戻したよ。そして・・・', isRight: false },
             { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '認めてやるぜ。お前らと共に戦ってやる', isRight: false },
-            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '嬉しくない', isRight: true },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 4, speaker: '椎名', text: '僕だって納得はしてない。でも僕もこいつも死にたくない', isRight: false },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'そしてこいつは君たちの力を認めた', isRight: false },
-            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'やれやれ。共同戦線を張るってことでいいかな', isRight: true },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: '目的をはたすまではね', isRight: false },
+            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '嬉しくない', isRight: true },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '僕だって納得はしてない。でも僕もこいつも死にたくない', isRight: false },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'そしてこいつは君たちの力を認めた', isRight: false },
+            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'やれやれ。共同戦線を張るってことでいいかな', isRight: true },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '目的をはたすまではね', isRight: false },
             { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '終わったらぶっ潰すからな', isRight: false },
             { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: '情緒どうなってんのよ', isRight: true },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 8, speaker: '椎名', text: 'はい、椎名・・・ああ、分かった', se: 'vibration.mp3', isRight: false },
-            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 12, speaker: '各務', text: 'どうした？', isRight: true },
-            { bg: 'yakerin.png', character: 'shiina.png', spriteIndex: 4, speaker: '椎名', text: '僕を１年後に殺そうとしている首謀者が分かった', isRight: false },
-            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'これからそいつを潰しに行く', isRight: false },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'はい、椎名・・・ああ、分かった', se: 'vibration.mp3', isRight: false },
+            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'どうした？', isRight: true },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '僕を１年後に殺そうとしている首謀者が分かった', isRight: false },
+            { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'これからそいつを潰しに行く', isRight: false },
             { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'そ。頑張ってねー', isRight: true },
-            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 13, speaker: '各務', text: '何言ってるんだ。君らも行くんだぞ', effect: 'shake', isRight: true },
-            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'なんでよ！', effect: 'shake', isRight: true },
+            { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '何言ってるんだ。君らも行くんだぞ', isRight: true },
+            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'なんでよ！', isRight: true },
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名がやられたら君の死亡も確定事項になる', isRight: true },
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'バタフライエフェクトってやつだ', isRight: true },
-            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'うわ、だるっ！', isRight: true },
-            { bg: 'yakerin.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '場所は？', isRight: true },
+            { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'うわ、だるっ！', isRight: true },
+            { bg: 'yakerin.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '場所は？', isRight: true },
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '北極だ', isRight: true }
         ]
     }
