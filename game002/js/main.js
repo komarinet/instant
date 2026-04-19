@@ -1,9 +1,10 @@
-const VER_MAIN = "0.8.0"; // 各モジュールのバージョン情報表示対応
+const VER_MAIN = "0.8.1"; // 抜け落ちていたUI処理やループ分割の構造を完全復元
 
-// 分割した各ファイルから変数や関数を読み込む
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
 import * as ui from './ui.js';
+
+window.VER_MAIN = VER_MAIN;
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -19,7 +20,7 @@ let bgManager3D = null;
 let dpr = window.devicePixelRatio || 1;
 let gameLoopId;
 
-// --- 画面遷移の外部公開 (HTMLのonclickから呼ばれるため) ---
+// --- 画面遷移の外部公開 ---
 window.changeScreen = function(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
@@ -47,25 +48,36 @@ window.skipADV = function() {
         if (advManager.onComplete) advManager.onComplete();
         return;
     }
+
     advManager.isActive = false;
+    
     if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE') {
-        gameState = 'STAGE_START_TEXT'; transitionTimer = 90;
+        gameState = 'STAGE_START_TEXT';
+        transitionTimer = 90;
         if (!stgManager) {
             const charScenario = window.scenarios[selectedCharId];
-            const stgId = charScenario[currentStage]?.stgId || 'kagami';
+            const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, window.characters.find(c => c.id === selectedCharId), stgId);
         }
     } else if (gameState === 'POST_STG_DIALOGUE') {
-        gameState = 'STAGE_CLEAR_TEXT'; transitionTimer = 90;
+        gameState = 'STAGE_CLEAR_TEXT';
+        transitionTimer = 90;
     } else {
-        gameState = 'STAGE_START_TEXT'; transitionTimer = 90;
+        gameState = 'STAGE_START_TEXT';
+        transitionTimer = 90;
     }
+    
     const skipBtn = document.getElementById('skip-btn');
     if (skipBtn) skipBtn.classList.add('hidden');
 };
 
+// ★復元：NOW LOADINGの処理
 window.startGame = function(stageNum) {
-    if (!isPreloadCompleted) { pendingStageStart = stageNum; return; }
+    if (!isPreloadCompleted) {
+        ui.setStageListLoading();
+        pendingStageStart = stageNum;
+        return;
+    }
     executeStart(stageNum);
 };
 
@@ -82,31 +94,30 @@ async function init() {
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
     });
-    
-    // ui.jsの表示関数に、モジュール化された各ファイルのバージョンを渡す
     ui.showVersions({
-        main: VER_MAIN,
-        config: VER_CONFIG,
-        audio: VER_AUDIO,
-        ui: ui.VER_UI
+        main: VER_MAIN, config: VER_CONFIG, audio: VER_AUDIO, ui: ui.VER_UI
     });
-    
     resizeCanvas();
 
-    // プリロード
     await Promise.all([
         new Promise(res => advManager.preload(imagesToPreload, res)),
         new Promise(res => {
             bgManager3D = new BGManager3D('bgCanvas');
-            window.bgManager3D = bgManager3D; 
+            window.bgManager3D = bgManager3D;
             bgManager3D.preload(imagesToPreload3D, res);
         })
     ]);
 
-    bgManager3D.init();
+    bgManager3D.init(); 
     soundManager.init();
     isPreloadCompleted = true;
-    if (pendingStageStart !== null) executeStart(pendingStageStart);
+    
+    // ★復元：プリロード完了後にステージリストのテキストをセット
+    ui.initStageListTexts();
+
+    if (pendingStageStart !== null) {
+        executeStart(pendingStageStart);
+    }
 }
 
 function resizeCanvas() {
@@ -120,7 +131,7 @@ function resizeCanvas() {
     if (bgCanvas) {
         bgCanvas.style.width = width + 'px'; bgCanvas.style.height = height + 'px';
         bgCanvas.width = width * dpr; bgCanvas.height = height * dpr;
-        if (bgManager3D?.renderer) {
+        if (bgManager3D && bgManager3D.renderer) {
             bgManager3D.renderer.setSize(width, height, false);
             bgManager3D.camera.aspect = width / height;
             bgManager3D.camera.updateProjectionMatrix();
@@ -128,46 +139,89 @@ function resizeCanvas() {
     }
 }
 
+// ★復元：旧コードと寸分違わぬ実行フロー
 function executeStart(stageNum) {
-    window.changeScreen('');
-    currentStage = stageNum; stgManager = null;
+    window.changeScreen(''); 
+    const skipBtn = document.getElementById('skip-btn');
+    if (skipBtn) skipBtn.classList.remove('hidden');
+
+    currentStage = stageNum;
+    stgManager = null;
+
+    const charData = window.characters.find(c => c.id === selectedCharId);
     const charScenario = window.scenarios[selectedCharId];
-    if (!charScenario) return alert("シナリオなし");
 
-    const startFlow = (scenarioKey) => {
+    if (!charScenario || Object.keys(charScenario).length === 0) {
+        alert(`【エラー】\nシナリオデータが読み込まれていません！`);
+        window.changeScreen('title-screen');
+        return;
+    }
+
+    if (stageNum === 1) {
+        if (!charScenario['opening'] || !charScenario[1]) {
+            alert(`【エラー】第1話のデータがありません。`);
+            window.changeScreen('title-screen');
+            return;
+        }
+
         gameState = 'ADV';
-        advManager.start(charScenario[scenarioKey], () => {
+        advManager.start(charScenario['opening'], () => { 
             const stgId = charScenario[currentStage].stgId || 'kagami';
-            stgManager = new STGManager(canvas, window.characters.find(c => c.id === selectedCharId), stgId);
-            if (scenarioKey === 'opening') {
-                advManager.start(charScenario['kagami_arrival'], () => startPreStg());
-            } else { startPreStg(); }
+            stgManager = new STGManager(canvas, charData, stgId);
+            
+            gameState = 'ADV';
+            advManager.start(charScenario['kagami_arrival'], () => {
+                gameState = 'PRE_STG_DIALOGUE';
+                advManager.start(charScenario[currentStage].pre_stg || [], () => {
+                    gameState = 'STAGE_START_TEXT';
+                    transitionTimer = 90;
+                    if (skipBtn) skipBtn.classList.add('hidden');
+                });
+            });
         });
-    };
+        cancelAnimationFrame(gameLoopId);
+        loop();
 
-    const startPreStg = () => {
-        gameState = 'PRE_STG_DIALOGUE';
-        advManager.start(charScenario[currentStage].pre_stg || [], () => {
-            gameState = 'STAGE_START_TEXT'; transitionTimer = 90;
+    } else {
+        const stageData = charScenario[currentStage];
+        if (!stageData) {
+            alert(`【エラー】ステージ ${currentStage} のデータがありません。`);
+            window.changeScreen('title-screen');
+            return;
+        }
+
+        const stgId = stageData.stgId || 'kagami';
+        stgManager = new STGManager(canvas, charData, stgId);
+        
+        gameState = 'ADV';
+        advManager.start(stageData.adv || [], () => {
+            gameState = 'PRE_STG_DIALOGUE';
+            if (skipBtn) skipBtn.classList.remove('hidden');
+            advManager.start(stageData.pre_stg || [], () => {
+                gameState = 'STAGE_START_TEXT';
+                transitionTimer = 90;
+                if (skipBtn) skipBtn.classList.add('hidden');
+            });
         });
-    };
-
-    stageNum === 1 ? startFlow('opening') : startFlow(currentStage);
-    cancelAnimationFrame(gameLoopId);
-    loop();
+        cancelAnimationFrame(gameLoopId);
+        loop();
+    }
 }
 
 // --- 入力制御 ---
 let touchX = 0, touchY = 0, isTouching = false;
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (['ADV', 'PRE_STG_DIALOGUE', 'POST_STG_DIALOGUE', 'MID_STG_ADV'].includes(gameState)) {
+    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'MID_STG_ADV') {
         advManager.next();
-    } else if (gameState === 'STG_PLAY') {
+        return;
+    }
+    if (gameState === 'STG_PLAY') {
         isTouching = true; touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
     }
 }, { passive: false });
 canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
     if (gameState === 'STG_PLAY' && isTouching) {
         const currentX = e.touches[0].clientX, currentY = e.touches[0].clientY;
         stgManager.player.x += (currentX - touchX) * 1.2;
@@ -177,55 +231,145 @@ canvas.addEventListener('touchmove', e => {
 }, { passive: false });
 canvas.addEventListener('touchend', () => isTouching = false);
 
+
+// ==========================================
+// ★復元：メインループから呼び出す各状態の関数群
+// ==========================================
+
+function handleStageStartText() {
+    stgManager.draw(ctx);
+    ui.drawCenterText(ctx, canvas, dpr, `STAGE ${currentStage} START`, '#fff');
+    transitionTimer--;
+    if (transitionTimer <= 0) gameState = 'STG_ENTER';
+}
+
+function handleStgEnter() {
+    stgManager.draw(ctx);
+    if (stgManager.updateEntrance()) {
+        gameState = 'STG_PLAY';
+        if (currentStage === 1) soundManager.playBGM('kagami');
+    }
+}
+
+function handleStgPlay() {
+    const status = stgManager.updateGameplay();
+    stgManager.draw(ctx);
+    
+    if (status === 'GAMEOVER') {
+        gameState = 'UI';
+        stgManager = null; 
+        soundManager.stopBGM(); 
+        document.getElementById('result-title').innerText = "GAME OVER";
+        window.changeScreen('result-screen');
+    } else if (status === 'STAGE_CLEAR') {
+        gameState = 'POST_STG_DIALOGUE';
+        soundManager.stopBGM(); 
+        
+        const skipBtn = document.getElementById('skip-btn');
+        if (skipBtn) skipBtn.classList.remove('hidden');
+        
+        const charScenario = window.scenarios[selectedCharId];
+        const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
+        
+        advManager.start(postData, () => {
+            gameState = 'STAGE_CLEAR_TEXT';
+            transitionTimer = 90; 
+            if (skipBtn) skipBtn.classList.add('hidden');
+        });
+    }
+}
+
+function handleStageClearText() {
+    stgManager.draw(ctx);
+    ui.drawCenterText(ctx, canvas, dpr, `STAGE ${currentStage} CLEAR`, '#00ffff');
+    transitionTimer--;
+    if (transitionTimer <= 0) {
+        gameState = 'TRANSITION_FADE';
+        transitionTimer = 60; 
+    }
+}
+
+function handleTransitionFade() {
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+    transitionTimer--;
+    if (transitionTimer <= 0) {
+        currentStage++;
+        const charScenario = window.scenarios[selectedCharId];
+        
+        if (charScenario && charScenario[currentStage]) {
+            const stageData = charScenario[currentStage];
+            const stgId = stageData.stgId || 'kagami';
+            stgManager = new STGManager(canvas, window.characters.find(c => c.id === selectedCharId), stgId);
+            
+            gameState = 'ADV';
+            const skipBtn = document.getElementById('skip-btn');
+            if (skipBtn) skipBtn.classList.remove('hidden');
+            
+            advManager.start(stageData.adv || [], () => {
+                gameState = 'PRE_STG_DIALOGUE';
+                if (skipBtn) skipBtn.classList.remove('hidden');
+                advManager.start(stageData.pre_stg || [], () => {
+                    gameState = 'STAGE_START_TEXT';
+                    transitionTimer = 90;
+                    if (skipBtn) skipBtn.classList.add('hidden');
+                });
+            });
+        } else {
+            gameState = 'UI';
+            stgManager = null; 
+            document.getElementById('result-title').innerText = "ALL CLEAR!";
+            document.getElementById('result-title').style.color = "#00ffff";
+            window.changeScreen('result-screen');
+        }
+    }
+}
+
 // --- メインループ ---
 function loop() {
     if (gameState === 'UI') return;
+    
     ui.updateGameUI(gameState, selectedCharId, stgManager);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
+    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
 
     switch (gameState) {
-        case 'ADV': advManager.draw(ctx, canvas, false); break;
+        case 'ADV':
+            advManager.draw(ctx, canvas, false); 
+            break;
+            
         case 'PRE_STG_DIALOGUE':
-        case 'MID_STG_ADV': stgManager.draw(ctx); advManager.draw(ctx, canvas, true); break;
+        case 'MID_STG_ADV':
+            stgManager.draw(ctx);
+            advManager.draw(ctx, canvas, true); 
+            break;
+            
         case 'STAGE_START_TEXT':
-            stgManager.draw(ctx); ui.drawCenterText(ctx, canvas, dpr, `STAGE ${currentStage} START`, '#fff');
-            if (--transitionTimer <= 0) gameState = 'STG_ENTER';
+            handleStageStartText();
             break;
+            
         case 'STG_ENTER':
-            stgManager.draw(ctx);
-            if (stgManager.updateEntrance()) {
-                gameState = 'STG_PLAY';
-                if (currentStage === 1) soundManager.playBGM('kagami');
-            }
+            handleStgEnter();
             break;
+            
         case 'STG_PLAY':
-            const status = stgManager.updateGameplay();
-            stgManager.draw(ctx);
-            if (status === 'GAMEOVER') {
-                gameState = 'UI'; soundManager.stopBGM(); window.changeScreen('result-screen');
-            } else if (status === 'STAGE_CLEAR') {
-                gameState = 'POST_STG_DIALOGUE'; soundManager.stopBGM();
-                advManager.start(window.scenarios[selectedCharId][currentStage]?.post_stg || [], () => {
-                    gameState = 'STAGE_CLEAR_TEXT'; transitionTimer = 90;
-                });
-            }
+            handleStgPlay();
             break;
-        case 'POST_STG_DIALOGUE': stgManager.draw(ctx); advManager.draw(ctx, canvas, true); break;
+            
+        case 'POST_STG_DIALOGUE':
+            stgManager.draw(ctx); 
+            advManager.draw(ctx, canvas, true); 
+            break;
+            
         case 'STAGE_CLEAR_TEXT':
-            stgManager.draw(ctx); ui.drawCenterText(ctx, canvas, dpr, `STAGE ${currentStage} CLEAR`, '#00ffff');
-            if (--transitionTimer <= 0) { gameState = 'TRANSITION_FADE'; transitionTimer = 60; }
+            handleStageClearText();
             break;
+            
         case 'TRANSITION_FADE':
-            ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-            if (--transitionTimer <= 0) {
-                currentStage++;
-                window.scenarios[selectedCharId][currentStage] ? executeStart(currentStage) : (() => {
-                    gameState = 'UI'; document.getElementById('result-title').innerText = "ALL CLEAR!";
-                    window.changeScreen('result-screen');
-                })();
-            }
+            handleTransitionFade();
             break;
     }
+
     gameLoopId = requestAnimationFrame(loop);
 }
 
