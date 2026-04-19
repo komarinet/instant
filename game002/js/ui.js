@@ -1,4 +1,4 @@
-export const VER_UI = "0.2.0"; // UI操作関数分離（ステージ名表示の抜け落ちを修正）
+export const VER_UI = "0.2.1"; // UI操作関数分離（バージョン表示の取得バグ修正）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -72,13 +72,29 @@ export function showVersions(moduleVersions) {
     verDiv.className = 'version-info-panel'; 
     verDiv.style.cssText = 'position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:20px;font-size:0.65rem;color:rgba(255,255,255,0.5);pointer-events:none;line-height:1.3;font-family:monospace;z-index:100;';
     
-    const getV = (name) => typeof window[name] !== 'undefined' ? window[name] : '---';
+    // 直接 typeof で安全に判定する方式へ復元
+    const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
+    const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
+    const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
+    const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
+    const stgCom = typeof VER_STG_COMMON !== 'undefined' ? VER_STG_COMMON : '---';
+    const plIgari = typeof VER_PLAYER_IGARI !== 'undefined' ? VER_PLAYER_IGARI : '---';
+    const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
+    const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
+    const stgShiina = typeof VER_STG_SHIINA !== 'undefined' ? VER_STG_SHIINA : '---';
+    const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
+    const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
+    const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
+    const scKagami = typeof VER_SCENARIO_KAGAMI !== 'undefined' ? VER_SCENARIO_KAGAMI : '---';
+    const scGodai = typeof VER_SCENARIO_GODAI !== 'undefined' ? VER_SCENARIO_GODAI : '---';
+    const scJingu = typeof VER_SCENARIO_JINGU !== 'undefined' ? VER_SCENARIO_JINGU : '---';
+
     verDiv.innerHTML = `
         <div style="text-align: left;">
             <span style="color:#00ffff">[SYS]</span><br>
-            data:v${getV('VER_DATA')}<br>
-            adv:v${getV('VER_ADV')}<br>
-            3dbg:v${getV('VER_3DBG')}<br>
+            data:v${dVer}<br>
+            adv:v${aVer}<br>
+            3dbg:v${b3Ver}<br>
             main:v${moduleVersions.main}<br>
             conf:v${moduleVersions.config}<br>
             aud:v${moduleVersions.audio}<br>
@@ -86,18 +102,18 @@ export function showVersions(moduleVersions) {
         </div>
         <div style="text-align: left;">
             <span style="color:#ffaa00">[STG]</span><br>
-            core:v${getV('VER_STG_CORE')}<br>
-            com:v${getV('VER_STG_COMMON')}<br>
-            s_kaga:v${getV('VER_STG_KAGAMI')}<br>
-            s_hira:v${getV('VER_STG_HIRAGI')}<br>
-            s_shii:v${getV('VER_STG_SHIINA')}
+            core:v${stgCore}<br>
+            com:v${stgCom}<br>
+            s_kaga:v${stgKagami}<br>
+            s_hira:v${stgHiragi}<br>
+            s_shii:v${stgShiina}
         </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
-            iga:v${getV('VER_SCENARIO_IGARI')}<br>
-            mam:v${getV('VER_SCENARIO_MAMORU')}<br>
-            hir:v${getV('VER_SCENARIO_HIRAGI')}<br>
-            kag:v${getV('VER_SCENARIO_KAGAMI')}
+            iga:v${scIgari}<br>
+            mam:v${scMamoru}<br>
+            hir:v${scHiragi}<br>
+            kag:v${scKagami}
         </div>
     `;
     titleScreen.appendChild(verDiv);
