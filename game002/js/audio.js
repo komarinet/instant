@@ -1,4 +1,5 @@
-// js/audio.js
+export const VER_AUDIO = "0.1.0"; // 音声マネージャー分離
+
 export const soundManager = {
     bgm: {},
     se: {},
