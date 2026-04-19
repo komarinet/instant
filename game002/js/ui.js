@@ -1,4 +1,5 @@
-// js/ui.js
+export const VER_UI = "0.1.0"; // UI操作関数分離
+
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
     list.innerHTML = '';
@@ -62,7 +63,8 @@ export function drawCenterText(ctx, canvas, dpr, text, textColor) {
     ctx.textAlign = 'left';
 }
 
-export function showVersions() {
+// ★修正：main.jsから各モジュールのバージョン情報を受け取って表示
+export function showVersions(moduleVersions) {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
     const oldVerText = document.querySelector('.version-info-panel');
@@ -71,12 +73,33 @@ export function showVersions() {
     verDiv.className = 'version-info-panel'; 
     verDiv.style.cssText = 'position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:20px;font-size:0.65rem;color:rgba(255,255,255,0.5);pointer-events:none;line-height:1.3;font-family:monospace;z-index:100;';
     
-    // グローバル変数から取得（window経由）
     const getV = (name) => typeof window[name] !== 'undefined' ? window[name] : '---';
     verDiv.innerHTML = `
-        <div style="text-align: left;"><span style="color:#00ffff">[SYS]</span><br>data:v${getV('VER_DATA')}<br>adv:v${getV('VER_ADV')}<br>3dbg:v${getV('VER_3DBG')}<br>main:v${getV('VER_MAIN')}</div>
-        <div style="text-align: left;"><span style="color:#ffaa00">[STG]</span><br>core:v${getV('VER_STG_CORE')}<br>com:v${getV('VER_STG_COMMON')}<br>s_shii:v${getV('VER_STG_SHIINA')}</div>
-        <div style="text-align: left;"><span style="color:#ff3366">[SCENARIO]</span><br>iga:v${getV('VER_SCENARIO_IGARI')}<br>mam:v${getV('VER_SCENARIO_MAMORU')}</div>
+        <div style="text-align: left;">
+            <span style="color:#00ffff">[SYS]</span><br>
+            data:v${getV('VER_DATA')}<br>
+            adv:v${getV('VER_ADV')}<br>
+            3dbg:v${getV('VER_3DBG')}<br>
+            main:v${moduleVersions.main}<br>
+            conf:v${moduleVersions.config}<br>
+            aud:v${moduleVersions.audio}<br>
+            ui:v${moduleVersions.ui}
+        </div>
+        <div style="text-align: left;">
+            <span style="color:#ffaa00">[STG]</span><br>
+            core:v${getV('VER_STG_CORE')}<br>
+            com:v${getV('VER_STG_COMMON')}<br>
+            s_kaga:v${getV('VER_STG_KAGAMI')}<br>
+            s_hira:v${getV('VER_STG_HIRAGI')}<br>
+            s_shii:v${getV('VER_STG_SHIINA')}
+        </div>
+        <div style="text-align: left;">
+            <span style="color:#ff3366">[SCENARIO]</span><br>
+            iga:v${getV('VER_SCENARIO_IGARI')}<br>
+            mam:v${getV('VER_SCENARIO_MAMORU')}<br>
+            hir:v${getV('VER_SCENARIO_HIRAGI')}<br>
+            kag:v${getV('VER_SCENARIO_KAGAMI')}
+        </div>
     `;
     titleScreen.appendChild(verDiv);
 }
