@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.3"; // バージョン更新（HP0時に正しくゲームオーバーにならない致命的なバグを修正）
+const VER_STG_CORE = "0.7.4"; // バージョン更新（ボス撃破判定の汎用化、HPゲージと数値の表示最適化）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -75,14 +75,16 @@ class Enemy {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
             }
         } else { 
-            ctx.fillStyle = this.type === 'typeboss' ? '#ff00ff' : '#00ffff'; 
+            // ★修正：ボス描画のフォールバック色判定を拡張
+            ctx.fillStyle = this.type.includes('boss') ? '#ff00ff' : '#00ffff'; 
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
-        if (this.type === 'typeboss' && this.hp > 0 && !this.isDying) {
+        // ★修正：ボスのHPゲージ描画条件を拡張＆ゲージのマイナス描画防止
+        if (this.type.includes('boss') && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
-            ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(this.hp/this.maxHp), bH);
+            ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
             ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
         }
         ctx.restore();
@@ -146,7 +148,6 @@ class STGManager {
         
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
-        // ★修正: forEachではなく、for...ofループにして確実にreturnできるようにする
         for (let e of this.enemies) {
             if (e.isDying) {
                 e.deathTimer++;
@@ -165,7 +166,7 @@ class STGManager {
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                     if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
-                continue; // returnの代わりに次の敵へ
+                continue; 
             }
 
             e.update(canvas, this.player);
@@ -175,7 +176,8 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        if (e.type === 'typeboss') {
+                        // ★修正：'typeboss'だけでなく、名前に'boss'が含まれていればクリア演出に移行する
+                        if (e.type.includes('boss')) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
@@ -186,20 +188,16 @@ class STGManager {
                 }
             });
             
-            // 敵本体との当たり判定
             if (e.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((e.x-this.player.x)**2 + (e.y-this.player.y)**2) < (e.size+this.player.size)/2) {
                 this.player.hp--; this.player.invincibleTimer = 90; 
-                // ★ここで正しく関数全体からGAMEOVERが返される
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
         this.enemies = this.enemies.filter(e => e.alive);
         
-        // ★修正: 敵弾の当たり判定もfor...ofループに変更
         for (let eb of this.enemyBullets) {
             if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
                 eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
-                // ★ここで正しく関数全体からGAMEOVERが返される
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
@@ -208,6 +206,7 @@ class STGManager {
             if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
                 it.alive = false;
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
+                // ★HP回復時、最大値を超えないように制御（既存のまま正常動作）
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
             }
         });
@@ -249,11 +248,18 @@ class STGManager {
         }
         ctx.restore();
         
-        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 290, 40); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 290, 40);
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; ctx.fillText('HP:', 20, sH - 25);
-        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(55, sH - 37, 100, 15);
-        ctx.fillStyle = '#33ff33'; ctx.fillRect(55, sH - 37, 100 * (this.player.hp / this.player.maxHp), 15);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(55, sH - 37, 100, 15);
-        ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 170, sH - 25);
+        // ★修正：枠の幅を広げ、HPの「数値（値）」をテキストで表示してチグハグ感を解消
+        const pHP = Math.max(0, this.player.hp);
+        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 310, 40); 
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 310, 40);
+        
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; 
+        ctx.fillText(`HP: ${pHP}/${this.player.maxHp}`, 20, sH - 25);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(90, sH - 37, 100, 15);
+        ctx.fillStyle = '#33ff33'; ctx.fillRect(90, sH - 37, 100 * (pHP / this.player.maxHp), 15);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(90, sH - 37, 100, 15);
+        
+        ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 205, sH - 25);
     }
 }
