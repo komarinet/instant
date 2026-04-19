@@ -1,4 +1,4 @@
-const VER_PLAYER_IGARI = "0.2.2"; // バージョン更新（奥義による敵一掃時にもアイテムがドロップするように修正）
+const VER_PLAYER_IGARI = "0.2.3"; // バージョン更新（ボムの多重ヒットバグ修正、ボス名対応）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -8,6 +8,7 @@ class BombLaserIgari {
         this.alive = true; this.state = 'WINDUP'; this.timer = 0;
         this.windupHeight = 0; this.windupDuration = 20; 
         this.beamDuration = 60; this.beamAlpha = 1.0;
+        this.hasHit = false; // ★追加：1回のボムで1回だけダメージ処理させるフラグ
     }
     update() {
         this.timer++;
@@ -128,18 +129,22 @@ window.PlayerControllers['igari'] = {
                 }
                 bd.laser.update();
                 
-                if (bd.laser.state === 'BEAM') {
+                // ★修正：BEAM状態になった「最初の一瞬」だけダメージ処理とアイテムドロップを行う
+                if (bd.laser.state === 'BEAM' && !bd.laser.hasHit) {
+                    bd.laser.hasHit = true; // 2回目以降はスキップ
+                    
                     stg.enemies.forEach(e => {
-                        if (!e.isDying && e.type !== 'typeboss') {
+                        // ★修正：ボス名が「typeboss」以外（shiinaboss等）でも正しく判定するように変更
+                        if (!e.isDying && !e.type.includes('boss')) {
                             e.alive = false; 
                             stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             
-                            // ★修正：奥義による雑魚敵一掃時にもアイテムをドロップさせる
-                            if (Math.random() < 0.1) stg.items.push(new Item('power', e.x, e.y)); 
-                            else if (Math.random() < 0.15) stg.items.push(new Item('recover', e.x, e.y));
+                            // アイテムドロップ（1体の敵から適正にドロップさせる）
+                            if (Math.random() < 0.2) stg.items.push(new Item('power', e.x, e.y)); 
+                            else if (Math.random() < 0.3) stg.items.push(new Item('recover', e.x, e.y));
                             
-                        } else if (e.type === 'typeboss') {
+                        } else if (e.type.includes('boss')) {
                             e.hp -= 20; 
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; }
                         }
