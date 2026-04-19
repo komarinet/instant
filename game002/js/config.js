@@ -1,5 +1,4 @@
-// js/config.js
-export const VER_MAIN = "0.7.0"; // モジュール化移行版
+export const VER_CONFIG = "0.1.0"; // 設定・アセットデータ分離
 
 export const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
