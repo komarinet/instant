@@ -1,10 +1,9 @@
-// js/main.js
-import { VER_MAIN, imagesToPreload, imagesToPreload3D } from './config.js';
-import { soundManager } from './audio.js';
-import * as ui from './ui.js';
+const VER_MAIN = "0.8.0"; // 各モジュールのバージョン情報表示対応
 
-// バージョンをグローバルに登録（UI表示用）
-window.VER_MAIN = VER_MAIN;
+// 分割した各ファイルから変数や関数を読み込む
+import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
+import { VER_AUDIO, soundManager } from './audio.js';
+import * as ui from './ui.js';
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
@@ -20,7 +19,7 @@ let bgManager3D = null;
 let dpr = window.devicePixelRatio || 1;
 let gameLoopId;
 
-// --- 画面遷移の外部公開 ---
+// --- 画面遷移の外部公開 (HTMLのonclickから呼ばれるため) ---
 window.changeScreen = function(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
     if(screenId) document.getElementById(screenId).classList.remove('hidden');
@@ -83,7 +82,15 @@ async function init() {
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
     });
-    ui.showVersions();
+    
+    // ui.jsの表示関数に、モジュール化された各ファイルのバージョンを渡す
+    ui.showVersions({
+        main: VER_MAIN,
+        config: VER_CONFIG,
+        audio: VER_AUDIO,
+        ui: ui.VER_UI
+    });
+    
     resizeCanvas();
 
     // プリロード
@@ -91,7 +98,7 @@ async function init() {
         new Promise(res => advManager.preload(imagesToPreload, res)),
         new Promise(res => {
             bgManager3D = new BGManager3D('bgCanvas');
-            window.bgManager3D = bgManager3D; // 他のJSからのアクセス用
+            window.bgManager3D = bgManager3D; 
             bgManager3D.preload(imagesToPreload3D, res);
         })
     ]);
