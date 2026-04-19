@@ -1,4 +1,4 @@
-export const VER_UI = "0.1.0"; // UI操作関数分離
+export const VER_UI = "0.2.0"; // UI操作関数分離（ステージ名表示の抜け落ちを修正）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -63,7 +63,6 @@ export function drawCenterText(ctx, canvas, dpr, text, textColor) {
     ctx.textAlign = 'left';
 }
 
-// ★修正：main.jsから各モジュールのバージョン情報を受け取って表示
 export function showVersions(moduleVersions) {
     const titleScreen = document.getElementById('title-screen');
     if (!titleScreen) return; 
@@ -117,4 +116,34 @@ export function createBombButton(onBombTrigger) {
         onBombTrigger();
     });
     document.getElementById('game-container').appendChild(btn);
+}
+
+// ★復元：ステージリストの名前と色を更新する処理
+export function initStageListTexts() {
+    const stageList = document.getElementById('stage-list');
+    if (stageList) {
+        const stageTexts = [
+            "Stage 1: Reboot", "Stage 2: Jealous Witch", "Stage 3: Chronos Mask", 
+            "Stage 4: Nano Monarch", "Stage 5: Asset-Ash", "Final Stage: The Commander"
+        ];
+        stageList.querySelectorAll('button').forEach((btn, index) => {
+            if (index < stageTexts.length) {
+                btn.innerText = stageTexts[index];
+                btn.style.color = "#fff";
+                btn.style.borderColor = index === 5 ? "#ff3366" : "#ffaa00";
+            }
+        });
+    }
+}
+
+// ★復元：プリロード完了前のNOW LOADING表示処理
+export function setStageListLoading() {
+    const stageList = document.getElementById('stage-list');
+    if (stageList) {
+        stageList.querySelectorAll('button').forEach(btn => {
+            btn.innerText = "NOW LOADING...";
+            btn.style.color = "#00ffff";
+            btn.style.borderColor = "#00ffff";
+        });
+    }
 }
