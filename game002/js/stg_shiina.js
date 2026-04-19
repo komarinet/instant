@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.3.0"; // バージョン更新（式神のサイズアップ、ボスフラグ統一）
+const VER_STG_SHIINA = "0.3.1"; // バージョン更新（ボスのY座標引き上げ、HPバーの描画マイナス対策）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -43,7 +43,6 @@ window.StageConfigs['shiina'] = {
             };
         };
 
-        // ★修正：サイズを全体的にアップ（A:25, B:30, C:35, D:40）
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 4, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 12, init: (e) => { initShiki(e, 2); } };
@@ -59,7 +58,6 @@ window.StageConfigs['shiina'] = {
                     const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiinaboss.png'] : null;
                     ctx.save(); ctx.translate(this.x, this.y);
 
-                    // 1. バリアリング(sans.png)
                     if (this.isInvincible) {
                         const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.png'] : null;
                         if (sansImg && sansImg.naturalWidth > 0) {
@@ -77,7 +75,6 @@ window.StageConfigs['shiina'] = {
                         }
                     }
 
-                    // 2. ボス本体
                     if (img && img.naturalWidth > 0) {
                         this.animTimer++;
                         const speed = 5; 
@@ -94,11 +91,11 @@ window.StageConfigs['shiina'] = {
                         ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill();
                     }
 
-                    // 3. HPバー
+                    // ★修正：ボスのHPがマイナスになった時にゲージが逆方向に描画されないように Math.max を使用
                     if (!this.isInvincible && this.hp > 0 && !this.isDying) {
                         const bW = this.size * 1.5, bH = 10;
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
-                        ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(this.hp/this.maxHp), bH);
+                        ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
                         ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
                     }
                     ctx.restore();
@@ -126,7 +123,8 @@ window.StageConfigs['shiina'] = {
 
     updateWaves: function(stg, timer, sW, sH) {
         if (timer === 10 && !stg.bossSpawned) {
-            stg.enemies.push(new Enemy('shiinaboss', sW/2, 150, stg.player.charData, stg.advManager, stg.stgId));
+            // ★修正：ボスを上に配置するため、Y座標を 150 から 90 に変更
+            stg.enemies.push(new Enemy('shiinaboss', sW/2, 90, stg.player.charData, stg.advManager, stg.stgId));
             stg.bossSpawned = true;
         }
 
@@ -171,7 +169,8 @@ window.StageConfigs['shiina'] = {
 
     updateEnemy: function(e, canvas, player) {
         if (e.type === 'shiinaboss') {
-            e.y = 150; 
+            // ★修正：ボスの待機Y座標も 150 から 90 に変更
+            e.y = 90; 
         } else if (e.type.startsWith('shiki_')) {
             e.y += 2.5;
         }
