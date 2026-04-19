@@ -1,4 +1,4 @@
-const VER_MAIN = "0.8.2"; // バージョン更新（モジュール化の弊害でキャラデータが読み込めず進行不能になるバグを修正）
+const VER_MAIN = "0.8.4"; // バージョン更新（モジュールの壁によるadvManager、soundManager、currentStageの参照エラーを完全修正）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -6,15 +6,35 @@ import * as ui from './ui.js';
 
 window.VER_MAIN = VER_MAIN;
 
+// ★追加：モジュール内でインポートした音響システムを、外部のSTGシステムからも呼べるように窓口を開く
+window.soundManager = soundManager; 
+
+const getGlobal = (varName, fallback) => {
+    try {
+        const val = new Function(`return typeof ${varName} !== 'undefined' ? ${varName} : null;`)();
+        return val !== null ? val : fallback;
+    } catch(e) {
+        return fallback;
+    }
+};
+
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
+
 let currentStage = 1;
+// ★追加：3D背景システムがステージ番号を監視できるように窓口を開く
+window.currentStage = currentStage; 
+
 let gameState = 'UI'; 
 let transitionTimer = 0; 
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
+
 const advManager = new ADVManager();
+// ★追加：STGシステムが敵の画像を読み込めるように窓口を開く
+window.advManager = advManager; 
+
 let stgManager = null;
 let bgManager3D = null;
 let dpr = window.devicePixelRatio || 1;
@@ -55,11 +75,11 @@ window.skipADV = function() {
         gameState = 'STAGE_START_TEXT';
         transitionTimer = 90;
         if (!stgManager) {
-            // ★修正：window.scenarios ではなく直接 scenarios を参照
-            const charScenario = scenarios[selectedCharId];
+            const safeChars = getGlobal('characters', []);
+            const safeScenarios = getGlobal('scenarios', {});
+            const charScenario = safeScenarios[selectedCharId];
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
-            // ★修正：window.characters ではなく直接 characters を参照
-            stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
+            stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
     } else if (gameState === 'POST_STG_DIALOGUE') {
         gameState = 'STAGE_CLEAR_TEXT';
@@ -87,19 +107,22 @@ let isPreloadCompleted = false;
 let pendingStageStart = null;
 
 async function init() {
-    // ★修正：window.characters ではなく直接 characters を参照
-    ui.initCharSelect(characters, selectedCharId, (id) => {
+    const safeChars = getGlobal('characters', []);
+    
+    ui.initCharSelect(safeChars, selectedCharId, (id) => {
         selectedCharId = id;
-        ui.updatePreview(characters, selectedCharId);
+        ui.updatePreview(safeChars, selectedCharId);
     });
-    ui.updatePreview(characters, selectedCharId);
+    ui.updatePreview(safeChars, selectedCharId);
     
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
     });
+    
     ui.showVersions({
         main: VER_MAIN, config: VER_CONFIG, audio: VER_AUDIO, ui: ui.VER_UI
     });
+    
     resizeCanvas();
 
     await Promise.all([
@@ -147,11 +170,15 @@ function executeStart(stageNum) {
     if (skipBtn) skipBtn.classList.remove('hidden');
 
     currentStage = stageNum;
+    window.currentStage = currentStage; // ★追加：ステージ切り替え時に窓口の番号も更新
+
     stgManager = null;
 
-    // ★修正：直接キャラクターデータを参照
-    const charData = characters.find(c => c.id === selectedCharId);
-    const charScenario = scenarios[selectedCharId];
+    const safeChars = getGlobal('characters', []);
+    const safeScenarios = getGlobal('scenarios', {});
+
+    const charData = safeChars.find(c => c.id === selectedCharId);
+    const charScenario = safeScenarios[selectedCharId];
 
     if (!charScenario || Object.keys(charScenario).length === 0) {
         alert(`【エラー】\nシナリオデータが読み込まれていません！`);
@@ -269,8 +296,8 @@ function handleStgPlay() {
         const skipBtn = document.getElementById('skip-btn');
         if (skipBtn) skipBtn.classList.remove('hidden');
         
-        // ★修正：直接キャラクターデータを参照
-        const charScenario = scenarios[selectedCharId];
+        const safeScenarios = getGlobal('scenarios', {});
+        const charScenario = safeScenarios[selectedCharId];
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
@@ -296,13 +323,16 @@ function handleTransitionFade() {
     transitionTimer--;
     if (transitionTimer <= 0) {
         currentStage++;
-        // ★修正：直接キャラクターデータを参照
-        const charScenario = scenarios[selectedCharId];
+        window.currentStage = currentStage; // ★追加：ステージ進行時に窓口の番号も更新
+
+        const safeChars = getGlobal('characters', []);
+        const safeScenarios = getGlobal('scenarios', {});
+        const charScenario = safeScenarios[selectedCharId];
         
         if (charScenario && charScenario[currentStage]) {
             const stageData = charScenario[currentStage];
             const stgId = stageData.stgId || 'kagami';
-            stgManager = new STGManager(canvas, characters.find(c => c.id === selectedCharId), stgId);
+            stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
             
             gameState = 'ADV';
             const skipBtn = document.getElementById('skip-btn');
