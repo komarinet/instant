@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.0"; // バージョン更新（サウンドON/OFFボタンのUI作成処理を追加）
+export const VER_UI = "0.3.1"; // バージョン更新（サウンドトラック画面のバージョン表記対応）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -99,7 +99,8 @@ export function showVersions(moduleVersions) {
             main:v${moduleVersions.main}<br>
             conf:v${moduleVersions.config}<br>
             aud:v${moduleVersions.audio}<br>
-            ui:v${moduleVersions.ui}
+            ui:v${moduleVersions.ui}<br>
+            trk:v${moduleVersions.soundtrack}
         </div>
         <div style="text-align: left;">
             <span style="color:#ffaa00">[STG]</span><br>
