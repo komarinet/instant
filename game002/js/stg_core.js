@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.4"; // バージョン更新（ボス撃破判定の汎用化、HPゲージと数値の表示最適化）
+const VER_STG_CORE = "0.7.5"; // バージョン更新（ボス出現時のBGM自動切り替え機能を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -140,7 +140,18 @@ class STGManager {
         this.player.update(canvas); if (!this.player.isEntering && this.frame % 8 === 0) this.player.shoot(); 
         
         if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
+
+        // ★追加：ボス出現前かどうかの状態を保存
+        const wasBossSpawned = this.bossSpawned;
+
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
+
+        // ★追加：ボスが出現した瞬間に、そのステージのボスBGMに切り替える
+        if (!wasBossSpawned && this.bossSpawned) {
+            if (typeof window.soundManager !== 'undefined') {
+                window.soundManager.playBGM('boss_' + this.stgId);
+            }
+        }
 
         this.player.bullets.forEach(b => b.update(canvas)); this.enemyBullets.forEach(b => b.update(canvas));
         this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
