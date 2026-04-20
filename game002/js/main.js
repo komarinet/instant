@@ -1,4 +1,4 @@
-const VER_MAIN = "0.8.7"; // バージョン更新（サウンドトラックモードのインポートと画面遷移を追加）
+const VER_MAIN = "0.8.8"; // バージョン更新（サントラ移行時の処理を強化）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -66,6 +66,7 @@ window.changeScreen = function(screenId) {
 window.openSoundtrack = function() {
     soundManager.stopBGM(); // 本編のタイトルBGMを止める
     window.changeScreen('soundtrack-screen');
+    st.initSoundtrack(); // ★追加：サントラのUIを初期状態にリセットする
 };
 
 // ★追加：サントラ画面から戻るときの処理
