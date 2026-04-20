@@ -1,10 +1,10 @@
-export const VER_AUDIO = "0.3.0"; // バージョン更新（BGM・SEのミュート機能を追加）
+export const VER_AUDIO = "0.3.1"; // バージョン更新（stopBGMの確実化とミュート機能の実装）
 
 export const soundManager = {
     bgm: {},
     se: {},
     currentBGM: null,
-    isMuted: false, // ★追加：ミュート状態を管理するフラグ
+    isMuted: false, // ミュート状態管理
 
     init: function() {
         // --- UI・システム系 BGM ---
@@ -62,7 +62,7 @@ export const soundManager = {
         this.se['smallb'].volume = 0.6;
     },
     
-    // ★追加：ミュート状態を切り替える関数
+    // ミュート切り替え
     toggleMute: function() {
         this.isMuted = !this.isMuted;
         for (let key in this.bgm) {
@@ -81,23 +81,25 @@ export const soundManager = {
         }
         if (this.bgm[id]) {
             this.currentBGM = this.bgm[id];
+            this.currentBGM.muted = this.isMuted;
             this.currentBGM.play().catch(e => console.log("BGM play failed:", e));
         }
     },
     
     stopBGM: function() {
-        if (this.currentBGM) {
-            this.currentBGM.pause();
-            this.currentBGM.currentTime = 0;
-            this.currentBGM = null;
+        // ★修正：特定の曲だけでなく、登録されているすべてのBGMを確実に停止させる
+        for (let key in this.bgm) {
+            this.bgm[key].pause();
+            this.bgm[key].currentTime = 0;
         }
+        this.currentBGM = null;
     },
     
     playSE: function(id) {
         if (this.se[id]) {
             const se = this.se[id].cloneNode();
             se.volume = this.se[id].volume;
-            se.muted = this.isMuted; // ★追加：新しく鳴らすSEにもミュート状態を反映
+            se.muted = this.isMuted;
             se.play().catch(e => console.log("SE play failed:", e));
         }
     }
