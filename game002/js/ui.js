@@ -1,4 +1,4 @@
-export const VER_UI = "0.2.1"; // UI操作関数分離（バージョン表示の取得バグ修正）
+export const VER_UI = "0.3.0"; // バージョン更新（サウンドON/OFFボタンのUI作成処理を追加）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -18,6 +18,7 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
 
 export function updatePreview(characters, selectedCharId) {
     const char = characters.find(c => c.id === selectedCharId);
+    if (!char) return; // 安全対策
     document.getElementById('preview-name').innerText = char.name;
     document.getElementById('preview-name').style.color = char.color;
     document.getElementById('preview-desc').innerText = char.desc;
@@ -131,6 +132,38 @@ export function createBombButton(onBombTrigger) {
         e.preventDefault(); e.stopPropagation();
         onBombTrigger();
     });
+    document.getElementById('game-container').appendChild(btn);
+}
+
+// ★追加：画面左上に表示されるサウンドON/OFFボタンの作成
+export function createMuteButton(onToggleCallback) {
+    const oldBtn = document.getElementById('mute-btn');
+    if (oldBtn) oldBtn.remove();
+    
+    const btn = document.createElement('button');
+    btn.id = 'mute-btn';
+    // SKIPボタン（右上）と被らないように左上に配置します
+    btn.style.cssText = 'position:absolute; top:20px; left:20px; z-index:1000; padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid #fff; color:#fff; font-size:1rem; cursor:pointer; width:auto; border-radius:5px; transition: all 0.2s;';
+    btn.innerText = '🔊 ON'; 
+    
+    btn.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // audio.js の toggleMute() を呼び出して、結果（ミュート状態）を受け取る
+        const isMuted = onToggleCallback();
+        
+        // ミュート状態に応じて見た目を変更
+        if (isMuted) {
+            btn.innerText = '🔇 OFF';
+            btn.style.color = '#888';
+            btn.style.borderColor = '#888';
+        } else {
+            btn.innerText = '🔊 ON';
+            btn.style.color = '#fff';
+            btn.style.borderColor = '#fff';
+        }
+    };
+    
     document.getElementById('game-container').appendChild(btn);
 }
 
