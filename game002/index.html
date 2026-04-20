@@ -51,6 +51,27 @@
     <div id="title-screen" class="screen">
         <h1>RE:CAUSES</h1>
         <button onclick="changeScreen('char-select-screen')">START GAME</button>
+        <button onclick="openSoundtrack()" style="font-size: 0.9rem; padding: 10px 20px; width: 60%; max-width: 200px; margin-top: 10px; border-color: #00ffff;">SOUNDTRACK</button>
+    </div>
+
+    <div id="soundtrack-screen" class="screen hidden">
+        <h2>SOUNDTRACK</h2>
+        <div id="st-now-playing" style="color: #00ffff; margin-bottom: 10px; font-size: 1.1rem; min-height: 1.5em;">---</div>
+        
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+            <button id="st-prev-btn" style="padding: 10px; width: auto; border-color: #fff;">|◀</button>
+            <button id="st-play-btn" style="padding: 10px; width: auto; border-color: #00ffff;">▶ PLAY</button>
+            <button id="st-next-btn" style="padding: 10px; width: auto; border-color: #fff;">▶|</button>
+        </div>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="st-mode-btn" style="padding: 10px; width: auto; font-size: 0.8rem; border-color: #ffaa00;">MODE: ALL REPEAT</button>
+            <button id="st-stop-btn" style="padding: 10px; width: auto; font-size: 0.8rem; border-color: #ff3366;">STOP</button>
+        </div>
+
+        <div id="st-track-list" style="width: 90%; max-width: 400px; height: 250px; overflow-y: auto; border: 1px solid #555; padding: 10px; text-align: left; font-size: 0.9rem; background: rgba(0,0,0,0.8);">
+        </div>
+
+        <button style="margin-top:20px; border:none; text-decoration:underline; padding:5px;" onclick="closeSoundtrack()">Back to Title</button>
     </div>
 
     <div id="char-select-screen" class="screen hidden">
@@ -107,7 +128,6 @@
 <script src="js/stg_shiina.js"></script>
 
 <script src="js/3dbg.js"></script>
-
 <script type="module" src="js/main.js"></script>
 </body>
 </html>
