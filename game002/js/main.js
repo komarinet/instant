@@ -6,6 +6,8 @@ import * as ui from './ui.js';
 import * as st from './soundtrack.js'; // ★追加：サントラモジュールの読み込み
 
 window.VER_MAIN = VER_MAIN;
+
+// ★追加：モジュール内でインポートした音響システムを、外部のSTGシステムからも呼べるように窓口を開く
 window.soundManager = soundManager; 
 
 const getGlobal = (varName, fallback) => {
@@ -21,6 +23,7 @@ const getGlobal = (varName, fallback) => {
 let selectedCharId = 'igari';
 
 let currentStage = 1;
+// ★追加：3D背景システムがステージ番号を監視できるように窓口を開く
 window.currentStage = currentStage; 
 
 let gameState = 'UI'; 
@@ -30,6 +33,7 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const advManager = new ADVManager();
+// ★追加：STGシステムが敵の画像を読み込めるように窓口を開く
 window.advManager = advManager; 
 
 let stgManager = null;
@@ -53,6 +57,7 @@ window.changeScreen = function(screenId) {
     ui.updateGameUI(gameState, selectedCharId, stgManager);
     if (screenId === 'title-screen' || screenId === 'char-select-screen') {
         soundManager.stopBGM();
+        // ★追加：タイトル・キャラ選択画面に戻った時はタイトルBGMを鳴らす
         soundManager.playBGM('title'); 
     }
 };
@@ -134,10 +139,10 @@ async function init() {
     ui.createMuteButton(() => {
         return soundManager.toggleMute();
     });
-    
+
     // ★追加：サントラの初期化を呼び出す
     st.initSoundtrack();
-
+    
     ui.showVersions({
         main: VER_MAIN, config: VER_CONFIG, audio: VER_AUDIO, ui: ui.VER_UI, soundtrack: st.VER_SOUNDTRACK
     });
@@ -159,6 +164,7 @@ async function init() {
     
     ui.initStageListTexts();
 
+    // ★追加：起動時にタイトルBGMを再生開始
     soundManager.playBGM('title');
 
     if (pendingStageStart !== null) {
@@ -191,7 +197,7 @@ function executeStart(stageNum) {
     if (skipBtn) skipBtn.classList.remove('hidden');
 
     currentStage = stageNum;
-    window.currentStage = currentStage; 
+    window.currentStage = currentStage; // ★追加：ステージ切り替え時に窓口の番号も更新
 
     stgManager = null;
 
@@ -296,6 +302,7 @@ function handleStgEnter() {
     stgManager.draw(ctx);
     if (stgManager.updateEntrance()) {
         gameState = 'STG_PLAY';
+        // ★修正：どのキャラのステージか（stgId）を判定して、自動で対応する道中BGMを流す
         const bgmKey = `stage_${stgManager.stgId}`;
         soundManager.playBGM(bgmKey);
     }
@@ -309,12 +316,14 @@ function handleStgPlay() {
         gameState = 'UI';
         stgManager = null; 
         soundManager.stopBGM(); 
+        // ★追加：ゲームオーバーBGMを再生
         soundManager.playBGM('gameover');
         document.getElementById('result-title').innerText = "GAME OVER";
         window.changeScreen('result-screen');
     } else if (status === 'STAGE_CLEAR') {
         gameState = 'POST_STG_DIALOGUE';
         soundManager.stopBGM(); 
+        // ★追加：ADV（会話）に入るので、一旦BGMを平穏な曲にする
         soundManager.playBGM('relax');
         
         const skipBtn = document.getElementById('skip-btn');
@@ -347,7 +356,7 @@ function handleTransitionFade() {
     transitionTimer--;
     if (transitionTimer <= 0) {
         currentStage++;
-        window.currentStage = currentStage; 
+        window.currentStage = currentStage; // ★追加：ステージ進行時に窓口の番号も更新
 
         const safeChars = getGlobal('characters', []);
         const safeScenarios = getGlobal('scenarios', {});
@@ -374,6 +383,7 @@ function handleTransitionFade() {
         } else {
             gameState = 'UI';
             stgManager = null; 
+            // ★追加：全クリア時は「clear」BGMを再生
             soundManager.playBGM('clear');
             document.getElementById('result-title').innerText = "ALL CLEAR!";
             document.getElementById('result-title').style.color = "#00ffff";
