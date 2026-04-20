@@ -1,4 +1,4 @@
-const VER_MAIN = "0.8.4"; // バージョン更新（モジュールの壁によるadvManager、soundManager、currentStageの参照エラーを完全修正）
+const VER_MAIN = "0.8.5"; // バージョン更新（既存の構造を一切変えずに、各種BGM再生処理を組み込み）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -54,7 +54,11 @@ window.changeScreen = function(screenId) {
         }
     }
     ui.updateGameUI(gameState, selectedCharId, stgManager);
-    if (screenId === 'title-screen' || screenId === 'char-select-screen') soundManager.stopBGM();
+    if (screenId === 'title-screen' || screenId === 'char-select-screen') {
+        soundManager.stopBGM();
+        // ★追加：タイトル・キャラ選択画面に戻った時はタイトルBGMを鳴らす
+        soundManager.playBGM('title'); 
+    }
 };
 
 window.goToStageSelect = function() { window.changeScreen('stage-select-screen'); };
@@ -139,6 +143,9 @@ async function init() {
     isPreloadCompleted = true;
     
     ui.initStageListTexts();
+
+    // ★追加：起動時にタイトルBGMを再生開始
+    soundManager.playBGM('title');
 
     if (pendingStageStart !== null) {
         executeStart(pendingStageStart);
@@ -275,7 +282,9 @@ function handleStgEnter() {
     stgManager.draw(ctx);
     if (stgManager.updateEntrance()) {
         gameState = 'STG_PLAY';
-        if (currentStage === 1) soundManager.playBGM('kagami');
+        // ★修正：どのキャラのステージか（stgId）を判定して、自動で対応する道中BGMを流す
+        const bgmKey = `stage_${stgManager.stgId}`;
+        soundManager.playBGM(bgmKey);
     }
 }
 
@@ -287,11 +296,15 @@ function handleStgPlay() {
         gameState = 'UI';
         stgManager = null; 
         soundManager.stopBGM(); 
+        // ★追加：ゲームオーバーBGMを再生
+        soundManager.playBGM('gameover');
         document.getElementById('result-title').innerText = "GAME OVER";
         window.changeScreen('result-screen');
     } else if (status === 'STAGE_CLEAR') {
         gameState = 'POST_STG_DIALOGUE';
         soundManager.stopBGM(); 
+        // ★追加：ADV（会話）に入るので、一旦BGMを平穏な曲にする
+        soundManager.playBGM('relax');
         
         const skipBtn = document.getElementById('skip-btn');
         if (skipBtn) skipBtn.classList.remove('hidden');
@@ -350,6 +363,8 @@ function handleTransitionFade() {
         } else {
             gameState = 'UI';
             stgManager = null; 
+            // ★追加：全クリア時は「clear」BGMを再生
+            soundManager.playBGM('clear');
             document.getElementById('result-title').innerText = "ALL CLEAR!";
             document.getElementById('result-title').style.color = "#00ffff";
             window.changeScreen('result-screen');
