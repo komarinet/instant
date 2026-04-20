@@ -1,4 +1,4 @@
-const VER_MAIN = "0.8.5"; // バージョン更新（既存の構造を一切変えずに、各種BGM再生処理を組み込み）
+const VER_MAIN = "0.8.6"; // バージョン更新（既存の構造を維持しつつミュートボタン表示処理を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -121,6 +121,11 @@ async function init() {
     
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
+    });
+
+    // ★追加：ミュートボタンを作成し、クリックされたら音響システムのミュートを切り替える
+    ui.createMuteButton(() => {
+        return soundManager.toggleMute();
     });
     
     ui.showVersions({
