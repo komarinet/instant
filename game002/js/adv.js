@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.7"; // バージョン更新（urashiina.pngの2行分割対応）
+const VER_ADV = "0.4.8"; // バージョン更新（シナリオ内の BGM 変更・停止コマンドに対応）
 
 class ADVManager {
     constructor() {
@@ -87,6 +87,18 @@ class ADVManager {
 
     playSE() {
         const msg = this.currentScenario[this.index];
+        
+        // ★追加：BGM変更コマンドの処理
+        if (msg && msg.bgm) {
+            if (typeof window.soundManager !== 'undefined') {
+                if (msg.bgm === 'stop') {
+                    window.soundManager.stopBGM();
+                } else {
+                    window.soundManager.playBGM(msg.bgm);
+                }
+            }
+        }
+
         if (msg && msg.se) {
             if (msg.se === 'vibration.mp3' && navigator.vibrate) {
                 navigator.vibrate([500, 200, 500]);
