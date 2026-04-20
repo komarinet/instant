@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.1"; // バージョン更新（サウンドトラック画面のバージョン表記対応）
+export const VER_UI = "0.3.2"; // バージョン更新（勝手に削除していたシナリオバージョンの表示復元と、安全な取得処理への修正）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -73,22 +73,28 @@ export function showVersions(moduleVersions) {
     verDiv.className = 'version-info-panel'; 
     verDiv.style.cssText = 'position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:20px;font-size:0.65rem;color:rgba(255,255,255,0.5);pointer-events:none;line-height:1.3;font-family:monospace;z-index:100;';
     
-    // 直接 typeof で安全に判定する方式へ復元
-    const dVer = typeof VER_DATA !== 'undefined' ? VER_DATA : '---';
-    const aVer = typeof VER_ADV !== 'undefined' ? VER_ADV : '---';
-    const b3Ver = typeof VER_3DBG !== 'undefined' ? VER_3DBG : '---';
-    const stgCore = typeof VER_STG_CORE !== 'undefined' ? VER_STG_CORE : '---';
-    const stgCom = typeof VER_STG_COMMON !== 'undefined' ? VER_STG_COMMON : '---';
-    const plIgari = typeof VER_PLAYER_IGARI !== 'undefined' ? VER_PLAYER_IGARI : '---';
-    const stgKagami = typeof VER_STG_KAGAMI !== 'undefined' ? VER_STG_KAGAMI : '---';
-    const stgHiragi = typeof VER_STG_HIRAGI !== 'undefined' ? VER_STG_HIRAGI : '---';
-    const stgShiina = typeof VER_STG_SHIINA !== 'undefined' ? VER_STG_SHIINA : '---';
-    const scIgari = typeof VER_SCENARIO_IGARI !== 'undefined' ? VER_SCENARIO_IGARI : '---';
-    const scMamoru = typeof VER_SCENARIO_MAMORU !== 'undefined' ? VER_SCENARIO_MAMORU : '---';
-    const scHiragi = typeof VER_SCENARIO_HIRAGI !== 'undefined' ? VER_SCENARIO_HIRAGI : '---';
-    const scKagami = typeof VER_SCENARIO_KAGAMI !== 'undefined' ? VER_SCENARIO_KAGAMI : '---';
-    const scGodai = typeof VER_SCENARIO_GODAI !== 'undefined' ? VER_SCENARIO_GODAI : '---';
-    const scJingu = typeof VER_SCENARIO_JINGU !== 'undefined' ? VER_SCENARIO_JINGU : '---';
+    // ★モジュール環境下でもエラーにならず、確実にバージョン定数を取得する関数
+    const getV = (name) => {
+        try { return new Function(`return typeof ${name} !== 'undefined' ? ${name} : '---';`)(); }
+        catch(e) { return '---'; }
+    };
+
+    // ★旧コードの変数宣言の形は一切変えずに、安全な取得方法だけを適用
+    const dVer = getV('VER_DATA');
+    const aVer = getV('VER_ADV');
+    const b3Ver = getV('VER_3DBG');
+    const stgCore = getV('VER_STG_CORE');
+    const stgCom = getV('VER_STG_COMMON');
+    const plIgari = getV('VER_PLAYER_IGARI');
+    const stgKagami = getV('VER_STG_KAGAMI');
+    const stgHiragi = getV('VER_STG_HIRAGI');
+    const stgShiina = getV('VER_STG_SHIINA');
+    const scIgari = getV('VER_SCENARIO_IGARI');
+    const scMamoru = getV('VER_SCENARIO_MAMORU');
+    const scHiragi = getV('VER_SCENARIO_HIRAGI');
+    const scKagami = getV('VER_SCENARIO_KAGAMI');
+    const scGodai = getV('VER_SCENARIO_GODAI');
+    const scJingu = getV('VER_SCENARIO_JINGU');
 
     verDiv.innerHTML = `
         <div style="text-align: left;">
@@ -115,8 +121,8 @@ export function showVersions(moduleVersions) {
             iga:v${scIgari}<br>
             mam:v${scMamoru}<br>
             hir:v${scHiragi}<br>
-            kag:v${scKagami}
-        </div>
+            kag:v${scKagami}<br>
+            god:v${scGodai}<br>   jin:v${scJingu}       </div>
     `;
     titleScreen.appendChild(verDiv);
 }
