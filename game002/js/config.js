@@ -1,4 +1,4 @@
-export const VER_CONFIG = "0.1.0"; // 設定・アセットデータ分離
+export const VER_CONFIG = "0.1.1"; // プリロード画像追加対応
 
 export const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
@@ -14,7 +14,16 @@ export const imagesToPreload = [
     // --- ステージ3追加分 ---
     'shiinaboss.png',
     'shiki.png',
-    'sans.png'
+    'sans.png',
+    // --- 新規追加分 ---
+    'advsnow.png',
+    'jingu.png',
+    'mamoru.png',
+    'rei.png',
+    'renji.png',
+    'snow.png',
+    'sui.png',
+    'tv.png'
 ];
 
 export const imagesToPreload3D = [
