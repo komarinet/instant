@@ -16,13 +16,8 @@ export const imagesToPreload = [
     'shiki.png',
     'sans.png',
     // --- 新規追加分 ---
-    'advsnow.png',
-    'jingu.png',
-    'mamoru.png',
-    'rei.png',
-    'renji.png',
-    'snow.png',
-    'sui.png',
+    'advsnow.png','jingu.png','robot.png',
+    'rei.png','renji.png','snow.png','sui.png',
     'tv.png'
 ];
 
