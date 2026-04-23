@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.3.8"; // バージョン更新（シナリオ展開に合わせたBGMの自動切り替え・停止演出を組み込み）
+const VER_SCENARIO_IGARI = "0.3.9"; // バージョン更新（第4話：神宮寺ステージを追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -201,6 +201,34 @@ scenarios.igari = {
             { bg: 'yakerin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'うわ、だるっ！', isRight: true },
             { bg: 'yakerin.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '場所は？', isRight: true },
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '北極だ', isRight: true }
+        ]
+    },
+    4: {
+        stgId: 'jingu',
+        adv: [
+            { bg: 'advsnow.png', place: 'Snowfield', time: '2025.06', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ふふふ。お待ちしておりましたよ。', isRight: false, bgm: 'dark' },
+            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '誰だお前は？', isRight: true },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: '私の名は神宮寺。そして私の偉大なるAIがこう言っています。', isRight: false },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: '「お前たちは敵だ」と！', isRight: false, effect: 'shake' },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: 'えぇ…アホなの？', isRight: true },
+            { bg: 'advsnow.png', character: 'shiina.png', spriteIndex: 6, speaker: '椎名', text: 'AIの言葉をそのまま信じているんですか…？', isRight: true },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: '当然です！AIは絶対！AIが死ねと言えば死にます！', isRight: false },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 3, speaker: '各務', text: '救いようのない馬鹿だな。道を開けろ。', isRight: true }
+        ],
+        pre_stg: [
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: 'なんと！私の家電ロボット軍団を破壊する気ですか！', isRight: false, bgm: 'relax' },
+            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '家電…？冷蔵庫とか電子レンジが襲ってくるのか？', isRight: true },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'その通り！スマート家電の恐ろしさを思い知るがいい！', isRight: false },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もうさっさとスクラップにしようよ', isRight: true }
+        ],
+        post_stg: [
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 9, speaker: '神宮寺', text: 'ああっ！私の最新家電がすべて粗大ゴミに！', isRight: false, bgm: 'stop' },
+            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'まあ、白物家電じゃ勝てないわな', isRight: true, bgm: 'relax' },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 6, speaker: '神宮寺', text: 'おのれ…！AIよ、次はどうすればいい！？', isRight: false },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: '…なになに？「とりあえず謝っておけ」？', isRight: false },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ふははは！申し訳ありませんでした！', isRight: false },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '…ドヤ顔で謝るな', isRight: true },
+            { bg: 'advsnow.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: '先を急ぎましょう。時間の無駄です', isRight: true }
         ]
     }
 };
