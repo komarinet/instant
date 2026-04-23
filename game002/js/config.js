@@ -18,7 +18,7 @@ export const imagesToPreload = [
     // --- 新規追加分 ---
     'advsnow.png','jingu.png','robot.png',
     'rei.png','renji.png','snow.png','sui.png',
-    'tv.png'
+    'tv.png','advrocket.png'
 ];
 
 export const imagesToPreload3D = [
