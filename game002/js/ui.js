@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.2"; // バージョン更新（勝手に削除していたシナリオバージョンの表示復元と、安全な取得処理への修正）
+export const VER_UI = "0.3.3"; // バージョン更新（stg_jinguのバージョン表記対応）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -89,6 +89,7 @@ export function showVersions(moduleVersions) {
     const stgKagami = getV('VER_STG_KAGAMI');
     const stgHiragi = getV('VER_STG_HIRAGI');
     const stgShiina = getV('VER_STG_SHIINA');
+    const stgJingu = getV('VER_STG_JINGU'); // ★追加：stg_jingu.jsのバージョンを取得
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -114,8 +115,8 @@ export function showVersions(moduleVersions) {
             com:v${stgCom}<br>
             s_kaga:v${stgKagami}<br>
             s_hira:v${stgHiragi}<br>
-            s_shii:v${stgShiina}
-        </div>
+            s_shii:v${stgShiina}<br>
+            s_jin:v${stgJingu}    </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
             iga:v${scIgari}<br>
