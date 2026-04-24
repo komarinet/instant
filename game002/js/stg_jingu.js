@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.1.6"; // バージョン更新（画像名に依存しないボス判定と、確実な中入りADV呼び出しを実装）
+const VER_STG_JINGU = "0.1.8"; // バージョン更新（0.1.6の構造とロジックを完全維持しつつ、確実なADV呼び出しを保証）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -84,7 +84,8 @@ window.StageConfigs['jingu'] = {
                     if (charScenario) {
                         // シナリオの中から「stgId: jingu」の設定を持つステージを動的に探す
                         for (let stageKey in charScenario) {
-                            if (charScenario[stageKey].stgId === 'jingu' && charScenario[stageKey].mid_stg) {
+                            // 安全にアクセスするために、charScenario[stageKey] がオブジェクトかどうかを確認
+                            if (charScenario[stageKey] && charScenario[stageKey].stgId === 'jingu' && charScenario[stageKey].mid_stg) {
                                 midAdvData = charScenario[stageKey].mid_stg;
                                 break;
                             }
