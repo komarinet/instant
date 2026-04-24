@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.0"; // バージョン更新（第4話：神宮寺ステージのシナリオ・表情・BGM演出を完全反映）
+const VER_SCENARIO_IGARI = "0.4.1"; // バージョン更新（第4話：神宮寺ステージのシナリオ・表情・BGM演出を完全反映）
 
 window.scenarios = window.scenarios || {};
 
