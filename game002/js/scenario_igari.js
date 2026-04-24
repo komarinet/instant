@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.1"; // バージョン更新（第4話：神宮寺ステージのシナリオ・表情・BGM演出を完全反映）
+const VER_SCENARIO_IGARI = "0.4.2"; // バージョン更新（ト書きだったエフェクト指示を実際のeffectパラメータに変更）
 
 window.scenarios = window.scenarios || {};
 
@@ -203,7 +203,6 @@ scenarios.igari = {
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '北極だ', isRight: true }
         ]
     },
-    // ★以下、第4話（神宮寺ステージ）を追加
     4: {
         stgId: 'jingu',
         adv: [
@@ -211,8 +210,7 @@ scenarios.igari = {
             { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: 'あー、死ぬかと思った', isRight: true },
             { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '北極だもんねぇ', isRight: true },
             { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '君はそんな格好で寒くないのか？', isRight: true },
-            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'これでも私、魔女だから', isRight: true },
-            { bg: 'advsnow.png', text: '（柊の周囲、少し赤く光るエフェクト）' },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'これでも私、魔女だから', isRight: true, effect: 'flashRed' },
             { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '周囲の温度を魔法で温めてるのか!?', isRight: true },
             { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '炎の出力を弱めればいいだけだしね', isRight: true },
             { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '（魔法の出力を自在にコントロールするか）', isRight: true },
@@ -246,7 +244,6 @@ scenarios.igari = {
             { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'わーったわよ！　やればいいんでしょ、やれば！', isRight: true },
             { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
         ],
-        // ★stg_jingu.js 側でボス登場時に呼び出すため、ここにボス前会話を仕込んでおく
         mid_stg: [
             { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false },
             { bg: 'robodon.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'え？　なに？　家電が合体して・・・', isRight: true },
