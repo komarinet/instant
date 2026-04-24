@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.1.3"; // バージョン更新（ザコ敵のサイズを1.5倍に拡大）
+const VER_STG_JINGU = "0.1.4"; // バージョン更新（白い背景で見えにくい弾の色を視認性の高い色に調整）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -113,29 +113,32 @@ window.StageConfigs['jingu'] = {
     shootEnemy: function(e, stg) {
         if (e.type === 'renji' && stg.frame % 80 === 0) {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-            for(let i=-1; i<=1; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.3)*4, Math.sin(ang + i*0.3)*4, '#ff9900'));
+            // ★調整：背景に埋もれないよう、濃いオレンジに変更
+            for(let i=-1; i<=1; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.3)*4, Math.sin(ang + i*0.3)*4, '#ff4400'));
         } 
         else if (e.type === 'sui' && stg.frame % 60 === 0) {
-            // お米弾（白い弾）
-            stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 5, '#ffffff'));
+            // ★調整：お米弾（白）は見えないので、はっきりした青に変更
+            stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 5, '#0000cc'));
         }
         else if (e.type === 'tv' && e.moveTimer > 0 && e.moveTimer % 100 === 0) {
-            // 電波リング弾
+            // ★調整：電波リング弾を濃い目のスカイブルーに変更
             for (let i = 0; i < 12; i++) {
                 const ang = i * Math.PI * 2 / 12 + stg.frame * 0.01;
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#00ffff'));
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#0066cc'));
             }
         }
         else if (e.type === 'robotboss') {
             if (stg.frame % 20 === 0) {
                 for (let i = 0; i < 16; i++) {
                     const ang = i * Math.PI * 2 / 16 + stg.frame * 0.02;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*5, Math.sin(ang)*5, '#ff3366'));
+                    // ★調整：ボス弾をより鮮やかな赤へ
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*5, Math.sin(ang)*5, '#ff0033'));
                 }
             }
             if (stg.frame % 60 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                for(let i=-2; i<=2; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*7, Math.sin(ang + i*0.15)*7, '#ffcc00'));
+                // ★調整：ボス弾2も鮮烈な深めのゴールドへ
+                for(let i=-2; i<=2; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*7, Math.sin(ang + i*0.15)*7, '#ccaa00'));
             }
         }
     }
