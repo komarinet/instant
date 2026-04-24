@@ -230,21 +230,21 @@ scenarios.igari = {
         pre_stg: [
             { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark' },
             { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: '冷蔵庫が飛んでる・・・', isRight: true },
-            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'んはーっはっは。こんなこともあろうかと武器を用意していたのだ', isRight: false },
-            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '普通にミサイルで良くないか？', isRight: true },
-            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ちっちっちっ。これだから凡人は', isRight: false },
-            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'AIが言ったんだよ！　家電にロケット付けたら敵を撃退できるってな！', isRight: false },
-            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'それ信じるか、普通', isRight: true },
-            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 3, speaker: '神宮寺', text: 'AIが言った事だぜ?　信じるだろ、フツーはよ！', isRight: false, effect: 'shake' },
-            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '哀れな男だ。ハルシネーションを知らんらしい', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'んはーっはっは。こんなこともあろうかと武器を用意していたのだ', isRight: false },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '普通にミサイルで良くないか？', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 10, speaker: '神宮寺', text: 'ちっちっちっ。これだから凡人は', isRight: false },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: 'AIが言ったんだよ！　家電にロケット付けたら敵を撃退できるってな！', isRight: false },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'それ信じるか、普通', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'AIが言った事だぜ?　信じるだろ、フツーはよ！', isRight: false, effect: 'shake' },
+            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '哀れな男だ。ハルシネーションを知らんらしい', isRight: true },
             { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '神宮寺はAIで巨万の富を得た資産家だ', isRight: true },
             { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '成功体験が積み重なり、盲信するに至ったのだろう', isRight: true },
-            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '家電ロケット、凄い数だよ！', isRight: true, effect: 'shake' },
-            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'やることは至極単純だ。奴のロケットを全部ぶち壊せばいい', isRight: true },
-            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'あの数を？', isRight: true },
-            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'やらなければ、君の１年後は・・・', isRight: true },
-            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: 'わーったわよ！　やればいいんでしょ、やれば！', isRight: true },
-            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '家電ロケット、凄い数だよ！', isRight: true, effect: 'shake' },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'やることは至極単純だ。奴のロケットを全部ぶち壊せばいい', isRight: true },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'あの数を？　本気なの？', isRight: true },
+            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'やらなければ、君の１年後は・・・', isRight: true },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'わーったわよ！　やればいいんでしょ、やれば！', isRight: true },
+            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
         ],
         // ★stg_jingu.js 側でボス登場時に呼び出すため、ここにボス前会話を仕込んでおく
         mid_stg: [
@@ -253,7 +253,7 @@ scenarios.igari = {
             { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ロボになったな', isRight: true },
             { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'うはははっ、どうだ！　これで貴様らは一巻の終わりだ', isRight: false, effect: 'shake' },
             { bg: 'robodon.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'さて、どう思う？', isRight: true },
-            { bg: 'robodon.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: '的がデカくて当てやすそうだ', isRight: true },
+            { bg: 'robodon.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '的がデカくて当てやすそうだ', isRight: true },
             { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '同感だ', isRight: true }
         ],
         post_stg: [
