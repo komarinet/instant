@@ -267,7 +267,6 @@ scenarios.igari = {
             { bg: 'boro.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'えっ!?　誰と？', isRight: true },
             { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '決まってる。黒幕だ', isRight: true, bgm: 'stop' },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'システムを組み替えて逆探知させよう', isRight: true },
-            { bg: 'boro.png', se: 'alarm.mp3', text: '（電子音が鳴る）' },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ちっ、なんてこった', isRight: true, bgm: 'dark' },
             { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'どこだ？　地球のどこにいようと追い詰めてやる', isRight: true },
             { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'ん？　なんだ、上？', isRight: true },
