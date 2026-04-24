@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.1.0"; // バージョン更新（ステージ4：家電ザコ敵とロボットボスの実装、背景の上下反転シームレススクロール）
+const VER_STG_JINGU = "0.1.3"; // バージョン更新（ザコ敵のサイズを1.5倍に拡大）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -8,30 +8,40 @@ window.StageConfigs['jingu'] = {
     },
     updateBackground: function(stg, sW, sH) {
         stg.bgScrollY += 1.5; 
-        if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
+        // ★修正：通常→反転の2枚で1セットのループになるため、2画面分（sH * 2）でリセットする
+        if (stg.bgScrollY >= sH * 2) {
+            stg.bgScrollY -= sH * 2; 
+        }
     },
     drawBackground: function(stg, ctx, sW, sH) {
         const bgImg = stg.advManager?.assets['snow.png'];
         if (bgImg && bgImg.naturalWidth > 0) {
+            const y = stg.bgScrollY;
+
+            // ★1枚目（通常描画）：画面下へ向かって移動
+            ctx.drawImage(bgImg, 0, y, sW, sH);
+
+            // ★2枚目（上下反転描画）：1枚目の「上」に繋がる。元画像の「上」端同士がくっつくので完全にシームレス
             ctx.save();
-            // 上下逆さまにして描画
-            ctx.translate(0, sH);
+            ctx.translate(0, (y - sH) + sH / 2);
             ctx.scale(1, -1);
-            
-            // シームレスにつなぐ
-            ctx.drawImage(bgImg, 0, -stg.bgScrollY, sW, sH);
-            ctx.drawImage(bgImg, 0, -stg.bgScrollY + sH, sW, sH);
+            ctx.drawImage(bgImg, 0, -sH / 2, sW, sH);
             ctx.restore();
+
+            // ★3枚目（通常描画）：2枚目のさらに「上」に繋がる。元画像の「下」端同士がくっつく
+            ctx.drawImage(bgImg, 0, y - sH * 2, sW, sH);
+
         } else {
             ctx.fillStyle = '#112233'; 
             ctx.fillRect(0, 0, sW, sH);
         }
     },
     getEnemyData: function(type) {
-        if (type === 'rei') return { imgSrc: 'rei.png', size: 30, hp: 12, maxHp: 12 };
-        if (type === 'renji') return { imgSrc: 'renji.png', size: 25, hp: 8, maxHp: 8 };
-        if (type === 'sui') return { imgSrc: 'sui.png', size: 15, hp: 3, maxHp: 3 };
-        if (type === 'tv') return { imgSrc: 'tv.png', size: 25, hp: 6, maxHp: 6 };
+        // ★修正：ザコ敵のsizeをそれぞれ1.5倍に拡大
+        if (type === 'rei') return { imgSrc: 'rei.png', size: 45, hp: 12, maxHp: 12 };
+        if (type === 'renji') return { imgSrc: 'renji.png', size: 38, hp: 8, maxHp: 8 };
+        if (type === 'sui') return { imgSrc: 'sui.png', size: 23, hp: 3, maxHp: 3 };
+        if (type === 'tv') return { imgSrc: 'tv.png', size: 38, hp: 6, maxHp: 6 };
         if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 250, maxHp: 250 };
     },
     updateWaves: function(stg, timer, sW, sH) {
@@ -57,8 +67,22 @@ window.StageConfigs['jingu'] = {
         
         // ボス登場 (4800フレーム)
         if (timer === 4800 && !stg.bossSpawned) {
-            stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
-            stg.bossSpawned = true;
+            if (typeof window.startMidStgADV !== 'undefined') {
+                // シナリオデータから第4話の mid_stg を取得して呼び出す
+                let midAdvData = [];
+                if (window.scenarios && window.scenarios['igari'] && window.scenarios['igari'][4] && window.scenarios['igari'][4].mid_stg) {
+                    midAdvData = window.scenarios['igari'][4].mid_stg;
+                }
+                
+                window.startMidStgADV(midAdvData, () => {
+                    // 会話が終わったらボスを出現させる
+                    stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
+                    stg.bossSpawned = true;
+                });
+            } else {
+                stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
+                stg.bossSpawned = true;
+            }
         }
     },
     updateEnemy: function(e, canvas, player) {
