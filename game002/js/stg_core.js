@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.5"; // バージョン更新（ボス出現時のBGM自動切り替え機能を追加）
+const VER_STG_CORE = "0.7.6"; // バージョン更新（ボス判定を動的化し、コアシステム側でボス前ADVの自動呼び出しを完全実装）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -31,6 +31,10 @@ class Enemy {
         this.size = data.size || 20; 
         this.hp = data.hp || 1; 
         this.maxHp = data.maxHp || data.hp || 1;
+
+        // ★追加：ご提案いただいた動的なボス判定！「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
+        this.isBoss = type.includes('boss') || (this.imgSrc && this.imgSrc.includes('boss')) || this.maxHp >= 100;
+
         if(data.init) data.init(this);
     }
     
@@ -76,12 +80,12 @@ class Enemy {
             }
         } else { 
             // ★修正：ボス描画のフォールバック色判定を拡張
-            ctx.fillStyle = this.type.includes('boss') ? '#ff00ff' : '#00ffff'; 
+            ctx.fillStyle = this.isBoss ? '#ff00ff' : '#00ffff'; 
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
         // ★修正：ボスのHPゲージ描画条件を拡張＆ゲージのマイナス描画防止
-        if (this.type.includes('boss') && this.hp > 0 && !this.isDying) {
+        if (this.isBoss && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
             ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
@@ -146,10 +150,28 @@ class STGManager {
 
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
 
-        // ★追加：ボスが出現した瞬間に、そのステージのボスBGMに切り替える
+        // ★追加：敵リストの中にボスがいるなら、自動でフラグを立てる（各ステージで書き忘れても安心の設計）
+        if (!this.bossSpawned && this.enemies.some(e => e.isBoss)) {
+            this.bossSpawned = true;
+        }
+
+        // ★修正：ボスが出現した瞬間に、自動で「ボス前ADV（mid_stg）」をシナリオから取得して呼び出し、終わったらボスBGMを鳴らす
         if (!wasBossSpawned && this.bossSpawned) {
-            if (typeof window.soundManager !== 'undefined') {
-                window.soundManager.playBGM('boss_' + this.stgId);
+            let midAdvData = [];
+            try {
+                const charId = (this.player && this.player.charData) ? this.player.charData.id : 'igari';
+                const stageNum = window.currentStage || 1;
+                if (window.scenarios && window.scenarios[charId] && window.scenarios[charId][stageNum] && window.scenarios[charId][stageNum].mid_stg) {
+                    midAdvData = window.scenarios[charId][stageNum].mid_stg;
+                }
+            } catch(e) { console.warn("ADV取得エラー", e); }
+
+            if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
+                window.startMidStgADV(midAdvData, () => {
+                    if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_' + this.stgId);
+                });
+            } else {
+                if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_' + this.stgId);
             }
         }
 
@@ -187,8 +209,8 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        // ★修正：'typeboss'だけでなく、名前に'boss'が含まれていればクリア演出に移行する
-                        if (e.type.includes('boss')) {
+                        // ★修正：'typeboss'だけでなく、動的判定したisBossでクリア演出に移行する
+                        if (e.isBoss) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
