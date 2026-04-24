@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.6"; // バージョン更新（ボス判定を動的化し、コアシステム側でボス前ADVの自動呼び出しを完全実装）
+const VER_STG_CORE = "0.7.7"; // バージョン更新（手動ADV呼び出しとの競合を解消し、BGM切り替えのタイミングを最適化）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -32,7 +32,7 @@ class Enemy {
         this.hp = data.hp || 1; 
         this.maxHp = data.maxHp || data.hp || 1;
 
-        // ★追加：ご提案いただいた動的なボス判定！「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
+        // 動的なボス判定。「タイプ名」「画像名」に'boss'が含まれるか、「HPが100以上」ならボスと認識する
         this.isBoss = type.includes('boss') || (this.imgSrc && this.imgSrc.includes('boss')) || this.maxHp >= 100;
 
         if(data.init) data.init(this);
@@ -79,12 +79,12 @@ class Enemy {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
             }
         } else { 
-            // ★修正：ボス描画のフォールバック色判定を拡張
+            // ボス描画のフォールバック色判定
             ctx.fillStyle = this.isBoss ? '#ff00ff' : '#00ffff'; 
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
-        // ★修正：ボスのHPゲージ描画条件を拡張＆ゲージのマイナス描画防止
+        // ボスのHPゲージ描画
         if (this.isBoss && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -119,6 +119,9 @@ class STGManager {
             } else { this.stgId = 'kagami'; }
         }
         
+        // ★追加：BGMが切り替わったかどうかを管理するフラグ
+        this.bgmChanged = false;
+
         this.config = window.StageConfigs[this.stgId] || {};
         if (this.config && this.config.init) this.config.init(this, canvas);
     }
@@ -145,33 +148,13 @@ class STGManager {
         
         if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
 
-        // ★追加：ボス出現前かどうかの状態を保存
-        const wasBossSpawned = this.bossSpawned;
-
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
 
-        // ★追加：敵リストの中にボスがいるなら、自動でフラグを立てる（各ステージで書き忘れても安心の設計）
-        if (!this.bossSpawned && this.enemies.some(e => e.isBoss)) {
-            this.bossSpawned = true;
-        }
-
-        // ★修正：ボスが出現した瞬間に、自動で「ボス前ADV（mid_stg）」をシナリオから取得して呼び出し、終わったらボスBGMを鳴らす
-        if (!wasBossSpawned && this.bossSpawned) {
-            let midAdvData = [];
-            try {
-                const charId = (this.player && this.player.charData) ? this.player.charData.id : 'igari';
-                const stageNum = window.currentStage || 1;
-                if (window.scenarios && window.scenarios[charId] && window.scenarios[charId][stageNum] && window.scenarios[charId][stageNum].mid_stg) {
-                    midAdvData = window.scenarios[charId][stageNum].mid_stg;
-                }
-            } catch(e) { console.warn("ADV取得エラー", e); }
-
-            if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
-                window.startMidStgADV(midAdvData, () => {
-                    if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_' + this.stgId);
-                });
-            } else {
-                if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_' + this.stgId);
+        // ★修正：敵リストにボスが含まれた瞬間にBGMを切り替える（ADV中は鳴らない）
+        if (!this.bgmChanged && this.enemies.some(e => e.isBoss)) {
+            this.bgmChanged = true;
+            if (typeof window.soundManager !== 'undefined') {
+                window.soundManager.playBGM('boss_' + this.stgId);
             }
         }
 
@@ -209,7 +192,6 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        // ★修正：'typeboss'だけでなく、動的判定したisBossでクリア演出に移行する
                         if (e.isBoss) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
@@ -239,7 +221,6 @@ class STGManager {
             if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
                 it.alive = false;
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
-                // ★HP回復時、最大値を超えないように制御（既存のまま正常動作）
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
             }
         });
@@ -281,7 +262,6 @@ class STGManager {
         }
         ctx.restore();
         
-        // ★修正：枠の幅を広げ、HPの「数値（値）」をテキストで表示してチグハグ感を解消
         const pHP = Math.max(0, this.player.hp);
         ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 310, 40); 
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 310, 40);
