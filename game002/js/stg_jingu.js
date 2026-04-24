@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.1.8"; // バージョン更新（0.1.6の構造とロジックを完全維持しつつ、確実なADV呼び出しを保証）
+const VER_STG_JINGU = "0.2.1"; // バージョン更新（0.1.8の動的取得ロジックを完全復元 ＋ 全滅トリガー ＋ TV詰み防止）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -66,14 +66,13 @@ window.StageConfigs['jingu'] = {
             if (timer % 250 === 0) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
         }
         
-        // ★修正：ボス登場時の判定を強化
-        if (timer >= 4800 && !stg.bossSpawned) {
-            // このステージの設定からボスのデータ（画像名など）を取得して紐づける
+        // ★修正：4500フレーム以降でザコ敵が全滅（フレームアウト消滅含む）した時をトリガーに
+        if (timer > 4500 && stg.enemies.length === 0 && !stg.bossSpawned) {
+            // ★0.1.8の動的取得ロジックを完全復元
             const bossType = 'robotboss';
             const bossData = this.getEnemyData(bossType);
             
             if (bossData) {
-                // 判定に入った瞬間にフラグを立てて二重呼び出しを防止
                 stg.bossSpawned = true; 
 
                 let midAdvData = [];
@@ -82,9 +81,7 @@ window.StageConfigs['jingu'] = {
                     const charScenario = window.scenarios[charId];
                     
                     if (charScenario) {
-                        // シナリオの中から「stgId: jingu」の設定を持つステージを動的に探す
                         for (let stageKey in charScenario) {
-                            // 安全にアクセスするために、charScenario[stageKey] がオブジェクトかどうかを確認
                             if (charScenario[stageKey] && charScenario[stageKey].stgId === 'jingu' && charScenario[stageKey].mid_stg) {
                                 midAdvData = charScenario[stageKey].mid_stg;
                                 break;
@@ -95,10 +92,9 @@ window.StageConfigs['jingu'] = {
                     console.error("ボス前ADVデータの取得に失敗:", e);
                 }
 
-                // ADVパートが正常に取得できていれば再生、なければ即ボス出現
+                // 挿入アドベンチャーが再生できれば再生後、できなければ即座にボスを出現
                 if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
                     window.startMidStgADV(midAdvData, () => {
-                        // 会話終了後に、取得したbossTypeで敵を生成
                         stg.enemies.push(new Enemy(bossType, sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
                     });
                 } else {
@@ -123,8 +119,15 @@ window.StageConfigs['jingu'] = {
             if (e.y < canvas.height/dpr * 0.6) e.x += (player.x - e.x) * 0.015; 
         }
         else if (e.type === 'tv') { 
-            if (e.y < canvas.height/dpr * 0.25) e.y += 3; 
-            else e.moveTimer++; 
+            if (e.y < canvas.height/dpr * 0.25) {
+                e.y += 3; 
+            } else {
+                e.moveTimer++; 
+                // ★修正：放置されたテレビが画面上に残り続けて全滅トリガーが引かれない（詰み）のを防ぐ処理
+                if (e.moveTimer > 400) {
+                    e.y += 3;
+                }
+            }
         }
         else if (e.type === 'robotboss') {
             const tY = canvas.height/dpr * 0.2; 
