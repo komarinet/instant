@@ -1,4 +1,4 @@
-const VER_STG_COMMON = "0.1.0"; // 新規作成（全キャラ共通の基盤パーツ群）
+const VER_STG_COMMON = "0.1.1"; // バージョン更新（コアシステムの更新に合わせて連携）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
