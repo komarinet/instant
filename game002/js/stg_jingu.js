@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.1.4"; // バージョン更新（白い背景で見えにくい弾の色を視認性の高い色に調整）
+const VER_STG_JINGU = "0.1.6"; // バージョン更新（画像名に依存しないボス判定と、確実な中入りADV呼び出しを実装）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -8,7 +8,7 @@ window.StageConfigs['jingu'] = {
     },
     updateBackground: function(stg, sW, sH) {
         stg.bgScrollY += 1.5; 
-        // ★修正：通常→反転の2枚で1セットのループになるため、2画面分（sH * 2）でリセットする
+        // 通常→反転の2枚セットでループ
         if (stg.bgScrollY >= sH * 2) {
             stg.bgScrollY -= sH * 2; 
         }
@@ -18,17 +18,17 @@ window.StageConfigs['jingu'] = {
         if (bgImg && bgImg.naturalWidth > 0) {
             const y = stg.bgScrollY;
 
-            // ★1枚目（通常描画）：画面下へ向かって移動
+            // 1枚目（通常）
             ctx.drawImage(bgImg, 0, y, sW, sH);
 
-            // ★2枚目（上下反転描画）：1枚目の「上」に繋がる。元画像の「上」端同士がくっつくので完全にシームレス
+            // 2枚目（上下反転・鏡像）
             ctx.save();
             ctx.translate(0, (y - sH) + sH / 2);
             ctx.scale(1, -1);
             ctx.drawImage(bgImg, 0, -sH / 2, sW, sH);
             ctx.restore();
 
-            // ★3枚目（通常描画）：2枚目のさらに「上」に繋がる。元画像の「下」端同士がくっつく
+            // 3枚目（通常）
             ctx.drawImage(bgImg, 0, y - sH * 2, sW, sH);
 
         } else {
@@ -37,11 +37,12 @@ window.StageConfigs['jingu'] = {
         }
     },
     getEnemyData: function(type) {
-        // ★修正：ザコ敵のsizeをそれぞれ1.5倍に拡大
+        // ステージ毎に定義されたデータ。ここから画像名を取得する
         if (type === 'rei') return { imgSrc: 'rei.png', size: 45, hp: 12, maxHp: 12 };
         if (type === 'renji') return { imgSrc: 'renji.png', size: 38, hp: 8, maxHp: 8 };
         if (type === 'sui') return { imgSrc: 'sui.png', size: 23, hp: 3, maxHp: 3 };
         if (type === 'tv') return { imgSrc: 'tv.png', size: 38, hp: 6, maxHp: 6 };
+        // このステージのボス
         if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 250, maxHp: 250 };
     },
     updateWaves: function(stg, timer, sW, sH) {
@@ -65,23 +66,43 @@ window.StageConfigs['jingu'] = {
             if (timer % 250 === 0) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
         }
         
-        // ボス登場 (4800フレーム)
-        if (timer === 4800 && !stg.bossSpawned) {
-            if (typeof window.startMidStgADV !== 'undefined') {
-                // シナリオデータから第4話の mid_stg を取得して呼び出す
+        // ★修正：ボス登場時の判定を強化
+        if (timer >= 4800 && !stg.bossSpawned) {
+            // このステージの設定からボスのデータ（画像名など）を取得して紐づける
+            const bossType = 'robotboss';
+            const bossData = this.getEnemyData(bossType);
+            
+            if (bossData) {
+                // 判定に入った瞬間にフラグを立てて二重呼び出しを防止
+                stg.bossSpawned = true; 
+
                 let midAdvData = [];
-                if (window.scenarios && window.scenarios['igari'] && window.scenarios['igari'][4] && window.scenarios['igari'][4].mid_stg) {
-                    midAdvData = window.scenarios['igari'][4].mid_stg;
+                try {
+                    const charId = (stg.player && stg.player.charData) ? stg.player.charData.id : 'igari';
+                    const charScenario = window.scenarios[charId];
+                    
+                    if (charScenario) {
+                        // シナリオの中から「stgId: jingu」の設定を持つステージを動的に探す
+                        for (let stageKey in charScenario) {
+                            if (charScenario[stageKey].stgId === 'jingu' && charScenario[stageKey].mid_stg) {
+                                midAdvData = charScenario[stageKey].mid_stg;
+                                break;
+                            }
+                        }
+                    }
+                } catch(e) {
+                    console.error("ボス前ADVデータの取得に失敗:", e);
                 }
-                
-                window.startMidStgADV(midAdvData, () => {
-                    // 会話が終わったらボスを出現させる
-                    stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
-                    stg.bossSpawned = true;
-                });
-            } else {
-                stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); 
-                stg.bossSpawned = true;
+
+                // ADVパートが正常に取得できていれば再生、なければ即ボス出現
+                if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
+                    window.startMidStgADV(midAdvData, () => {
+                        // 会話終了後に、取得したbossTypeで敵を生成
+                        stg.enemies.push(new Enemy(bossType, sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
+                    });
+                } else {
+                    stg.enemies.push(new Enemy(bossType, sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
+                }
             }
         }
     },
@@ -90,19 +111,19 @@ window.StageConfigs['jingu'] = {
         e.angle += 0.05;
         
         if (e.type === 'rei') { 
-            e.y += 1.5; // 冷蔵庫は重くて遅い
+            e.y += 1.5; 
         } 
         else if (e.type === 'renji') { 
             e.y += 2.5; 
-            e.x += Math.sin(e.angle * 0.5) * 2; // 電子レンジは少し揺れる
+            e.x += Math.sin(e.angle * 0.5) * 2; 
         }
         else if (e.type === 'sui') { 
-            e.y += 4; // 炊飯器は速い
-            if (e.y < canvas.height/dpr * 0.6) e.x += (player.x - e.x) * 0.015; // 少し自機を狙う
+            e.y += 4; 
+            if (e.y < canvas.height/dpr * 0.6) e.x += (player.x - e.x) * 0.015; 
         }
         else if (e.type === 'tv') { 
             if (e.y < canvas.height/dpr * 0.25) e.y += 3; 
-            else e.moveTimer++; // テレビは途中で止まる
+            else e.moveTimer++; 
         }
         else if (e.type === 'robotboss') {
             const tY = canvas.height/dpr * 0.2; 
@@ -113,15 +134,12 @@ window.StageConfigs['jingu'] = {
     shootEnemy: function(e, stg) {
         if (e.type === 'renji' && stg.frame % 80 === 0) {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-            // ★調整：背景に埋もれないよう、濃いオレンジに変更
             for(let i=-1; i<=1; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.3)*4, Math.sin(ang + i*0.3)*4, '#ff4400'));
         } 
         else if (e.type === 'sui' && stg.frame % 60 === 0) {
-            // ★調整：お米弾（白）は見えないので、はっきりした青に変更
             stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 5, '#0000cc'));
         }
         else if (e.type === 'tv' && e.moveTimer > 0 && e.moveTimer % 100 === 0) {
-            // ★調整：電波リング弾を濃い目のスカイブルーに変更
             for (let i = 0; i < 12; i++) {
                 const ang = i * Math.PI * 2 / 12 + stg.frame * 0.01;
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#0066cc'));
@@ -131,13 +149,11 @@ window.StageConfigs['jingu'] = {
             if (stg.frame % 20 === 0) {
                 for (let i = 0; i < 16; i++) {
                     const ang = i * Math.PI * 2 / 16 + stg.frame * 0.02;
-                    // ★調整：ボス弾をより鮮やかな赤へ
                     stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*5, Math.sin(ang)*5, '#ff0033'));
                 }
             }
             if (stg.frame % 60 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                // ★調整：ボス弾2も鮮烈な深めのゴールドへ
                 for(let i=-2; i<=2; i++) stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*7, Math.sin(ang + i*0.15)*7, '#ccaa00'));
             }
         }
