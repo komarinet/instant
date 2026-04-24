@@ -250,7 +250,7 @@ scenarios.igari = {
         mid_stg: [
             { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false },
             { bg: 'robodon.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'え？　なに？　家電が合体して・・・', isRight: true },
-            { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ロボになったな', isRight: true },
+            { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'ロボになったな', isRight: true },
             { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'うはははっ、どうだ！　これで貴様らは一巻の終わりだ', isRight: false, effect: 'shake' },
             { bg: 'robodon.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'さて、どう思う？', isRight: true },
             { bg: 'robodon.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '的がデカくて当てやすそうだ', isRight: true },
@@ -258,24 +258,24 @@ scenarios.igari = {
         ],
         post_stg: [
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop' },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'え？　あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'え？　あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: '神宮寺', text: 'だってAIがよ・・・', isRight: false },
-            { bg: 'boro.png', speaker: 'AI', text: '大丈夫だ、神宮寺', isRight: false },
-            { bg: 'boro.png', speaker: 'AI', text: '石油が出れば、資産は取り戻せる！', isRight: false },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ちょっとその端末、見て良いか？', isRight: true },
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5,speaker: 'AI', text: '大丈夫だ、神宮寺', isRight: false },
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: 'AI', text: '石油が出れば、資産は取り戻せる', isRight: false },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'ちょっとその端末、見て良いか？', isRight: true },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: '神宮寺', text: '好きにしろよ・・・', isRight: false },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '・・・これ、ただの受信機だぞ', isRight: true },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・これ、ただの受信機だぞ', isRight: true },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: 'どういうことだ？', isRight: false },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'つまりお前はAIではなく、誰かと通信していただけってことだ', isRight: true },
-            { bg: 'boro.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: '誰かと電話してただけってことなんだ', isRight: true },
-            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'じゃあ問題は、『誰と』話していたのかってことだね', isRight: true, bgm: 'stop' },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'システムを組み替えて逆探知させよう', isRight: true },
+            { bg: 'boro.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'えっ!?　誰と？', isRight: true },
+            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '決まってる。黒幕だ', isRight: true, bgm: 'stop' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'システムを組み替えて逆探知させよう', isRight: true },
             { bg: 'boro.png', se: 'alarm.mp3', text: '（電子音が鳴る）' },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ちっ、なんてこった', isRight: true, bgm: 'dark' },
-            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '黒幕はどこだ？　地球のどこにいようと追い詰めてやる', isRight: true },
+            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'どこだ？　地球のどこにいようと追い詰めてやる', isRight: true },
             { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'ん？　なんだ、上？', isRight: true },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・月だ', isRight: true },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '神宮寺を操った首謀者は、月にいる', isRight: true, effect: 'shake' }
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'AIを装い、神宮寺を操った首謀者は、月にいる', isRight: true, effect: 'shake' }
         ]
     }
 };
