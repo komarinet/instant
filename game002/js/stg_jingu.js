@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.2.1"; // バージョン更新（0.1.8の動的取得ロジックを完全復元 ＋ 全滅トリガー ＋ TV詰み防止）
+const VER_STG_JINGU = "0.2.3"; // バージョン更新（コアのボスタグ機能に対応し、競合する手動ADV呼び出しのみを綺麗に削除）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -42,8 +42,9 @@ window.StageConfigs['jingu'] = {
         if (type === 'renji') return { imgSrc: 'renji.png', size: 38, hp: 8, maxHp: 8 };
         if (type === 'sui') return { imgSrc: 'sui.png', size: 23, hp: 3, maxHp: 3 };
         if (type === 'tv') return { imgSrc: 'tv.png', size: 38, hp: 6, maxHp: 6 };
-        // このステージのボス
-        if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 250, maxHp: 250 };
+        
+        // ★修正：コアシステムにADVを任せるための「ボスタグ（isBoss: true）」を追加！
+        if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 250, maxHp: 250, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // 前半 (100〜1500フレーム): sui, rei 多め
@@ -66,41 +67,10 @@ window.StageConfigs['jingu'] = {
             if (timer % 250 === 0) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
         }
         
-        // ★修正：4500フレーム以降でザコ敵が全滅（フレームアウト消滅含む）した時をトリガーに
+        // ★修正：ザコ全滅トリガー。コアに任せるため、ただボスを出現させるだけの超シンプルな記述に！
         if (timer > 4500 && stg.enemies.length === 0 && !stg.bossSpawned) {
-            // ★0.1.8の動的取得ロジックを完全復元
-            const bossType = 'robotboss';
-            const bossData = this.getEnemyData(bossType);
-            
-            if (bossData) {
-                stg.bossSpawned = true; 
-
-                let midAdvData = [];
-                try {
-                    const charId = (stg.player && stg.player.charData) ? stg.player.charData.id : 'igari';
-                    const charScenario = window.scenarios[charId];
-                    
-                    if (charScenario) {
-                        for (let stageKey in charScenario) {
-                            if (charScenario[stageKey] && charScenario[stageKey].stgId === 'jingu' && charScenario[stageKey].mid_stg) {
-                                midAdvData = charScenario[stageKey].mid_stg;
-                                break;
-                            }
-                        }
-                    }
-                } catch(e) {
-                    console.error("ボス前ADVデータの取得に失敗:", e);
-                }
-
-                // 挿入アドベンチャーが再生できれば再生後、できなければ即座にボスを出現
-                if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
-                    window.startMidStgADV(midAdvData, () => {
-                        stg.enemies.push(new Enemy(bossType, sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
-                    });
-                } else {
-                    stg.enemies.push(new Enemy(bossType, sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
-                }
-            }
+            stg.bossSpawned = true; 
+            stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
         }
     },
     updateEnemy: function(e, canvas, player) {
@@ -123,7 +93,7 @@ window.StageConfigs['jingu'] = {
                 e.y += 3; 
             } else {
                 e.moveTimer++; 
-                // ★修正：放置されたテレビが画面上に残り続けて全滅トリガーが引かれない（詰み）のを防ぐ処理
+                // 放置されたテレビが画面上に残り続けて全滅トリガーが引かれない（詰み）のを防ぐ処理
                 if (e.moveTimer > 400) {
                     e.y += 3;
                 }
