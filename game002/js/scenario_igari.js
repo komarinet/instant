@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.3.9"; // バージョン更新（第4話：神宮寺ステージを追加）
+const VER_SCENARIO_IGARI = "0.4.0"; // バージョン更新（第4話：神宮寺ステージのシナリオ・表情・BGM演出を完全反映）
 
 window.scenarios = window.scenarios || {};
 
@@ -203,32 +203,79 @@ scenarios.igari = {
             { bg: 'yakerin.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '北極だ', isRight: true }
         ]
     },
+    // ★以下、第4話（神宮寺ステージ）を追加
     4: {
         stgId: 'jingu',
         adv: [
-            { bg: 'advsnow.png', place: 'Snowfield', time: '2025.06', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ふふふ。お待ちしておりましたよ。', isRight: false, bgm: 'dark' },
-            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '誰だお前は？', isRight: true },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: '私の名は神宮寺。そして私の偉大なるAIがこう言っています。', isRight: false },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: '「お前たちは敵だ」と！', isRight: false, effect: 'shake' },
-            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: 'えぇ…アホなの？', isRight: true },
-            { bg: 'advsnow.png', character: 'shiina.png', spriteIndex: 6, speaker: '椎名', text: 'AIの言葉をそのまま信じているんですか…？', isRight: true },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: '当然です！AIは絶対！AIが死ねと言えば死にます！', isRight: false },
-            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 3, speaker: '各務', text: '救いようのない馬鹿だな。道を開けろ。', isRight: true }
+            { bg: 'advsnow.png', place: 'North Pole', time: '2025.06', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'さ、寒っ。暖風装置生成！', isRight: true, bgm: 'relax' },
+            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'あー、死ぬかと思った', isRight: true },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: '北極だもんねぇ', isRight: true },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '君はそんな格好で寒くないのか？', isRight: true },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'これでも私、魔女だから', isRight: true },
+            { bg: 'advsnow.png', text: '（柊の周囲、少し赤く光るエフェクト）' },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '周囲の温度を温めてるのか', isRight: true },
+            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '炎の魔法で出力を弱めればいいだけだしね', isRight: true },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '（魔法の出力を自在にコントロール、か）', isRight: true },
+            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '（彼女の死が世界のバランスを崩すわけだ）', isRight: true },
+            { bg: 'advsnow.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '見つけた。あいつだ', isRight: true, bgm: 'stop' },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'ここほれワンワン、石油がじゃんじゃん♪', isRight: false, bgm: 'dark' },
+            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・半袖？', isRight: true },
+            { bg: 'advsnow.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'ZINNカンパニー代表の神宮寺恒成だな？', isRight: true },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 3, speaker: '神宮寺', text: '誰だてめぇ', isRight: false },
+            { bg: 'advsnow.png', speaker: 'AI', text: '椎名護。あなたが狙うべき相手です', isRight: false },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 0, speaker: '神宮寺', text: 'そうか、貴様が死をコントロールできるという血肉を持つ一族か', isRight: false },
+            { bg: 'advsnow.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '・・・なんだと？', isRight: true },
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: '死んでもらうぞ、娘のためにな', isRight: false, effect: 'shake' }
         ],
         pre_stg: [
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: 'なんと！私の家電ロボット軍団を破壊する気ですか！', isRight: false, bgm: 'relax' },
-            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '家電…？冷蔵庫とか電子レンジが襲ってくるのか？', isRight: true },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'その通り！スマート家電の恐ろしさを思い知るがいい！', isRight: false },
-            { bg: 'advsnow.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もうさっさとスクラップにしようよ', isRight: true }
+            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark' },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: '冷蔵庫が飛んでる・・・', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'んはーっはっは。こんなこともあろうかと武器を用意していたのだ', isRight: false },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '普通にミサイルで良くないか？', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ちっちっちっ。これだから凡人は', isRight: false },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'AIが言ったんだよ！　家電にロケット付けたら敵を撃退できるってな！', isRight: false },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'それ信じるか、普通', isRight: true },
+            { bg: 'advrocket.png', character: 'jingu.png', spriteIndex: 3, speaker: '神宮寺', text: 'AIが言った事だぜ?　信じるだろ、フツーはよ！', isRight: false, effect: 'shake' },
+            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '哀れな男だ。ハルシネーションを知らんらしい', isRight: true },
+            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '神宮寺はAIで巨万の富を得た資産家だ', isRight: true },
+            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '成功体験が積み重なり、盲信するに至ったのだろう', isRight: true },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '家電ロケット、凄い数だよ！', isRight: true, effect: 'shake' },
+            { bg: 'advrocket.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'やることは至極単純だ。奴のロケットを全部ぶち壊せばいい', isRight: true },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'あの数を？', isRight: true },
+            { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'やらなければ、君の１年後は・・・', isRight: true },
+            { bg: 'advrocket.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: 'わーったわよ！　やればいいんでしょ、やれば！', isRight: true },
+            { bg: 'advrocket.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
+        ],
+        // ★stg_jingu.js 側でボス登場時に呼び出すため、ここにボス前会話を仕込んでおく
+        mid_stg: [
+            { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false },
+            { bg: 'robodon.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'え？　なに？　家電が合体して・・・', isRight: true },
+            { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ロボになったな', isRight: true },
+            { bg: 'robodon.png', character: 'jingu.png', spriteIndex: 2, speaker: '神宮寺', text: 'うはははっ、どうだ！　これで貴様らは一巻の終わりだ', isRight: false, effect: 'shake' },
+            { bg: 'robodon.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'さて、どう思う？', isRight: true },
+            { bg: 'robodon.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: '的がデカくて当てやすそうだ', isRight: true },
+            { bg: 'robodon.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '同感だ', isRight: true }
         ],
         post_stg: [
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 9, speaker: '神宮寺', text: 'ああっ！私の最新家電がすべて粗大ゴミに！', isRight: false, bgm: 'stop' },
-            { bg: 'advsnow.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'まあ、白物家電じゃ勝てないわな', isRight: true, bgm: 'relax' },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 6, speaker: '神宮寺', text: 'おのれ…！AIよ、次はどうすればいい！？', isRight: false },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: '…なになに？「とりあえず謝っておけ」？', isRight: false },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 8, speaker: '神宮寺', text: 'ふははは！申し訳ありませんでした！', isRight: false },
-            { bg: 'advsnow.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '…ドヤ顔で謝るな', isRight: true },
-            { bg: 'advsnow.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: '先を急ぎましょう。時間の無駄です', isRight: true }
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'え？　あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: '神宮寺', text: 'だってAIがよ・・・', isRight: false },
+            { bg: 'boro.png', speaker: 'AI', text: '大丈夫だ、神宮寺', isRight: false },
+            { bg: 'boro.png', speaker: 'AI', text: '石油が出れば、資産は取り戻せる！', isRight: false },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ちょっとその端末、見て良いか？', isRight: true },
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: '神宮寺', text: '好きにしろよ・・・', isRight: false },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '・・・これ、ただの受信機だぞ', isRight: true },
+            { bg: 'boro.png', character: 'jingu.png', spriteIndex: 7, speaker: '神宮寺', text: 'どういうことだ？', isRight: false },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'つまりお前はAIではなく、誰かと通信していただけってことだ', isRight: true },
+            { bg: 'boro.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: '誰かと電話してただけってことなんだ', isRight: true },
+            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'じゃあ問題は、『誰と』話していたのかってことだね', isRight: true, bgm: 'stop' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'システムを組み替えて逆探知させよう', isRight: true },
+            { bg: 'boro.png', se: 'alarm.mp3', text: '（電子音が鳴る）' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'ちっ、なんてこった', isRight: true, bgm: 'dark' },
+            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '黒幕はどこだ？　地球のどこにいようと追い詰めてやる', isRight: true },
+            { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'ん？　なんだ、上？', isRight: true },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・月だ', isRight: true },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '神宮寺を操った首謀者は、月にいる', isRight: true, effect: 'shake' }
         ]
     }
 };
