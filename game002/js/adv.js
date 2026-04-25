@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.8"; // バージョン更新（シナリオ内の BGM 変更・停止コマンドに対応）
+const VER_ADV = "0.4.9"; // バージョン更新（シナリオ内の BGM 変更・停止コマンド対応 ＆ アイテム表示機能追加）
 
 class ADVManager {
     constructor() {
@@ -274,7 +274,6 @@ class ADVManager {
 
         // キャラクター描画（最適化版・行数判定＆左右指定処理）
         const getRows = (key) => {
-            // ★修正：urashiina.pngのみ2行で計算。shiina.pngは余白ありの4行で計算。
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
@@ -404,6 +403,56 @@ class ADVManager {
             ctx.font = '24px "Segoe UI", sans-serif';
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
+
+        // ★新規追加：アイテム描画処理
+        if (currentMsg.item && this.assets[currentMsg.item]) {
+            const itemImg = this.assets[currentMsg.item];
+            const boxSize = Math.min(gameWidth, visualAreaHeight) * 0.6; // テキストエリアを除いた画面の60%のサイズの正方形
+            const boxX = gameX + (gameWidth - boxSize) / 2;
+            const boxY = gameY + (visualAreaHeight - boxSize) / 2;
+
+            // 背景と枠の描画
+            ctx.fillStyle = 'rgba(10, 10, 25, 0.85)';
+            if(ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(boxX, boxY, boxSize, boxSize, 10);
+                ctx.fill();
+            } else {
+                ctx.fillRect(boxX, boxY, boxSize, boxSize);
+            }
+
+            ctx.strokeStyle = '#00ffff';
+            ctx.lineWidth = 2;
+            
+            // サイバー感のある発光エフェクト
+            ctx.shadowColor = 'rgba(0, 243, 255, 0.8)';
+            ctx.shadowBlur = 15;
+            ctx.strokeRect(boxX, boxY, boxSize, boxSize);
+            ctx.shadowBlur = 0; // シャドウリセット
+
+            // 画像のアスペクト比を維持して枠内に収める計算
+            let imgW = itemImg.naturalWidth;
+            let imgH = itemImg.naturalHeight;
+            let drawW = boxSize * 0.8;
+            let drawH = boxSize * 0.8;
+
+            if (imgW > 0 && imgH > 0) {
+                if (imgW > imgH) {
+                    drawW = boxSize * 0.8; 
+                    drawH = drawW * (imgH / imgW);
+                } else {
+                    drawH = boxSize * 0.8;
+                    drawW = drawH * (imgW / imgH);
+                }
+            }
+
+            const imgX = boxX + (boxSize - drawW) / 2;
+            const imgY = boxY + (boxSize - drawH) / 2;
+
+            ctx.imageSmoothingEnabled = true; 
+            ctx.drawImage(itemImg, imgX, imgY, drawW, drawH);
+        }
+        // ★新規追加ここまで
 
         if (currentMsg.effect === 'whiteout') {
             this.whiteoutAlpha = Math.min(1.0, this.whiteoutAlpha + 0.02);
