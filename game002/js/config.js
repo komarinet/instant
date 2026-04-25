@@ -17,7 +17,7 @@ export const imagesToPreload = [
     'advsnow.png','jingu.png','robot.png','boro.png',
     'rei.png','renji.png','snow.png','sui.png','mask.png',
     'tv.png','advrocket.png','aboro.png','robodon.png',
-    'potable.png','potable2.png'
+    'potable.png','potable2.png','phone.png','phone2.png'
 ];
 
 export const imagesToPreload3D = [
