@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.9"; // バージョン更新（途切れていたコードを最後まで完全に復元）
+const VER_STG_CORE = "0.8.1"; // バージョン更新（第4話のステージ判定漏れを修正し、jinguステージを正常に認識させる）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -16,6 +16,7 @@ class Enemy {
                 if (currentStage === 1) stgId = 'kagami';
                 else if (currentStage === 2) stgId = 'hiragi';
                 else if (currentStage === 3) stgId = 'shiina';
+                else if (currentStage === 4) stgId = 'jingu'; // ★追加：第4話の判定漏れを修正
                 else stgId = 'kagami';
             } else {
                 stgId = 'kagami';
@@ -119,7 +120,8 @@ class STGManager {
                 if (currentStage === 1) this.stgId = 'kagami';
                 else if (currentStage === 2) this.stgId = 'hiragi';
                 else if (currentStage === 3) this.stgId = 'shiina';
-                else this.stgId = 'kagami';
+                else if (currentStage === 4) this.stgId = 'jingu'; // ★追加：第4話の判定漏れを修正
+                else this.stgId = 'kagami'; 
             } else { this.stgId = 'kagami'; }
         }
         
@@ -175,9 +177,14 @@ class STGManager {
             let midAdvData = [];
             try {
                 const charId = (this.player && this.player.charData) ? this.player.charData.id : 'igari';
-                const stageNum = window.currentStage || 1;
-                if (window.scenarios && window.scenarios[charId] && window.scenarios[charId][stageNum] && window.scenarios[charId][stageNum].mid_stg) {
-                    midAdvData = window.scenarios[charId][stageNum].mid_stg;
+                const charScenario = window.scenarios && window.scenarios[charId];
+                if (charScenario) {
+                    for (let stageKey in charScenario) {
+                        if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId && charScenario[stageKey].mid_stg) {
+                            midAdvData = charScenario[stageKey].mid_stg;
+                            break;
+                        }
+                    }
                 }
             } catch(e) { console.warn("ADV取得エラー", e); }
 
@@ -252,7 +259,6 @@ class STGManager {
         }
         this.enemies = this.enemies.filter(e => e.alive);
         
-        // ★ここで前回途切れてしまっていました！ここから下が復元部分です★
         for (let eb of this.enemyBullets) {
             if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
                 eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
