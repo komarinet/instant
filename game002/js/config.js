@@ -12,13 +12,12 @@ export const imagesToPreload = [
     'igari_jiki.png',
     'igaribomb.png',
     // --- ステージ3追加分 ---
-    'shiinaboss.png',
-    'shiki.png',
-    'sans.png',
+    'shiinaboss.png','shiki.png','sans.png',
     // --- 新規追加分 ---
     'advsnow.png','jingu.png','robot.png','boro.png',
     'rei.png','renji.png','snow.png','sui.png','mask.png',
-    'tv.png','advrocket.png','aboro.png','robodon.png'
+    'tv.png','advrocket.png','aboro.png','robodon.png',
+    'potable.png','potable2.png'
 ];
 
 export const imagesToPreload3D = [
