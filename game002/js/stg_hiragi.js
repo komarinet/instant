@@ -1,4 +1,4 @@
-const VER_STG_HIRAGI = "0.1.0";
+const VER_STG_HIRAGI = "0.1.1"; // バージョン更新（将来のADV追加を見据えてボスタグを付与）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['hiragi'] = {
@@ -15,7 +15,9 @@ window.StageConfigs['hiragi'] = {
         if (type === 'typea') return { imgSrc: '2typea.png', size: 20, hp: 3, init: (e)=>e.angle = Math.random() * Math.PI * 2 };
         if (type === 'typeb') return { imgSrc: '2typeb.png', size: 25, hp: 10, init: (e)=>e.state = 'enter' };
         if (type === 'typec') return { imgSrc: '2typec.png', size: 15, hp: 2 };
-        if (type === 'typeboss') return { imgSrc: '2typeboss.png', size: w * 0.3, hp: 250 };
+        
+        // ★修正：将来ADVを差し込めるように isBoss: true を追加し、HPゲージ用に maxHp を明記
+        if (type === 'typeboss') return { imgSrc: '2typeboss.png', size: w * 0.3, hp: 250, maxHp: 250, isBoss: true };
     },
     transformEnemy: function(e, ctx) {
         if (e.type === 'typea') ctx.rotate(e.angle * 2);
