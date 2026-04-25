@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.2"; // バージョン更新（ステージ番号の型変換バグ修正 ＆ ADV中の時間停止制御を完全実装）
+const VER_STG_CORE = "0.8.3"; // バージョン更新（シナリオ変数の安全な取得処理、キャラクターID取得バグ修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -118,7 +118,6 @@ class STGManager {
         
         this.stgId = stgId;
         if (!this.stgId) {
-            // ★修正：ここも同様に Number() で安全に型変換
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
                 if (cStage === 1) this.stgId = 'kagami';
@@ -147,7 +146,6 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
-        // ★ここで isTimeStopped が true ならゲームの進行がピタッと止まります
         if (this.isTimeStopped) {
             this.player.updateBomb(this, sW, sH);
             this.explosions.forEach(ex => ex.update());
@@ -162,18 +160,16 @@ class STGManager {
         if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
 
-        // 敵リストの中にボスがいるなら、自動でフラグを立てる
         if (!this.bossSpawned && this.enemies.some(e => e.isBoss)) {
             this.bossSpawned = true;
         }
 
-        // ボスタグを持つ敵が追加された瞬間にADVを差し込む
         let hasNewBoss = false;
         for (let e of this.enemies) {
             if (e.isBoss && !e.advTriggered) {
                 hasNewBoss = true;
                 e.advTriggered = true;
-                e.isHidden = true; // ADVが終わるまで完全に姿を隠し、当たり判定も消す
+                e.isHidden = true; 
             }
         }
 
@@ -181,8 +177,15 @@ class STGManager {
             this.bossAdvTriggered = true;
             let midAdvData = [];
             try {
-                const charId = (this.player && this.player.charData) ? this.player.charData.id : 'igari';
-                const charScenario = window.scenarios && window.scenarios[charId];
+                // ★修正：playerクラスから正しくIDを取得し、グローバル変数とwindowプロパティの両方をカバーして安全にシナリオをロード
+                const charId = this.player.id || 'igari';
+                let charScenario = null;
+                if (typeof scenarios !== 'undefined') {
+                    charScenario = scenarios[charId];
+                } else if (window.scenarios) {
+                    charScenario = window.scenarios[charId];
+                }
+
                 if (charScenario) {
                     for (let stageKey in charScenario) {
                         if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId && charScenario[stageKey].mid_stg) {
@@ -193,9 +196,8 @@ class STGManager {
                 }
             } catch(e) { console.warn("ADV取得エラー", e); }
 
-            // ADV終了時の共通処理：ボスを表示させてBGMを鳴らし、時間を再開する
             const onAdvEnd = () => {
-                this.isTimeStopped = false; // ★修正：ADV終了でSTGの時間を再開！
+                this.isTimeStopped = false; 
                 this.enemies.forEach(e => { if (e.isBoss) e.isHidden = false; });
                 if (!this.bgmChanged) {
                     this.bgmChanged = true;
@@ -204,7 +206,7 @@ class STGManager {
             };
 
             if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
-                this.isTimeStopped = true; // ★修正：ADV再生中はSTGの時間を強制停止！
+                this.isTimeStopped = true; 
                 window.startMidStgADV(midAdvData, onAdvEnd);
             } else {
                 onAdvEnd();
@@ -218,7 +220,6 @@ class STGManager {
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
         for (let e of this.enemies) {
-            // 隠れているボス（ADV再生中など）はすべての処理をスキップ！
             if (e.isHidden) continue;
 
             if (e.isDying) {
@@ -303,7 +304,6 @@ class STGManager {
         }
 
         this.player.bullets.forEach(b => b.draw(ctx)); 
-        // 隠れている（待機中）のボスは画面に描画しない
         this.enemies.forEach(e => { if (!e.isHidden) e.draw(ctx); });
         this.explosions.forEach(ex => ex.draw(ctx)); 
         this.enemyBullets.forEach(eb => eb.draw(ctx)); 
