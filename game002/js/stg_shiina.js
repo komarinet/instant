@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.3.1"; // バージョン更新（ボスのY座標引き上げ、HPバーの描画マイナス対策）
+const VER_STG_SHIINA = "0.3.2"; // バージョン更新（HPバーが画面外に出ないようにボスの下部に描画位置を変更）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -91,12 +91,12 @@ window.StageConfigs['shiina'] = {
                         ctx.fillStyle = '#ff00ff'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill();
                     }
 
-                    // ★修正：ボスのHPがマイナスになった時にゲージが逆方向に描画されないように Math.max を使用
+                    // ★修正：Y=90に引き上げたボスから -100 (-this.size - 20) の位置に描画すると画面外になるため、ボスの下部 (+10) に変更
                     if (!this.isInvincible && this.hp > 0 && !this.isDying) {
                         const bW = this.size * 1.5, bH = 10;
-                        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
-                        ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
-                        ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
+                        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, this.size+10, bW, bH);
+                        ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, this.size+10, bW*(Math.max(0, this.hp)/this.maxHp), bH);
+                        ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, this.size+10, bW, bH);
                     }
                     ctx.restore();
                 };
@@ -123,7 +123,6 @@ window.StageConfigs['shiina'] = {
 
     updateWaves: function(stg, timer, sW, sH) {
         if (timer === 10 && !stg.bossSpawned) {
-            // ★修正：ボスを上に配置するため、Y座標を 150 から 90 に変更
             stg.enemies.push(new Enemy('shiinaboss', sW/2, 90, stg.player.charData, stg.advManager, stg.stgId));
             stg.bossSpawned = true;
         }
@@ -169,7 +168,6 @@ window.StageConfigs['shiina'] = {
 
     updateEnemy: function(e, canvas, player) {
         if (e.type === 'shiinaboss') {
-            // ★修正：ボスの待機Y座標も 150 から 90 に変更
             e.y = 90; 
         } else if (e.type.startsWith('shiki_')) {
             e.y += 2.5;
