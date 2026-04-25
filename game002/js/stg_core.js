@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.7.8"; // バージョン更新（ボスタグによる自動ADV挿入と待機システムを実装。他処理の削除一切なし）
+const VER_STG_CORE = "0.7.9"; // バージョン更新（途切れていたコードを最後まで完全に復元）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -32,10 +32,10 @@ class Enemy {
         this.hp = data.hp || 1; 
         this.maxHp = data.maxHp || data.hp || 1;
 
-        // ★追加・修正：ご提案いただいた動的なボス判定！「data.isBoss」指定があるか、「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
+        // 動的なボス判定。「data.isBoss」指定があるか、「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
         this.isBoss = data.isBoss === true || type.includes('boss') || (this.imgSrc && this.imgSrc.includes('boss')) || this.maxHp >= 100;
 
-        // ★追加：ADV制御用のステータス
+        // ADV制御用のステータス
         this.advTriggered = false;
         this.isHidden = false;
 
@@ -83,12 +83,12 @@ class Enemy {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
             }
         } else { 
-            // ★修正：ボス描画のフォールバック色判定を拡張
+            // ボス描画のフォールバック色判定
             ctx.fillStyle = this.isBoss ? '#ff00ff' : '#00ffff'; 
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
-        // ★修正：ボスのHPゲージ描画条件を拡張＆ゲージのマイナス描画防止
+        // ボスのHPゲージ描画
         if (this.isBoss && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -123,9 +123,9 @@ class STGManager {
             } else { this.stgId = 'kagami'; }
         }
         
-        // ★追加：BGM切り替え管理フラグ
+        // BGM切り替え管理フラグ
         this.bgmChanged = false;
-        // ★追加：全体で1回だけADVを呼ぶためのフラグ
+        // 全体で1回だけADVを呼ぶためのフラグ
         this.bossAdvTriggered = false;
 
         this.config = window.StageConfigs[this.stgId] || {};
@@ -155,12 +155,12 @@ class STGManager {
         if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
 
-        // ★追加：敵リストの中にボスがいるなら、自動でフラグを立てる（各ステージで書き忘れても安心の設計）
+        // 敵リストの中にボスがいるなら、自動でフラグを立てる
         if (!this.bossSpawned && this.enemies.some(e => e.isBoss)) {
             this.bossSpawned = true;
         }
 
-        // ★追加・修正：ボスタグを持つ敵が追加された瞬間にADVを差し込む
+        // ボスタグを持つ敵が追加された瞬間にADVを差し込む
         let hasNewBoss = false;
         for (let e of this.enemies) {
             if (e.isBoss && !e.advTriggered) {
@@ -204,7 +204,7 @@ class STGManager {
         this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
 
         for (let e of this.enemies) {
-            // ★追加：隠れているボス（ADV再生中など）はすべての処理をスキップ！
+            // 隠れているボス（ADV再生中など）はすべての処理をスキップ！
             if (e.isHidden) continue;
 
             if (e.isDying) {
@@ -234,7 +234,6 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
-                        // ★修正：'typeboss'だけでなく、動的判定したisBossでクリア演出に移行する
                         if (e.isBoss) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
@@ -253,5 +252,71 @@ class STGManager {
         }
         this.enemies = this.enemies.filter(e => e.alive);
         
+        // ★ここで前回途切れてしまっていました！ここから下が復元部分です★
         for (let eb of this.enemyBullets) {
-            if (eb.alive &&
+            if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
+                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
+                if (this.player.hp <= 0) return 'GAMEOVER';
+            }
+        }
+        
+        this.items.forEach(it => {
+            if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
+                it.alive = false;
+                if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
+                else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
+            }
+        });
+
+        if (this.isStageClear) return 'STAGE_CLEAR';
+        return 'PLAYING';
+    }
+
+    draw(ctx) {
+        const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
+        ctx.save();
+        
+        let shakeX = 0, shakeY = 0;
+        if (this.shakeTimer > 0) {
+            shakeX = (Math.random() - 0.5) * 15; shakeY = (Math.random() - 0.5) * 15;
+            ctx.translate(shakeX, shakeY);
+            if (!this.isTimeStopped) this.shakeTimer--;
+        }
+
+        if (this.config && this.config.drawBackground) { this.config.drawBackground(this, ctx, sW, sH); } 
+        else {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
+            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif'; ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
+        }
+
+        this.player.bullets.forEach(b => b.draw(ctx)); 
+        // 隠れている（待機中）のボスは画面に描画しない
+        this.enemies.forEach(e => { if (!e.isHidden) e.draw(ctx); });
+        this.explosions.forEach(ex => ex.draw(ctx)); 
+        this.enemyBullets.forEach(eb => eb.draw(ctx)); 
+        this.items.forEach(it => it.draw(ctx)); 
+        
+        this.player.draw(ctx, this.advManager); 
+        this.player.drawBomb(this, ctx, sW, sH, shakeX, shakeY);
+
+        if (this.flashTimer > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; 
+            ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
+            if (!this.isTimeStopped) this.flashTimer--;
+        }
+        ctx.restore();
+        
+        const pHP = Math.max(0, this.player.hp);
+        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 310, 40); 
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 310, 40);
+        
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; 
+        ctx.fillText(`HP: ${pHP}/${this.player.maxHp}`, 20, sH - 25);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(90, sH - 37, 100, 15);
+        ctx.fillStyle = '#33ff33'; ctx.fillRect(90, sH - 37, 100 * (pHP / this.player.maxHp), 15);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(90, sH - 37, 100, 15);
+        
+        ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 205, sH - 25);
+    }
+}
