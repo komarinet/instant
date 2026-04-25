@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.1"; // バージョン更新（第4話のステージ判定漏れを修正し、jinguステージを正常に認識させる）
+const VER_STG_CORE = "0.8.2"; // バージョン更新（ステージ番号の型変換バグ修正 ＆ ADV中の時間停止制御を完全実装）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -12,11 +12,13 @@ class Enemy {
         this.deathTimer = 0;
         
         if (!stgId) {
+            // ★修正：currentStageが文字列("4"など)で渡ってきても確実に判定できるよう Number() で型変換
             if (typeof currentStage !== 'undefined') {
-                if (currentStage === 1) stgId = 'kagami';
-                else if (currentStage === 2) stgId = 'hiragi';
-                else if (currentStage === 3) stgId = 'shiina';
-                else if (currentStage === 4) stgId = 'jingu'; // ★追加：第4話の判定漏れを修正
+                let cStage = Number(currentStage);
+                if (cStage === 1) stgId = 'kagami';
+                else if (cStage === 2) stgId = 'hiragi';
+                else if (cStage === 3) stgId = 'shiina';
+                else if (cStage === 4) stgId = 'jingu'; 
                 else stgId = 'kagami';
             } else {
                 stgId = 'kagami';
@@ -116,11 +118,13 @@ class STGManager {
         
         this.stgId = stgId;
         if (!this.stgId) {
+            // ★修正：ここも同様に Number() で安全に型変換
             if (typeof currentStage !== 'undefined') {
-                if (currentStage === 1) this.stgId = 'kagami';
-                else if (currentStage === 2) this.stgId = 'hiragi';
-                else if (currentStage === 3) this.stgId = 'shiina';
-                else if (currentStage === 4) this.stgId = 'jingu'; // ★追加：第4話の判定漏れを修正
+                let cStage = Number(currentStage);
+                if (cStage === 1) this.stgId = 'kagami';
+                else if (cStage === 2) this.stgId = 'hiragi';
+                else if (cStage === 3) this.stgId = 'shiina';
+                else if (cStage === 4) this.stgId = 'jingu'; 
                 else this.stgId = 'kagami'; 
             } else { this.stgId = 'kagami'; }
         }
@@ -143,6 +147,7 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
+        // ★ここで isTimeStopped が true ならゲームの進行がピタッと止まります
         if (this.isTimeStopped) {
             this.player.updateBomb(this, sW, sH);
             this.explosions.forEach(ex => ex.update());
@@ -188,8 +193,9 @@ class STGManager {
                 }
             } catch(e) { console.warn("ADV取得エラー", e); }
 
-            // ADV終了時の共通処理：ボスを表示させてBGMを鳴らす
+            // ADV終了時の共通処理：ボスを表示させてBGMを鳴らし、時間を再開する
             const onAdvEnd = () => {
+                this.isTimeStopped = false; // ★修正：ADV終了でSTGの時間を再開！
                 this.enemies.forEach(e => { if (e.isBoss) e.isHidden = false; });
                 if (!this.bgmChanged) {
                     this.bgmChanged = true;
@@ -198,6 +204,7 @@ class STGManager {
             };
 
             if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
+                this.isTimeStopped = true; // ★修正：ADV再生中はSTGの時間を強制停止！
                 window.startMidStgADV(midAdvData, onAdvEnd);
             } else {
                 onAdvEnd();
