@@ -180,8 +180,8 @@ export function initStageListTexts() {
     const stageList = document.getElementById('stage-list');
     if (stageList) {
         const stageTexts = [
-            "Stage 1: Reboot", "Stage 2: Jealous Witch", "Stage 3: Chronos Mask", 
-            "Stage 4: Nano Monarch", "Stage 5: Asset-Ash", "Final Stage: The Commander"
+            "Stage 1: リブート", "Stage 2: 魔女の嫉妬", "Stage 3: マスクの男", 
+            "Stage 4: AIと資産家", "Stage 5: 暗殺ロボ", "Final Stage: 科学文明軍"
         ];
         stageList.querySelectorAll('button').forEach((btn, index) => {
             if (index < stageTexts.length) {
