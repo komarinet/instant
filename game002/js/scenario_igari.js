@@ -162,6 +162,7 @@ scenarios.igari = {
             { bg: 'sanrin.png', place: 'Sanrin', time: '2025.05', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: '・・・ここならいいか', delay: 60, isRight: false, bgm: 'relax' },
             { bg: 'sanrin.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: 'ここからは奴に任せます', isRight: false },
             { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '奴？', isRight: true },
+            { bg: 'sanrin.png', item: 'mask.png', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'あ・・・ああっ', isRight: true },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'ったく護のやつはよぉ。いつまでも待たせやがる', isRight: false, bgm: 'dark' },
             { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'あの・・・椎名さん？', isRight: true },
