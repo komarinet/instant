@@ -1,4 +1,4 @@
-const VER_STG_KAGAMI = "0.2.0"; // バージョン更新（ステージの延長、緩急をつけたウェーブ設計、ボスの1.5倍巨大化）
+const VER_STG_KAGAMI = "0.2.1"; // バージョン更新（将来のADV追加を見据えてボスタグを付与）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['kagami'] = {
@@ -12,8 +12,8 @@ window.StageConfigs['kagami'] = {
         if (type === 'typea') return { imgSrc: 'typea.png', size: 16, hp: 2, maxHp: 2 };
         if (type === 'typeb') return { imgSrc: 'typeb.png', size: 20, hp: 4, maxHp: 4 };
         if (type === 'typec') return { imgSrc: 'typec.png', size: 18, hp: 3, maxHp: 3 };
-        // ★修正：ボスを1.5倍の大きさに（75 × 1.5 ＝ 約112）
-        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 112, hp: 150, maxHp: 150 };
+        // ★修正：ボスを1.5倍の大きさに（75 × 1.5 ＝ 約112）＋将来のADV用にボスタグを追加
+        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 112, hp: 150, maxHp: 150, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // ★修正：ステージを全体で約4800フレーム（約80秒）に延長し、比率に緩急をつける
