@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.5"; // バージョン更新（鳥[a]の速度半減と放物線化、人形[c]の弱体化、弾色の暖色化）
+const VER_STG_SHIINA = "0.4.6"; // バージョン更新（鳥[a]のHPを1/3にし、左上/右上から中央へのゆっくりな直線軌道に変更）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -48,7 +48,8 @@ window.StageConfigs['shiina'] = {
             };
         };
 
-        if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 4, init: (e) => { initShiki(e, 0); } };
+        // ★修正：鳥（shiki_a）のHPを 4 から約1/3の 1 に弱体化
+        if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 1, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
         // ★修正：人形（shiki_c）のHPを 12 から 3 に弱体化
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
@@ -139,15 +140,30 @@ window.StageConfigs['shiina'] = {
 
         // ★追加：各敵のスポーン設定（編隊構成など）
         if (timer > 100 && timer < 1000) { 
-            // 1-1: 三角形編隊（ボスから発射）
+            // 1-1: 三角形編隊（左上or右上から中央への直線）
             if (timer % 100 === 0) {
-                let dir = Math.random() > 0.5 ? 1 : -1; // 左右どちらの弧を描くか
+                let isLeft = Math.random() > 0.5; // 左上からか、右上からか
+                let startX = isLeft ? -50 : sW + 50;
+                let startY = -50;
+                let targetX = sW / 2;
+                let targetY = sH / 2; // 画面中央付近を目標に
+                let angle = Math.atan2(targetY - startY, targetX - startX); // 中央へ向かう角度
+                
                 for (let i = 0; i < 3; i++) {
-                    let enemy = new Enemy('shiki_a', bx, by, stg.player.charData, stg.advManager, stg.stgId);
-                    enemy.baseX = bx; enemy.baseY = by; enemy.direction = dir;
+                    let enemy = new Enemy('shiki_a', startX, startY, stg.player.charData, stg.advManager, stg.stgId);
+                    enemy.angleToCenter = angle;
+                    
                     // 三角形になるようにオフセットを付与（先頭、左後ろ、右後ろ）
-                    enemy.offsetX = (i === 1 ? -30 : i === 2 ? 30 : 0);
-                    enemy.offsetY = (i !== 0 ? -40 : 0);
+                    let offsetX = 0; let offsetY = 0;
+                    if (i === 1) { // 進行方向に対して左後ろ
+                        offsetX = Math.cos(angle - Math.PI/2) * 30 - Math.cos(angle) * 30;
+                        offsetY = Math.sin(angle - Math.PI/2) * 30 - Math.sin(angle) * 30;
+                    } else if (i === 2) { // 進行方向に対して右後ろ
+                        offsetX = Math.cos(angle + Math.PI/2) * 30 - Math.cos(angle) * 30;
+                        offsetY = Math.sin(angle + Math.PI/2) * 30 - Math.sin(angle) * 30;
+                    }
+                    enemy.x = startX + offsetX;
+                    enemy.y = startY + offsetY;
                     stg.enemies.push(enemy);
                 }
             }
@@ -179,10 +195,12 @@ window.StageConfigs['shiina'] = {
                     { character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
                     { character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
                 ], () => {
-                    if (boss) boss.isInvincible = false;
+                    let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
+                    if (currentBoss) currentBoss.isInvincible = false;
                 });
             } else {
-                if (boss) boss.isInvincible = false;
+                let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
+                if (currentBoss) currentBoss.isInvincible = false;
             }
         } 
         else if (timer > 4300) { 
@@ -190,11 +208,23 @@ window.StageConfigs['shiina'] = {
             if (timer % 120 === 0) {
                 const rand = Math.random();
                 if (rand < 0.25) {
-                    let dir = Math.random() > 0.5 ? 1 : -1;
+                    let isLeft = Math.random() > 0.5;
+                    let startX = isLeft ? -50 : sW + 50;
+                    let startY = -50;
+                    let angle = Math.atan2((sH / 2) - startY, (sW / 2) - startX);
                     for (let i = 0; i < 3; i++) {
-                        let enemy = new Enemy('shiki_a', bx, by, stg.player.charData, stg.advManager, stg.stgId);
-                        enemy.baseX = bx; enemy.baseY = by; enemy.direction = dir;
-                        enemy.offsetX = (i === 1 ? -30 : i === 2 ? 30 : 0); enemy.offsetY = (i !== 0 ? -40 : 0);
+                        let enemy = new Enemy('shiki_a', startX, startY, stg.player.charData, stg.advManager, stg.stgId);
+                        enemy.angleToCenter = angle;
+                        let offsetX = 0; let offsetY = 0;
+                        if (i === 1) { 
+                            offsetX = Math.cos(angle - Math.PI/2) * 30 - Math.cos(angle) * 30;
+                            offsetY = Math.sin(angle - Math.PI/2) * 30 - Math.sin(angle) * 30;
+                        } else if (i === 2) { 
+                            offsetX = Math.cos(angle + Math.PI/2) * 30 - Math.cos(angle) * 30;
+                            offsetY = Math.sin(angle + Math.PI/2) * 30 - Math.sin(angle) * 30;
+                        }
+                        enemy.x = startX + offsetX;
+                        enemy.y = startY + offsetY;
                         stg.enemies.push(enemy);
                     }
                 } else if (rand < 0.5) {
@@ -218,12 +248,9 @@ window.StageConfigs['shiina'] = {
             e.y = 90; 
         } 
         else if (e.type === 'shiki_a') {
-            // 1-1: ボス基準で弧を描きながら前進
-            // ★修正：速度を 3 から 1.5 に半減
-            e.baseY += 1.5; 
-            // ★修正：時間経過(moveTimer)によってサイン波で左右に振ることで大きめの弧を描く（周期0.04->0.02, 振幅200->300）
-            e.x = e.baseX + Math.sin(e.moveTimer * 0.02) * 300 * e.direction + e.offsetX;
-            e.y = e.baseY + e.offsetY;
+            // ★修正：鳥（三角形編隊）を画面左上or右上から中央へ向かうゆっくりな直線移動に変更
+            e.x += Math.cos(e.angleToCenter) * 1.0;
+            e.y += Math.sin(e.angleToCenter) * 1.0;
         } 
         else if (e.type === 'shiki_b') {
             // 1-2: 蝶のようにふらふら飛ぶ（XとYに異なる周期のサイン波をかける）
