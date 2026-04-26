@@ -263,7 +263,7 @@ scenarios.igari = {
         ],
         post_stg: [
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop' },
-            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'え？　あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
+            { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: '神宮寺', text: 'だってAIがよ・・・', isRight: false },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5,speaker: 'AI', item: 'potable.png', text: '大丈夫だ、神宮寺', isRight: false },
             { bg: 'boro.png', character: 'jingu.png', spriteIndex: 5, speaker: 'AI', item: 'potable.png', text: '石油が出れば、資産は取り戻せる', isRight: false },
