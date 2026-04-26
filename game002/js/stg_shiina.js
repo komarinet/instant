@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.6"; // バージョン更新（鳥[a]のHPを1/3にし、左上/右上から中央へのゆっくりな直線軌道に変更）
+const VER_STG_SHIINA = "0.4.7"; // Aの軌道修正(左上/右上から中央へのゆっくりな直進)とHP1/3。画像消失バグの完全修正。
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -24,12 +24,11 @@ window.StageConfigs['shiina'] = {
         const initShiki = (e, colIndex) => {
             e.draw = function(ctx) {
                 const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.png'] : null;
-                ctx.save(); 
-                ctx.translate(this.x, this.y);
+                ctx.save(); ctx.translate(this.x, this.y);
                 
-                // ★追加：竿（shiki_d）などの回転処理を適用
+                // 画像を進行方向に向けるための回転処理
                 if (this.angle) ctx.rotate(this.angle);
-
+                
                 if (this.config && this.config.transformEnemy) this.config.transformEnemy(this, ctx); 
 
                 if (img && img.naturalWidth > 0) {
@@ -48,10 +47,9 @@ window.StageConfigs['shiina'] = {
             };
         };
 
-        // ★修正：鳥（shiki_a）のHPを 4 から約1/3の 1 に弱体化
+        // AのHPを1（元の1/3）、CのHPを3に弱体化
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 1, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
-        // ★修正：人形（shiki_c）のHPを 12 から 3 に弱体化
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
         if (type === 'shiki_d') return { imgSrc: 'shiki.png', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
 
@@ -133,21 +131,17 @@ window.StageConfigs['shiina'] = {
             stg.bossSpawned = true;
         }
 
-        // ボスからのスポーン用に座標を取得
         let boss = stg.enemies.find(e => e.type === 'shiinaboss');
-        let bx = boss ? boss.x : sW / 2;
-        let by = boss ? boss.y : 90;
 
-        // ★追加：各敵のスポーン設定（編隊構成など）
         if (timer > 100 && timer < 1000) { 
-            // 1-1: 三角形編隊（左上or右上から中央への直線）
-            if (timer % 100 === 0) {
-                let isLeft = Math.random() > 0.5; // 左上からか、右上からか
+            // 1-1: 左上or右上から中央へゆっくり直進する編隊
+            if (timer % 120 === 0) {
+                let isLeft = Math.random() > 0.5;
                 let startX = isLeft ? -50 : sW + 50;
                 let startY = -50;
                 let targetX = sW / 2;
                 let targetY = sH / 2; // 画面中央付近を目標に
-                let angle = Math.atan2(targetY - startY, targetX - startX); // 中央へ向かう角度
+                let angle = Math.atan2(targetY - startY, targetX - startX);
                 
                 for (let i = 0; i < 3; i++) {
                     let enemy = new Enemy('shiki_a', startX, startY, stg.player.charData, stg.advManager, stg.stgId);
@@ -155,12 +149,12 @@ window.StageConfigs['shiina'] = {
                     
                     // 三角形になるようにオフセットを付与（先頭、左後ろ、右後ろ）
                     let offsetX = 0; let offsetY = 0;
-                    if (i === 1) { // 進行方向に対して左後ろ
-                        offsetX = Math.cos(angle - Math.PI/2) * 30 - Math.cos(angle) * 30;
-                        offsetY = Math.sin(angle - Math.PI/2) * 30 - Math.sin(angle) * 30;
-                    } else if (i === 2) { // 進行方向に対して右後ろ
-                        offsetX = Math.cos(angle + Math.PI/2) * 30 - Math.cos(angle) * 30;
-                        offsetY = Math.sin(angle + Math.PI/2) * 30 - Math.sin(angle) * 30;
+                    if (i === 1) { 
+                        offsetX = Math.cos(angle - Math.PI * 0.75) * 35;
+                        offsetY = Math.sin(angle - Math.PI * 0.75) * 35;
+                    } else if (i === 2) { 
+                        offsetX = Math.cos(angle + Math.PI * 0.75) * 35;
+                        offsetY = Math.sin(angle + Math.PI * 0.75) * 35;
                     }
                     enemy.x = startX + offsetX;
                     enemy.y = startY + offsetY;
@@ -217,11 +211,11 @@ window.StageConfigs['shiina'] = {
                         enemy.angleToCenter = angle;
                         let offsetX = 0; let offsetY = 0;
                         if (i === 1) { 
-                            offsetX = Math.cos(angle - Math.PI/2) * 30 - Math.cos(angle) * 30;
-                            offsetY = Math.sin(angle - Math.PI/2) * 30 - Math.sin(angle) * 30;
+                            offsetX = Math.cos(angle - Math.PI * 0.75) * 35;
+                            offsetY = Math.sin(angle - Math.PI * 0.75) * 35;
                         } else if (i === 2) { 
-                            offsetX = Math.cos(angle + Math.PI/2) * 30 - Math.cos(angle) * 30;
-                            offsetY = Math.sin(angle + Math.PI/2) * 30 - Math.sin(angle) * 30;
+                            offsetX = Math.cos(angle + Math.PI * 0.75) * 35;
+                            offsetY = Math.sin(angle + Math.PI * 0.75) * 35;
                         }
                         enemy.x = startX + offsetX;
                         enemy.y = startY + offsetY;
@@ -242,28 +236,30 @@ window.StageConfigs['shiina'] = {
     },
 
     updateEnemy: function(e, canvas, player) {
-        e.moveTimer = (e.moveTimer || 0) + 1; // 固有のタイマーを進める
+        e.moveTimer = (e.moveTimer || 0) + 1; 
 
         if (e.type === 'shiinaboss') {
             e.y = 90; 
         } 
         else if (e.type === 'shiki_a') {
-            // ★修正：鳥（三角形編隊）を画面左上or右上から中央へ向かうゆっくりな直線移動に変更
-            e.x += Math.cos(e.angleToCenter) * 1.0;
-            e.y += Math.sin(e.angleToCenter) * 1.0;
+            // ゆっくりと一直線に移動
+            e.x += Math.cos(e.angleToCenter) * 0.8;
+            e.y += Math.sin(e.angleToCenter) * 0.8;
+            // 画像が下向き(Math.PI/2)をデフォルトとしている前提で進行方向に画像を回転させる
+            e.angle = e.angleToCenter - Math.PI / 2;
         } 
         else if (e.type === 'shiki_b') {
-            // 1-2: 蝶のようにふらふら飛ぶ（XとYに異なる周期のサイン波をかける）
+            // 蝶のようにふらふら飛ぶ
             e.x += Math.sin(e.moveTimer * 0.1) * 3;
             e.y += 1.5 + Math.cos(e.moveTimer * 0.15) * 1.5;
         } 
         else if (e.type === 'shiki_c') {
-            // 1-3: 人形（直線で一気に飛んでくる）
+            // 人形（直線で飛んでくる）
             e.y += 4;
         } 
         else if (e.type === 'shiki_d') {
-            // 1-4: 竿（回転しながら飛ぶ）
-            e.angle = (e.angle || 0) + 0.1; // draw処理で回転するように角度を増やす
+            // 竿（回転しながら飛ぶ）
+            e.angle = (e.angle || 0) + 0.1; 
             e.y += 2.5;
         }
     },
@@ -282,33 +278,30 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (e.type === 'shiki_a') {
-            // 1-1: 自機狙いの弾
+            // 自機狙いの弾（赤オレンジ）
             if (stg.frame % 80 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                // ★修正：オレンジ弾 -> 赤オレンジ弾
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500')); 
             }
         } 
         else if (e.type === 'shiki_b') {
-            // 1-2: 蝶の鱗粉のようなばらまき弾
+            // 蝶のばらまき弾（ピンク）
             if (stg.frame % 60 === 0) {
                 const rAng = Math.random() * Math.PI * 2;
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); // ピンク弾
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); 
             }
         } 
         else if (e.type === 'shiki_c') {
-            // 1-3: まっすぐ速い弾
+            // まっすぐ速い弾（赤ピンク）
             if (stg.frame % 100 === 0 && e.y > 0) {
-                // ★修正：水色弾 -> 赤ピンク弾
                 stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055')); 
             }
         } 
         else if (e.type === 'shiki_d') {
-            // 1-4: 回転に合わせた4方向放射弾
+            // 4方向放射弾（赤）
             if (stg.frame % 90 === 0) {
                 for (let i = 0; i < 4; i++) {
                     const ang = (e.angle || 0) + (i * Math.PI / 2);
-                    // ★修正：緑弾 -> 赤弾
                     stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#ff0000')); 
                 }
             }
