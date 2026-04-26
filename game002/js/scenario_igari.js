@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.2"; // バージョン更新（ト書きだったエフェクト指示を実際のeffectパラメータに変更）
+const VER_SCENARIO_IGARI = "0.4.3"; // バージョン更新（ステージ3に mid_stg を追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -177,6 +177,11 @@ scenarios.igari = {
             { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'なんとかなんないのか', isRight: true },
             { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'まあ、叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '来るよ!', isRight: true }
+        ],
+        // ★修正：stg_shiina.jsから移動してきた中間ADVデータ
+        mid_stg: [
+            { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
+            { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
         ],
         post_stg: [
             { bg: 'yakerin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'はぁ、はぁ・・・大丈夫かい、君たち？', isRight: false, bgm: 'relax' },
