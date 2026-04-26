@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.7"; // Aの軌道修正(左上/右上から中央へのゆっくりな直進)とHP1/3。画像消失バグの完全修正。
+const VER_STG_SHIINA = "0.4.8"; // timer4200のハードコードADVを廃止し、シナリオファイルからの動的読み込みに変更
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -184,17 +184,38 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer === 4200) {
-            if (typeof window.startMidStgADV !== 'undefined') {
-                window.startMidStgADV([
-                    { character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
-                    { character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
-                ], () => {
-                    let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
-                    if (currentBoss) currentBoss.isInvincible = false;
-                });
-            } else {
+            // ★修正：シナリオファイルから現在のキャラクターの mid_stg データを動的に取得する
+            let midAdvData = [];
+            try {
+                const charId = (stg.player && stg.player.id) ? stg.player.id : 'igari';
+                let charScenario = null;
+                if (typeof window.scenarios !== 'undefined') {
+                    charScenario = window.scenarios[charId];
+                }
+                if (!charScenario && typeof scenarios !== 'undefined') {
+                    charScenario = scenarios[charId];
+                }
+
+                if (charScenario) {
+                    for (let stageKey in charScenario) {
+                        if (charScenario[stageKey] && charScenario[stageKey].stgId === stg.stgId && charScenario[stageKey].mid_stg) {
+                            midAdvData = charScenario[stageKey].mid_stg;
+                            break;
+                        }
+                    }
+                }
+            } catch(e) { console.warn("ADV取得エラー", e); }
+
+            const onAdvEnd = () => {
                 let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
                 if (currentBoss) currentBoss.isInvincible = false;
+            };
+
+            // ADVデータがあれば再生、無ければ（猪狩以外の場合など）即座にボスの無敵を解除
+            if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
+                window.startMidStgADV(midAdvData, onAdvEnd);
+            } else {
+                onAdvEnd();
             }
         } 
         else if (timer > 4300) { 
