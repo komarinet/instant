@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.1"; // バージョン更新（鳥の速度低下、人形のHP低下、弾の色を緑背景で目立つ色に変更）
+const VER_STG_SHIINA = "0.4.2"; // バージョン更新（鳥・人形の弱体化、弾色変更、ADV後ボス取得処理の復元）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -49,7 +49,7 @@ window.StageConfigs['shiina'] = {
 
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 4, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
-        // ★修正：人形（shiki_c）のHPを 12 から 3 に大幅低下
+        // ★修正：人形のHPを 12 から 3 に低下
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
         if (type === 'shiki_d') return { imgSrc: 'shiki.png', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
 
@@ -136,7 +136,6 @@ window.StageConfigs['shiina'] = {
         let by = boss ? boss.y : 90;
 
         if (timer > 100 && timer < 1000) { 
-            // 1-1: 三角形編隊
             if (timer % 100 === 0) {
                 let dir = Math.random() > 0.5 ? 1 : -1;
                 for (let i = 0; i < 3; i++) {
@@ -149,13 +148,11 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer >= 1000 && timer < 2000) { 
-            // 1-2: 蝶・鳥（ランダムスポーン）
             if (timer % 80 === 0) {
                 stg.enemies.push(new Enemy('shiki_b', Math.random() * sW, -30, stg.player.charData, stg.advManager, stg.stgId));
             }
         } 
         else if (timer >= 2000 && timer < 3000) { 
-            // 1-3: 人形（7列の直線）
             if (timer % 150 === 0) {
                 let startX = Math.random() * (sW - 100) + 50;
                 for(let i = 0; i < 7; i++) {
@@ -164,7 +161,6 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer >= 3000 && timer < 4200) { 
-            // 1-4: 竿（回転）
             if (timer % 120 === 0) {
                 stg.enemies.push(new Enemy('shiki_d', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
@@ -175,10 +171,14 @@ window.StageConfigs['shiina'] = {
                     { character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
                     { character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
                 ], () => {
-                    if (boss) boss.isInvincible = false;
+                    // ★復元：コールバック内でのボス再取得と解除処理
+                    let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
+                    if (currentBoss) currentBoss.isInvincible = false;
                 });
             } else {
-                if (boss) boss.isInvincible = false;
+                // ★復元：ADVがない場合のボス解除処理
+                let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
+                if (currentBoss) currentBoss.isInvincible = false;
             }
         } 
         else if (timer > 4300) { 
@@ -218,7 +218,7 @@ window.StageConfigs['shiina'] = {
             e.y = e.baseY + e.offsetY;
         } 
         else if (e.type === 'shiki_b') {
-            // ★修正：鳥（蝶）の速度を少し遅く調整
+            // ★修正：鳥の速度を低下
             e.x += Math.sin(e.moveTimer * 0.05) * 2;
             e.y += 1.0 + Math.cos(e.moveTimer * 0.08) * 1.0;
         } 
@@ -232,7 +232,6 @@ window.StageConfigs['shiina'] = {
     },
 
     shootEnemy: function(e, stg) {
-        // ★修正：全体的に弾の色を緑背景で目立つ暖色系（赤・ピンク・オレンジ等）に変更
         if (e.type === 'shiinaboss') {
             if (!e.isInvincible) {
                 if (stg.frame % 20 === 0) {
@@ -248,25 +247,28 @@ window.StageConfigs['shiina'] = {
         else if (e.type === 'shiki_a') {
             if (stg.frame % 80 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500')); // 赤オレンジ
+                // ★修正：暖色系
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500'));
             }
         } 
         else if (e.type === 'shiki_b') {
             if (stg.frame % 60 === 0) {
                 const rAng = Math.random() * Math.PI * 2;
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); // ピンク
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc'));
             }
         } 
         else if (e.type === 'shiki_c') {
             if (stg.frame % 100 === 0 && e.y > 0) {
-                stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055')); // 赤ピンク
+                // ★修正：暖色系
+                stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055'));
             }
         } 
         else if (e.type === 'shiki_d') {
             if (stg.frame % 90 === 0) {
                 for (let i = 0; i < 4; i++) {
                     const ang = (e.angle || 0) + (i * Math.PI / 2);
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#ff0000')); // 赤
+                    // ★修正：暖色系
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#ff0000'));
                 }
             }
         }
