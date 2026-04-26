@@ -231,7 +231,7 @@ scenarios.igari = {
             { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 3, speaker: 'AI', item: 'potable.png', text: '椎名護。あなたが狙うべき相手です', isRight: false },
             { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 0, speaker: '神宮寺', text: 'そうか、貴様が死をコントロールできるという血肉を持つ一族か', isRight: false },
             { bg: 'advsnow.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '・・・なんだと？', isRight: true },
-            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: '死んでもらうぞ、娘のためにな', isRight: false, effect: 'shake' }
+            { bg: 'advsnow.png', character: 'jingu.png', spriteIndex: 4, speaker: '神宮寺', text: '死んでもらうぞ、娘のためにな', isRight: false }
         ],
         pre_stg: [
             { bg: 'advrocket.png', character: 'kagami.png', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark' },
