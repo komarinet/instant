@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.2"; // バージョン更新（鳥・人形の弱体化、弾色変更、ADV後ボス取得処理の復元）
+const VER_STG_SHIINA = "0.4.4"; // バージョン更新（鳥[a]の速度半減と大きな放物線への軌道修正、蝶[b]の軌道復元）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -49,7 +49,6 @@ window.StageConfigs['shiina'] = {
 
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 4, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
-        // ★修正：人形のHPを 12 から 3 に低下
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
         if (type === 'shiki_d') return { imgSrc: 'shiki.png', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
 
@@ -171,12 +170,10 @@ window.StageConfigs['shiina'] = {
                     { character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
                     { character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
                 ], () => {
-                    // ★復元：コールバック内でのボス再取得と解除処理
                     let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
                     if (currentBoss) currentBoss.isInvincible = false;
                 });
             } else {
-                // ★復元：ADVがない場合のボス解除処理
                 let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
                 if (currentBoss) currentBoss.isInvincible = false;
             }
@@ -213,12 +210,13 @@ window.StageConfigs['shiina'] = {
             e.y = 90; 
         } 
         else if (e.type === 'shiki_a') {
-            e.baseY += 3; 
-            e.x = e.baseX + Math.sin(e.moveTimer * 0.04) * 200 * e.direction + e.offsetX;
+            // ★修正：鳥（三角形編隊）の速度を半減し、大きくゆったりとした放物線を描かせる
+            e.baseY += 1.5; 
+            e.x = e.baseX + Math.sin(e.moveTimer * 0.02) * 300 * e.direction + e.offsetX;
             e.y = e.baseY + e.offsetY;
         } 
         else if (e.type === 'shiki_b') {
-            // ★修正：鳥の速度を低下
+            // ★修正：蝶の動き（ふらふら飛ぶ軌道）を元に復元
             e.x += Math.sin(e.moveTimer * 0.05) * 2;
             e.y += 1.0 + Math.cos(e.moveTimer * 0.08) * 1.0;
         } 
@@ -247,7 +245,6 @@ window.StageConfigs['shiina'] = {
         else if (e.type === 'shiki_a') {
             if (stg.frame % 80 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                // ★修正：暖色系
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500'));
             }
         } 
@@ -259,7 +256,6 @@ window.StageConfigs['shiina'] = {
         } 
         else if (e.type === 'shiki_c') {
             if (stg.frame % 100 === 0 && e.y > 0) {
-                // ★修正：暖色系
                 stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055'));
             }
         } 
@@ -267,7 +263,6 @@ window.StageConfigs['shiina'] = {
             if (stg.frame % 90 === 0) {
                 for (let i = 0; i < 4; i++) {
                     const ang = (e.angle || 0) + (i * Math.PI / 2);
-                    // ★修正：暖色系
                     stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#ff0000'));
                 }
             }
