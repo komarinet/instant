@@ -180,7 +180,7 @@ scenarios.igari = {
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '来るよ!', isRight: true }
         ],
         // ★修正：stg_shiina.jsから移動してきた中間ADVデータ
-        mid_stg: [
+       event_adv: [
             { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
             { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
         ],
