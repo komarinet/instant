@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.8"; // timer4200のハードコードADVを廃止し、シナリオファイルからの動的読み込みに変更
+const VER_STG_SHIINA = "0.4.9"; // バージョン更新（開始直後のADV暴発を防ぐため、読み込みキーを event_adv に変更）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -184,7 +184,7 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer === 4200) {
-            // ★修正：シナリオファイルから現在のキャラクターの mid_stg データを動的に取得する
+            // ★修正：シナリオファイルから現在のキャラクターの event_adv データを動的に取得する
             let midAdvData = [];
             try {
                 const charId = (stg.player && stg.player.id) ? stg.player.id : 'igari';
@@ -198,8 +198,9 @@ window.StageConfigs['shiina'] = {
 
                 if (charScenario) {
                     for (let stageKey in charScenario) {
-                        if (charScenario[stageKey] && charScenario[stageKey].stgId === stg.stgId && charScenario[stageKey].mid_stg) {
-                            midAdvData = charScenario[stageKey].mid_stg;
+                        // ★ココを修正：mid_stg を event_adv に変更
+                        if (charScenario[stageKey] && charScenario[stageKey].stgId === stg.stgId && charScenario[stageKey].event_adv) {
+                            midAdvData = charScenario[stageKey].event_adv;
                             break;
                         }
                     }
