@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.0"; // バージョン更新（ザコ敵a〜dの専用軌道・編隊・弾幕を実装）
+const VER_STG_SHIINA = "0.4.1"; // バージョン更新（鳥の速度低下、人形のHP低下、弾の色を緑背景で目立つ色に変更）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -27,7 +27,6 @@ window.StageConfigs['shiina'] = {
                 ctx.save(); 
                 ctx.translate(this.x, this.y);
                 
-                // ★追加：竿（shiki_d）などの回転処理を適用
                 if (this.angle) ctx.rotate(this.angle);
 
                 if (this.config && this.config.transformEnemy) this.config.transformEnemy(this, ctx); 
@@ -50,7 +49,8 @@ window.StageConfigs['shiina'] = {
 
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 4, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
-        if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 12, init: (e) => { initShiki(e, 2); } };
+        // ★修正：人形（shiki_c）のHPを 12 から 3 に大幅低下
+        if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
         if (type === 'shiki_d') return { imgSrc: 'shiki.png', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
 
         if (type === 'shiinaboss') return {
@@ -131,20 +131,17 @@ window.StageConfigs['shiina'] = {
             stg.bossSpawned = true;
         }
 
-        // ボスからのスポーン用に座標を取得
         let boss = stg.enemies.find(e => e.type === 'shiinaboss');
         let bx = boss ? boss.x : sW / 2;
         let by = boss ? boss.y : 90;
 
-        // ★追加：各敵のスポーン設定（編隊構成など）
         if (timer > 100 && timer < 1000) { 
-            // 1-1: 三角形編隊（ボスから発射）
+            // 1-1: 三角形編隊
             if (timer % 100 === 0) {
-                let dir = Math.random() > 0.5 ? 1 : -1; // 左右どちらの弧を描くか
+                let dir = Math.random() > 0.5 ? 1 : -1;
                 for (let i = 0; i < 3; i++) {
                     let enemy = new Enemy('shiki_a', bx, by, stg.player.charData, stg.advManager, stg.stgId);
                     enemy.baseX = bx; enemy.baseY = by; enemy.direction = dir;
-                    // 三角形になるようにオフセットを付与（先頭、左後ろ、右後ろ）
                     enemy.offsetX = (i === 1 ? -30 : i === 2 ? 30 : 0);
                     enemy.offsetY = (i !== 0 ? -40 : 0);
                     stg.enemies.push(enemy);
@@ -152,7 +149,7 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer >= 1000 && timer < 2000) { 
-            // 1-2: 蝶（ランダムスポーン）
+            // 1-2: 蝶・鳥（ランダムスポーン）
             if (timer % 80 === 0) {
                 stg.enemies.push(new Enemy('shiki_b', Math.random() * sW, -30, stg.player.charData, stg.advManager, stg.stgId));
             }
@@ -185,7 +182,6 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer > 4300) { 
-            // 全種類ミックス
             if (timer % 120 === 0) {
                 const rand = Math.random();
                 if (rand < 0.25) {
@@ -211,35 +207,32 @@ window.StageConfigs['shiina'] = {
     },
 
     updateEnemy: function(e, canvas, player) {
-        e.moveTimer = (e.moveTimer || 0) + 1; // 固有のタイマーを進める
+        e.moveTimer = (e.moveTimer || 0) + 1; 
 
         if (e.type === 'shiinaboss') {
             e.y = 90; 
         } 
         else if (e.type === 'shiki_a') {
-            // 1-1: ボス基準で弧を描きながら前進
             e.baseY += 3; 
-            // 時間経過(moveTimer)によってサイン波で左右に振ることで弧を描く
             e.x = e.baseX + Math.sin(e.moveTimer * 0.04) * 200 * e.direction + e.offsetX;
             e.y = e.baseY + e.offsetY;
         } 
         else if (e.type === 'shiki_b') {
-            // 1-2: 蝶のようにふらふら飛ぶ（XとYに異なる周期のサイン波をかける）
-            e.x += Math.sin(e.moveTimer * 0.1) * 3;
-            e.y += 1.5 + Math.cos(e.moveTimer * 0.15) * 1.5;
+            // ★修正：鳥（蝶）の速度を少し遅く調整
+            e.x += Math.sin(e.moveTimer * 0.05) * 2;
+            e.y += 1.0 + Math.cos(e.moveTimer * 0.08) * 1.0;
         } 
         else if (e.type === 'shiki_c') {
-            // 1-3: 人形（直線で一気に飛んでくる）
             e.y += 4;
         } 
         else if (e.type === 'shiki_d') {
-            // 1-4: 竿（回転しながら飛ぶ）
-            e.angle = (e.angle || 0) + 0.1; // draw処理で回転するように角度を増やす
+            e.angle = (e.angle || 0) + 0.1; 
             e.y += 2.5;
         }
     },
 
     shootEnemy: function(e, stg) {
+        // ★修正：全体的に弾の色を緑背景で目立つ暖色系（赤・ピンク・オレンジ等）に変更
         if (e.type === 'shiinaboss') {
             if (!e.isInvincible) {
                 if (stg.frame % 20 === 0) {
@@ -253,31 +246,27 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (e.type === 'shiki_a') {
-            // 1-1: 自機狙いの弾
             if (stg.frame % 80 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ffaa00')); // オレンジ弾
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500')); // 赤オレンジ
             }
         } 
         else if (e.type === 'shiki_b') {
-            // 1-2: 蝶の鱗粉のようなばらまき弾
             if (stg.frame % 60 === 0) {
                 const rAng = Math.random() * Math.PI * 2;
-                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); // ピンク弾
+                stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); // ピンク
             }
         } 
         else if (e.type === 'shiki_c') {
-            // 1-3: まっすぐ速い弾
             if (stg.frame % 100 === 0 && e.y > 0) {
-                stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#33ccff')); // 水色弾
+                stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055')); // 赤ピンク
             }
         } 
         else if (e.type === 'shiki_d') {
-            // 1-4: 回転に合わせた4方向放射弾
             if (stg.frame % 90 === 0) {
                 for (let i = 0; i < 4; i++) {
                     const ang = (e.angle || 0) + (i * Math.PI / 2);
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#00ff00')); // 緑弾
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, '#ff0000')); // 赤
                 }
             }
         }
