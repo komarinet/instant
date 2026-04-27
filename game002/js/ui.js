@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.3"; // バージョン更新（stg_jinguのバージョン表記対応）
+export const VER_UI = "0.3.4"; // バージョン更新（バージョン情報表示に stg_godai を追加）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -90,6 +90,7 @@ export function showVersions(moduleVersions) {
     const stgHiragi = getV('VER_STG_HIRAGI');
     const stgShiina = getV('VER_STG_SHIINA');
     const stgJingu = getV('VER_STG_JINGU'); // ★追加：stg_jingu.jsのバージョンを取得
+    const stgGodai = getV('VER_STG_GODAI'); // ★追加：stg_godai.jsのバージョンを取得
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -116,7 +117,8 @@ export function showVersions(moduleVersions) {
             s_kaga:v${stgKagami}<br>
             s_hira:v${stgHiragi}<br>
             s_shii:v${stgShiina}<br>
-            s_jin:v${stgJingu}    </div>
+            s_jin:v${stgJingu}<br>
+            s_god:v${stgGodai}    </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
             iga:v${scIgari}<br>
