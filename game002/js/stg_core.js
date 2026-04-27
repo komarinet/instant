@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.3"; // バージョン更新（シナリオ変数の安全な取得処理、キャラクターID取得バグ修正）
+const VER_STG_CORE = "0.8.4"; // バージョン更新（igariシナリオ時のみステージ5をgodai等に設定し、他キャラはkagamiに固定）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -12,14 +12,20 @@ class Enemy {
         this.deathTimer = 0;
         
         if (!stgId) {
-            // ★修正：currentStageが文字列("4"など)で渡ってきても確実に判定できるよう Number() で型変換
+            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
+            let charId = (this.charData && this.charData.id) ? this.charData.id : 'igari';
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
-                if (cStage === 1) stgId = 'kagami';
-                else if (cStage === 2) stgId = 'hiragi';
-                else if (cStage === 3) stgId = 'shiina';
-                else if (cStage === 4) stgId = 'jingu'; 
-                else stgId = 'kagami';
+                if (charId === 'igari') {
+                    if (cStage === 1) stgId = 'kagami';
+                    else if (cStage === 2) stgId = 'hiragi';
+                    else if (cStage === 3) stgId = 'shiina';
+                    else if (cStage === 4) stgId = 'jingu'; 
+                    else if (cStage === 5) stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else stgId = 'kagami';
+                } else {
+                    stgId = 'kagami'; // igari以外はとりあえずkagami
+                }
             } else {
                 stgId = 'kagami';
             }
@@ -118,13 +124,20 @@ class STGManager {
         
         this.stgId = stgId;
         if (!this.stgId) {
+            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
+            let charId = (charData && charData.id) ? charData.id : 'igari';
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
-                if (cStage === 1) this.stgId = 'kagami';
-                else if (cStage === 2) this.stgId = 'hiragi';
-                else if (cStage === 3) this.stgId = 'shiina';
-                else if (cStage === 4) this.stgId = 'jingu'; 
-                else this.stgId = 'kagami'; 
+                if (charId === 'igari') {
+                    if (cStage === 1) this.stgId = 'kagami';
+                    else if (cStage === 2) this.stgId = 'hiragi';
+                    else if (cStage === 3) this.stgId = 'shiina';
+                    else if (cStage === 4) this.stgId = 'jingu'; 
+                    else if (cStage === 5) this.stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else this.stgId = 'kagami'; 
+                } else {
+                    this.stgId = 'kagami'; // igari以外はとりあえずkagami
+                }
             } else { this.stgId = 'kagami'; }
         }
         
