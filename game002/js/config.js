@@ -17,7 +17,9 @@ export const imagesToPreload = [
     'advsnow.png','jingu.png','robot.png','boro.png',
     'rei.png','renji.png','snow.png','sui.png','mask.png',
     'tv.png','advrocket.png','aboro.png','robodon.png',
-    'potable.png','potable2.png','phone.png','bluesky.png','phone2.png','phone3.png'
+    'potable.png','potable2.png','phone.png','bluesky.png','phone2.png','phone3.png',
+    // --- 新規追加分 ---
+    'moon.jpg'
 ];
 
 export const imagesToPreload3D = [
