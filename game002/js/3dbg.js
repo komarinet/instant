@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.6"; // バージョン更新（ステージ1と2で地面のスクロール方向が逆転する問題を完全修正）
+const VER_3DBG = "0.2.7"; // バージョン更新（ステージ5用の宇宙空間と月の描画ロジックを追加）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -14,12 +14,17 @@ class BGManager3D {
         this.clouds = []; 
         this.candles = []; 
         
+        // ステージ5用の背景オブジェクト
+        this.starField = null;
+        this.moon = null;
+        
         this.textures = {
             sideatlas: null,
             topatlas: null,
             ground: null,
             ground2: null, 
-            candle: null 
+            candle: null,
+            moon: null // ★追加：月のテクスチャ
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, 
@@ -128,6 +133,9 @@ class BGManager3D {
         this.createBuildings(); 
         this.createClouds();   
         this.createCandles();  
+        
+        // ★追加：ステージ5の宇宙空間を生成
+        this.createSpace();
 
         this.isActive = true;
         this.loop(); 
@@ -137,28 +145,45 @@ class BGManager3D {
         this.currentStage = stageNum;
         if (!this.ground || !this.ground.material) return;
         
-        if (stageNum === 2) {
+        if (stageNum === 5) {
+            // ★追加：ステージ5の時は既存の背景を非表示にし、宇宙を表示
+            this.ground.visible = false;
+            this.buildings.forEach(b => b.visible = false);
+            this.candles.forEach(c => c.visible = false);
+            this.clouds.forEach(c => c.visible = false);
+            if (this.starField) this.starField.visible = true;
+            if (this.moon) {
+                this.moon.visible = true;
+                this.moon.position.set(0, -50, -600); // ステージ開始時に奥へ配置
+            }
+        } else if (stageNum === 2) {
+            this.ground.visible = true;
             if (this.textures.ground2) {
                 this.ground.material.map = this.textures.ground2;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
                 this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                // ★ステージ2は repeat.y がマイナス (-10)
                 this.ground.material.map.repeat.set(4, -10); 
                 this.ground.material.needsUpdate = true;
             }
             this.buildings.forEach(b => b.visible = false);
             this.candles.forEach(c => c.visible = true);
+            this.clouds.forEach(c => c.visible = true);
+            if (this.starField) this.starField.visible = false;
+            if (this.moon) this.moon.visible = false;
         } else {
+            this.ground.visible = true;
             if (this.textures.ground) {
                 this.ground.material.map = this.textures.ground;
                 this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
                 this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                // ★ステージ1は repeat.y がプラス (10)
                 this.ground.material.map.repeat.set(4, 10);
                 this.ground.material.needsUpdate = true;
             }
             this.buildings.forEach(b => b.visible = true);
             this.candles.forEach(c => c.visible = false);
+            this.clouds.forEach(c => c.visible = true);
+            if (this.starField) this.starField.visible = false;
+            if (this.moon) this.moon.visible = false;
         }
     }
 
@@ -342,6 +367,26 @@ class BGManager3D {
         }
     }
 
+    // ★追加：宇宙と月の生成ロジック
+    createSpace() {
+        const starGeo = new THREE.SphereGeometry(800, 64, 64);
+        const starMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.BackSide });
+        this.starField = new THREE.Mesh(starGeo, starMat);
+        this.starField.visible = false;
+        this.scene.add(this.starField);
+
+        const moonGeo = new THREE.SphereGeometry(100, 64, 64);
+        const moonMat = new THREE.MeshStandardMaterial({ 
+            map: this.textures.moon || null, 
+            roughness: 1, 
+            metalness: 0 
+        });
+        this.moon = new THREE.Mesh(moonGeo, moonMat);
+        this.moon.position.set(0, -50, -600);
+        this.moon.visible = false;
+        this.scene.add(this.moon);
+    }
+
     loop() {
         if (!this.isActive) return;
 
@@ -351,8 +396,21 @@ class BGManager3D {
             }
         }
 
+        // ★追加：ステージ5の時の宇宙空間と月のアニメーション処理
+        if (this.currentStage === 5) {
+            if (this.moon && this.moon.position.z < -150) {
+                this.moon.position.z += 0.1;
+            }
+            if (this.moon) {
+                this.moon.rotation.y += 0.002;
+            }
+            if (this.starField) {
+                this.starField.rotation.y += 0.0005;
+                this.starField.rotation.x += 0.0002;
+            }
+        }
+
         if (this.ground && this.ground.material.map) {
-            // ★完全修正：テクスチャの張り方（repeat.y の符号）に合わせて自動でスクロール方向を補正！
             this.ground.material.map.offset.y += (this.scrollSpeed / 40) * Math.sign(this.ground.material.map.repeat.y);
         }
 
@@ -386,6 +444,7 @@ class BGManager3D {
         });
 
         this.clouds.forEach(c => {
+            if (!c.visible) return; // 表示時のみ処理を実行する安全対策
             c.position.z += this.cloudScrollSpeed;
             c.rotation.z += 0.01;
             if (c.position.z > 100) {
