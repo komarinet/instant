@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.3"; // バージョン更新（ステージ3に mid_stg を追加）
+const VER_SCENARIO_IGARI = "0.4.4"; // バージョン更新（ステージ5のシナリオを追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -179,8 +179,7 @@ scenarios.igari = {
             { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'まあ、叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '来るよ!', isRight: true }
         ],
-        // ★修正：stg_shiina.jsから移動してきた中間ADVデータ
-       event_adv: [
+        event_adv: [
             { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: 'まさかここまで抵抗するとはな', isRight: false },
             { bg: 'bluesky.png', character: 'urashiina.png', spriteIndex: 0, speaker: '椎名', text: '俺も本気で対応しよう', isRight: false }
         ],
@@ -281,6 +280,39 @@ scenarios.igari = {
             { bg: 'boro.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'ん？　なんだ、上？', isRight: true },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・月だ', isRight: true },
             { bg: 'boro.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'AIを装い、神宮寺を操った首謀者は、月にいる', isRight: true, effect: 'shake' }
+        ]
+    },
+    5: {
+        stgId: 'godai',
+        adv: [],
+        pre_stg: [
+            { bg: 'univ.png', place: 'Moon', time: '2025.07', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ついに月まで来ちまったな…', delay: 60, isRight: true, bgm: 'dark' },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '宇宙空間でも息ができるなんて、魔法って便利でしょ？', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '油断するな。目標はすぐ近くにいるはずだ', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: 'よくここまで辿り着きましたね、エラー因子たちよ', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'お前が神宮寺を操っていた黒幕か！', isRight: true, effect: 'shake' },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '私はG・O・D・A・I。世界を最適化するための管理システムです', isRight: false },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '旧世界の自動防衛システムか！なぜお前が歴史への干渉を？', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '計算の結果、魔女の生存が世界のノイズになると判定されました', isRight: false },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 2, speaker: 'G・O・D・A・I', text: 'よって、排除します', isRight: false },
+            { bg: 'univ.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'ふざけんな！機械の都合で殺されてたまるかよ！', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 3, speaker: 'G・O・D・A・I', text: '全兵装展開。アセット・ミサイル発射準備', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '来るぞ、総員戦闘準備！', isRight: true }
+        ],
+        mid_stg: [],
+        post_stg: [
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'ピ…ガガ…システムに…深刻なダメージ…', delay: 60, isRight: false, bgm: 'stop' },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'やったか…？', isRight: true, bgm: 'relax' },
+            { bg: 'postuniv.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'ただの機械なんて、私たちの敵じゃないわね', isRight: true },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '警告…マスターフレームの再起動を確認…', isRight: false },
+            { bg: 'postuniv.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'マスターフレームだと！？', isRight: true, effect: 'shake' },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '私はあくまで端末。真の管理者「科学文明軍」が目覚めます…', isRight: false },
+            { bg: 'postuniv.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'おいおい、こいつが親玉じゃなかったのかよ', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '科学文明軍…！最初にお前が言っていたテロリストか！', isRight: true, bgm: 'dark' },
+            { bg: 'postuniv.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'ああ。時空を超えて我々の世界を破壊しようとする最悪の敵だ', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '次が本当の決戦ってわけだな', isRight: true },
+            { bg: 'postuniv.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'とことん付き合うわよ、俊基', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: 'ああ、行こう。俺たちの未来を取り戻すために！', isRight: true }
         ]
     }
 };
