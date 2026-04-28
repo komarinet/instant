@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.10"; // バージョン更新（godai.png の行数指定を追加）
+const VER_ADV = "0.4.11"; // バージョン更新（G・O・D・A・Iの立ち絵サイズを少し縮小）
 
 class ADVManager {
     constructor() {
@@ -88,7 +88,7 @@ class ADVManager {
     playSE() {
         const msg = this.currentScenario[this.index];
         
-        // ★追加：BGM変更コマンドの処理
+        // BGM変更コマンドの処理
         if (msg && msg.bgm) {
             if (typeof window.soundManager !== 'undefined') {
                 if (msg.bgm === 'stop') {
@@ -277,7 +277,7 @@ class ADVManager {
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
-            if (key === 'godai.png') return 3; // ★追加：G・O・D・A・Iの立ち絵は3行フォーマット
+            if (key === 'godai.png') return 3; // G・O・D・A・Iの立ち絵は3行フォーマット
             return 4; // 基本の立ち絵は4行フォーマット
         };
 
@@ -317,6 +317,7 @@ class ADVManager {
                 let charScale = 1.0;
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
+                else if (cData.key === 'godai.png') charScale = 0.85; // ★追加：GODAIは少し小さくする
 
                 const drawHeight = cssHeight * 0.50 * charScale; 
                 const drawWidth = sWidth * (drawHeight / sHeight);
@@ -405,7 +406,7 @@ class ADVManager {
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
 
-        // ★新規追加：アイテム描画処理
+        // アイテム描画処理
         if (currentMsg.item && this.assets[currentMsg.item]) {
             const itemImg = this.assets[currentMsg.item];
             const boxSize = Math.min(gameWidth, visualAreaHeight) * 0.6; // テキストエリアを除いた画面の60%のサイズの正方形
@@ -453,7 +454,6 @@ class ADVManager {
             ctx.imageSmoothingEnabled = true; 
             ctx.drawImage(itemImg, imgX, imgY, drawW, drawH);
         }
-        // ★新規追加ここまで
 
         if (currentMsg.effect === 'whiteout') {
             this.whiteoutAlpha = Math.min(1.0, this.whiteoutAlpha + 0.02);
