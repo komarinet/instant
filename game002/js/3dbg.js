@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.7"; // バージョン更新（ステージ5用の宇宙空間と月の描画ロジックを追加）
+const VER_3DBG = "0.2.8"; // バージョン更新（ステージ5用の宇宙空間と月の描画ロジックを追加）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -14,7 +14,7 @@ class BGManager3D {
         this.clouds = []; 
         this.candles = []; 
         
-        // ステージ5用の背景オブジェクト
+        // ★追加：ステージ5用の背景オブジェクト
         this.starField = null;
         this.moon = null;
         
@@ -134,7 +134,7 @@ class BGManager3D {
         this.createClouds();   
         this.createCandles();  
         
-        // ★追加：ステージ5の宇宙空間を生成
+        // ★追加：ステージ5の宇宙空間と月を生成
         this.createSpace();
 
         this.isActive = true;
@@ -145,8 +145,8 @@ class BGManager3D {
         this.currentStage = stageNum;
         if (!this.ground || !this.ground.material) return;
         
+        // ★追加：ステージ5の時は既存の背景を非表示にし、宇宙を表示する
         if (stageNum === 5) {
-            // ★追加：ステージ5の時は既存の背景を非表示にし、宇宙を表示
             this.ground.visible = false;
             this.buildings.forEach(b => b.visible = false);
             this.candles.forEach(c => c.visible = false);
@@ -410,7 +410,7 @@ class BGManager3D {
             }
         }
 
-        if (this.ground && this.ground.material.map) {
+        if (this.ground && this.ground.material.map && this.ground.visible) {
             this.ground.material.map.offset.y += (this.scrollSpeed / 40) * Math.sign(this.ground.material.map.repeat.y);
         }
 
@@ -444,7 +444,7 @@ class BGManager3D {
         });
 
         this.clouds.forEach(c => {
-            if (!c.visible) return; // 表示時のみ処理を実行する安全対策
+            if (!c.visible) return; 
             c.position.z += this.cloudScrollSpeed;
             c.rotation.z += 0.01;
             if (c.position.z > 100) {
