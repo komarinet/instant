@@ -1,4 +1,4 @@
-const VER_3DBG = "0.3.2"; // バージョン更新（月の移動速度低下・サイズ調整、星空の配置変更）
+const VER_3DBG = "0.3.4"; // バージョン更新（宇宙空間のFogを完全無効化し、星と月の明度をアップ）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -116,7 +116,7 @@ class BGManager3D {
         this.scene = new THREE.Scene();
         this.scene.fog = new THREE.Fog(0x0a0a14, 50, 300); 
 
-        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 8000);
         this.camera.position.set(0, 60, 0); 
         this.camera.rotation.x = -Math.PI / 2.5; 
 
@@ -151,20 +151,18 @@ class BGManager3D {
             this.candles.forEach(c => c.visible = false);
             this.clouds.forEach(c => c.visible = false);
             
-            this.scene.fog.near = 500;
-            this.scene.fog.far = 4000; 
+            // 宇宙空間ではFogの影響を完全にゼロにするため、極端に遠い値に設定
+            this.scene.fog.near = 9999999;
+            this.scene.fog.far = 10000000; 
             this.renderer.setClearColor(0x000000, 1); 
             
             if (this.starField) {
                 this.starField.visible = true;
-                // 星空をカメラの視線先を中心に配置
                 this.starField.position.set(0, -2500, -800);
             }
             if (this.moon) {
                 this.moon.visible = true;
-                // ★修正：初期位置を画面下部に半分見切れる位置にセット
-                this.moon.position.set(0, -3800, -1200); 
-                // ★修正：初期サイズを約1/3に見えるように小さくセット
+                this.moon.position.set(0, -4500, -1200); 
                 this.moon.scale.set(0.6, 0.6, 0.6); 
             }
             if (this.moonLight) this.moonLight.visible = true;
@@ -392,7 +390,6 @@ class BGManager3D {
     }
 
     createSpace() {
-        // ★修正: 星空はランダムな点群(BufferGeometry)に戻し、空間全体にバラバラに配置
         const starGeo = new THREE.BufferGeometry();
         const starCount = 2000;
         const posArray = new Float32Array(starCount * 3);
@@ -404,7 +401,7 @@ class BGManager3D {
             size: 4, 
             color: 0xffffff, 
             transparent: true, 
-            opacity: 0.8,
+            opacity: 1.0, // 星をくっきりさせるために透明度をなくす
             depthWrite: false
         });
         this.starField = new THREE.Points(starGeo, starMat);
@@ -416,7 +413,7 @@ class BGManager3D {
             map: this.textures.moon || null, 
             roughness: 0.8, 
             metalness: 0.1,
-            emissive: 0x444444 
+            emissive: 0x666666 // 暗闇でも月がはっきり見えるように明度をアップ
         });
         this.moon = new THREE.Mesh(moonGeo, moonMat);
         this.moon.visible = false;
@@ -439,11 +436,9 @@ class BGManager3D {
 
         if (this.currentStage === 5) {
             if (this.moon) {
-                // ★修正：Z軸（奥から手前）の移動は停止し、Y軸（下から上）へゆっくりと上昇させる
-                if (this.moon.position.y < -3100) { // 画面中央付近のY座標まで
-                    this.moon.position.y += 0.25; 
+                if (this.moon.position.y < -3600) { 
+                    this.moon.position.y += 0.3; 
                 }
-                // ★修正：スケールもゆっくりと拡大し、最終的に2/3程度のサイズに見えるようにする
                 if (this.moon.scale.x < 1.6) { 
                     this.moon.scale.x += 0.0003; 
                     this.moon.scale.y += 0.0003;
@@ -454,7 +449,6 @@ class BGManager3D {
                 this.moon.rotation.x += 0.0005;
             }
             if (this.starField) {
-                // ★修正：星空のZ軸の追従をやめ、その場でゆっくりと回転させるだけにする
                 this.starField.rotation.y += 0.0003;
                 this.starField.rotation.x += 0.0001;
             }
