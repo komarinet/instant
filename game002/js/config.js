@@ -1,4 +1,4 @@
-export const VER_CONFIG = "0.1.1"; // プリロード画像追加対応
+export const VER_CONFIG = "0.1.2"; // 3D用の月テクスチャ追加
 
 export const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
@@ -27,5 +27,6 @@ export const imagesToPreload3D = [
     { key: 'topatlas', src: 'build_top.png' },
     { key: 'ground', src: 'ground01.png' },
     { key: 'ground2', src: 'ground02.png' }, 
-    { key: 'candle', src: 'candle.png' } 
+    { key: 'candle', src: 'candle.png' },
+    { key: 'moon', src: 'moon.jpg' } // ★追加：3D空間用の月のテクスチャ
 ];
