@@ -1,4 +1,4 @@
-const VER_3DBG = "0.3.0"; // バージョン更新（月の演出を「上昇」から「接近・巨大化」に変更）
+const VER_3DBG = "0.3.1"; // バージョン更新（月の表示と迫ってくる演出の修正、星空の配置変更）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -118,7 +118,7 @@ class BGManager3D {
 
         this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
         this.camera.position.set(0, 60, 0); 
-        this.camera.rotation.x = -Math.PI / 2.5; 
+        this.camera.rotation.x = -Math.PI / 2.5; // 約 -72度（かなり下向き）
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
         this.scene.add(ambientLight);
@@ -151,15 +151,27 @@ class BGManager3D {
             this.candles.forEach(c => c.visible = false);
             this.clouds.forEach(c => c.visible = false);
             
+            // ★追加：霧（Fog）の設定を変更して月と星が見えるようにする
+            this.scene.fog.near = 500;
+            this.scene.fog.far = 4000; 
+            this.renderer.setClearColor(0x000000, 1); // 背景を完全に黒に
+            
             if (this.starField) this.starField.visible = true;
             if (this.moon) {
                 this.moon.visible = true;
-                // ★修正：月を遥か奥（-3500）に配置し、サイズも小さくしておく
-                this.moon.position.set(0, -800, -3500); 
-                this.moon.scale.set(0.5, 0.5, 0.5);
+                // ★修正：初期位置を霧の奥に。カメラ角度(-72度)に合わせて視野中央に配置。
+                // atan2(Y, Z) = -72度 => Y = Z * tan(-72度) = Z * 3.07
+                // Z=-3000の時、Y=-9210
+                this.moon.position.set(0, -9210, -3000); 
+                this.moon.scale.set(0.1, 0.1, 0.1); // 初期は小さく
             }
             if (this.moonLight) this.moonLight.visible = true;
         } else if (stageNum === 2) {
+            // ★修正：元に戻す
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300; 
+            this.renderer.setClearColor(0x000000, 0);
+
             this.ground.visible = true;
             if (this.textures.ground2) {
                 this.ground.material.map = this.textures.ground2;
@@ -176,6 +188,11 @@ class BGManager3D {
             if (this.moon) this.moon.visible = false;
             if (this.moonLight) this.moonLight.visible = false;
         } else {
+            // ★修正：元に戻す
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300; 
+            this.renderer.setClearColor(0x000000, 0);
+
             this.ground.visible = true;
             if (this.textures.ground) {
                 this.ground.material.map = this.textures.ground;
@@ -375,19 +392,20 @@ class BGManager3D {
     }
 
     createSpace() {
-        const starGeo = new THREE.BufferGeometry();
-        const starCount = 1500;
-        const posArray = new Float32Array(starCount * 3);
-        for(let i = 0; i < starCount * 3; i++) {
-            posArray[i] = (Math.random() - 0.5) * 3000;
-        }
-        starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-        const starMat = new THREE.PointsMaterial({ size: 3, color: 0xffffff });
+        // ★修正: ただのPointsから、カメラを囲むSpherePointsに変更。星の数を増やし、サイズを調整。
+        const starGeo = new THREE.SphereGeometry(2000, 64, 32); // カメラを囲む大きな球
+        
+        const starMat = new THREE.PointsMaterial({ 
+            size: 5, 
+            color: 0xffffff, 
+            transparent: true, 
+            opacity: 0.8, 
+            depthWrite: false 
+        });
         this.starField = new THREE.Points(starGeo, starMat);
         this.starField.visible = false;
         this.scene.add(this.starField);
 
-        // ★修正：月自体のサイズを大きめに設定
         const moonGeo = new THREE.SphereGeometry(400, 64, 64);
         const moonMat = new THREE.MeshStandardMaterial({ 
             map: this.textures.moon || null, 
@@ -416,21 +434,25 @@ class BGManager3D {
 
         if (this.currentStage === 5) {
             if (this.moon) {
-                // ★修正：Z軸を手前に移動させつつ、スケールも拡大して「迫ってくる」感を出す
-                if (this.moon.position.z < -500) {
-                    this.moon.position.z += 0.6; // 毎フレームじわじわ手前へ
-                    this.moon.position.y += 0.15; // カメラの向きに合わせて少しYも上げる
+                // ★修正：じわじわ接近・巨大化。カメラ角度(-72度)に合わせて視野中央に維持。
+                if (this.moon.position.z < -200) { // 手前まで来させる
+                    this.moon.position.z += 1.0;  // 接近スピード
+                    this.moon.position.y = this.moon.position.z * 3.07; 
                 }
-                if (this.moon.scale.x < 4.0) {
-                    this.moon.scale.x += 0.0008; // 毎フレーム少しずつ巨大化
-                    this.moon.scale.y += 0.0008;
-                    this.moon.scale.z += 0.0008;
+                if (this.moon.scale.x < 2.0) { // 最終的な大きさ
+                    this.moon.scale.x += 0.0015; // 巨大化スピード
+                    this.moon.scale.y += 0.0015;
+                    this.moon.scale.z += 0.0015;
                 }
                 
                 this.moon.rotation.y += 0.001;
                 this.moon.rotation.x += 0.0005;
             }
             if (this.starField) {
+                // ★追加：星空も一緒に移動させる（看板効果）
+                this.starField.position.z = this.moon.position.z - 1000;
+                this.starField.position.y = this.moon.position.y;
+                
                 this.starField.rotation.y += 0.0005;
                 this.starField.rotation.x += 0.0002;
             }
