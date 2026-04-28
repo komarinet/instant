@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.12"; // バージョン更新（GODAIの立ち絵の横位置を少し右へオフセット）
+const VER_ADV = "0.4.13"; // バージョン更新（GODAIの立ち絵スケールを1.0に戻す）
 
 class ADVManager {
     constructor() {
@@ -313,13 +313,12 @@ class ADVManager {
                 const sHeight = Math.floor(charImg.height / rows) - bleedTop - bleedBottom;
 
                 let charScale = 1.0;
-                let specificXOffset = 0; // ★追加：特定のキャラクター用の位置調整オフセット
+                let specificXOffset = 0; 
 
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'godai.png') {
-                    charScale = 0.85; 
-                    // ★追加：GODAIが左寄りになりすぎないよう、左配置の時は右へ60pxずらす
+                    charScale = 1.0; // ★修正：スケールを1.0に戻す
                     specificXOffset = alignRight ? -20 : 60; 
                 }
 
