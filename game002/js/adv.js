@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.9"; // バージョン更新（シナリオ内の BGM 変更・停止コマンド対応 ＆ アイテム表示機能追加）
+const VER_ADV = "0.4.10"; // バージョン更新（godai.png の行数指定を追加）
 
 class ADVManager {
     constructor() {
@@ -277,6 +277,7 @@ class ADVManager {
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
+            if (key === 'godai.png') return 3; // ★追加：G・O・D・A・Iの立ち絵は3行フォーマット
             return 4; // 基本の立ち絵は4行フォーマット
         };
 
