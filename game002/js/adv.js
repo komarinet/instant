@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.11"; // バージョン更新（G・O・D・A・Iの立ち絵サイズを少し縮小）
+const VER_ADV = "0.4.12"; // バージョン更新（GODAIの立ち絵の横位置を少し右へオフセット）
 
 class ADVManager {
     constructor() {
@@ -88,7 +88,6 @@ class ADVManager {
     playSE() {
         const msg = this.currentScenario[this.index];
         
-        // BGM変更コマンドの処理
         if (msg && msg.bgm) {
             if (typeof window.soundManager !== 'undefined') {
                 if (msg.bgm === 'stop') {
@@ -272,13 +271,12 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // キャラクター描画（最適化版・行数判定＆左右指定処理）
         const getRows = (key) => {
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
-            if (key === 'godai.png') return 3; // G・O・D・A・Iの立ち絵は3行フォーマット
-            return 4; // 基本の立ち絵は4行フォーマット
+            if (key === 'godai.png') return 3; 
+            return 4; 
         };
 
         let mainDrawWidth = 0;
@@ -315,9 +313,15 @@ class ADVManager {
                 const sHeight = Math.floor(charImg.height / rows) - bleedTop - bleedBottom;
 
                 let charScale = 1.0;
+                let specificXOffset = 0; // ★追加：特定のキャラクター用の位置調整オフセット
+
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
-                else if (cData.key === 'godai.png') charScale = 0.85; // ★追加：GODAIは少し小さくする
+                else if (cData.key === 'godai.png') {
+                    charScale = 0.85; 
+                    // ★追加：GODAIが左寄りになりすぎないよう、左配置の時は右へ60pxずらす
+                    specificXOffset = alignRight ? -20 : 60; 
+                }
 
                 const drawHeight = cssHeight * 0.50 * charScale; 
                 const drawWidth = sWidth * (drawHeight / sHeight);
@@ -336,7 +340,7 @@ class ADVManager {
                 ctx.imageSmoothingEnabled = false;
                 ctx.drawImage(
                     charImg, sx, sy, sWidth, sHeight, 
-                    drawX + shakeX + slideX, (gameY + visualAreaHeight - drawHeight) + shakeY, 
+                    drawX + specificXOffset + shakeX + slideX, (gameY + visualAreaHeight - drawHeight) + shakeY, 
                     drawWidth, drawHeight
                 );
                 ctx.imageSmoothingEnabled = true;
