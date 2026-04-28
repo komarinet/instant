@@ -1,4 +1,4 @@
-const VER_3DBG = "0.2.8"; // バージョン更新（ステージ5用の宇宙空間と月の描画ロジックを追加）
+const VER_3DBG = "0.3.0"; // バージョン更新（月の演出を「上昇」から「接近・巨大化」に変更）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -14,9 +14,10 @@ class BGManager3D {
         this.clouds = []; 
         this.candles = []; 
         
-        // ★追加：ステージ5用の背景オブジェクト
+        // ステージ5用の背景オブジェクト
         this.starField = null;
         this.moon = null;
+        this.moonLight = null; 
         
         this.textures = {
             sideatlas: null,
@@ -24,7 +25,7 @@ class BGManager3D {
             ground: null,
             ground2: null, 
             candle: null,
-            moon: null // ★追加：月のテクスチャ
+            moon: null 
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, 
@@ -134,7 +135,6 @@ class BGManager3D {
         this.createClouds();   
         this.createCandles();  
         
-        // ★追加：ステージ5の宇宙空間と月を生成
         this.createSpace();
 
         this.isActive = true;
@@ -145,17 +145,20 @@ class BGManager3D {
         this.currentStage = stageNum;
         if (!this.ground || !this.ground.material) return;
         
-        // ★追加：ステージ5の時は既存の背景を非表示にし、宇宙を表示する
         if (stageNum === 5) {
             this.ground.visible = false;
             this.buildings.forEach(b => b.visible = false);
             this.candles.forEach(c => c.visible = false);
             this.clouds.forEach(c => c.visible = false);
+            
             if (this.starField) this.starField.visible = true;
             if (this.moon) {
                 this.moon.visible = true;
-                this.moon.position.set(0, -50, -600); // ステージ開始時に奥へ配置
+                // ★修正：月を遥か奥（-3500）に配置し、サイズも小さくしておく
+                this.moon.position.set(0, -800, -3500); 
+                this.moon.scale.set(0.5, 0.5, 0.5);
             }
+            if (this.moonLight) this.moonLight.visible = true;
         } else if (stageNum === 2) {
             this.ground.visible = true;
             if (this.textures.ground2) {
@@ -168,8 +171,10 @@ class BGManager3D {
             this.buildings.forEach(b => b.visible = false);
             this.candles.forEach(c => c.visible = true);
             this.clouds.forEach(c => c.visible = true);
+            
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
+            if (this.moonLight) this.moonLight.visible = false;
         } else {
             this.ground.visible = true;
             if (this.textures.ground) {
@@ -182,8 +187,10 @@ class BGManager3D {
             this.buildings.forEach(b => b.visible = true);
             this.candles.forEach(c => c.visible = false);
             this.clouds.forEach(c => c.visible = true);
+            
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
+            if (this.moonLight) this.moonLight.visible = false;
         }
     }
 
@@ -367,24 +374,35 @@ class BGManager3D {
         }
     }
 
-    // ★追加：宇宙と月の生成ロジック
     createSpace() {
-        const starGeo = new THREE.SphereGeometry(800, 64, 64);
-        const starMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.BackSide });
-        this.starField = new THREE.Mesh(starGeo, starMat);
+        const starGeo = new THREE.BufferGeometry();
+        const starCount = 1500;
+        const posArray = new Float32Array(starCount * 3);
+        for(let i = 0; i < starCount * 3; i++) {
+            posArray[i] = (Math.random() - 0.5) * 3000;
+        }
+        starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+        const starMat = new THREE.PointsMaterial({ size: 3, color: 0xffffff });
+        this.starField = new THREE.Points(starGeo, starMat);
         this.starField.visible = false;
         this.scene.add(this.starField);
 
-        const moonGeo = new THREE.SphereGeometry(100, 64, 64);
+        // ★修正：月自体のサイズを大きめに設定
+        const moonGeo = new THREE.SphereGeometry(400, 64, 64);
         const moonMat = new THREE.MeshStandardMaterial({ 
             map: this.textures.moon || null, 
-            roughness: 1, 
-            metalness: 0 
+            roughness: 0.8, 
+            metalness: 0.1,
+            emissive: 0x444444 
         });
         this.moon = new THREE.Mesh(moonGeo, moonMat);
-        this.moon.position.set(0, -50, -600);
         this.moon.visible = false;
         this.scene.add(this.moon);
+
+        this.moonLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        this.moonLight.position.set(200, 200, 200); 
+        this.moonLight.visible = false;
+        this.scene.add(this.moonLight);
     }
 
     loop() {
@@ -396,13 +414,21 @@ class BGManager3D {
             }
         }
 
-        // ★追加：ステージ5の時の宇宙空間と月のアニメーション処理
         if (this.currentStage === 5) {
-            if (this.moon && this.moon.position.z < -150) {
-                this.moon.position.z += 0.1;
-            }
             if (this.moon) {
-                this.moon.rotation.y += 0.002;
+                // ★修正：Z軸を手前に移動させつつ、スケールも拡大して「迫ってくる」感を出す
+                if (this.moon.position.z < -500) {
+                    this.moon.position.z += 0.6; // 毎フレームじわじわ手前へ
+                    this.moon.position.y += 0.15; // カメラの向きに合わせて少しYも上げる
+                }
+                if (this.moon.scale.x < 4.0) {
+                    this.moon.scale.x += 0.0008; // 毎フレーム少しずつ巨大化
+                    this.moon.scale.y += 0.0008;
+                    this.moon.scale.z += 0.0008;
+                }
+                
+                this.moon.rotation.y += 0.001;
+                this.moon.rotation.x += 0.0005;
             }
             if (this.starField) {
                 this.starField.rotation.y += 0.0005;
