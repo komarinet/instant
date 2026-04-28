@@ -1,11 +1,14 @@
-const VER_STG_GODAI = "0.1.0"; // ステージ5：新規実装（暫定的にステージ1の敵を使用）
+const VER_STG_GODAI = "0.1.1"; // バージョン更新（3D背景の月・宇宙への切り替え指令をより確実に修正）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['godai'] = {
     init: function(stg, canvas) { 
         stg.bossSpawned = false; 
-        // 3D背景のステージ番号を明示的にセット
-        if (window._bgManagerInstance) {
+        
+        // ★修正：3D背景側に「ステージ5（宇宙と月）」の表示を確実に指令する
+        if (window._bgManagerInstance && typeof window._bgManagerInstance.setStage === 'function') {
+            window._bgManagerInstance.setStage(5);
+        } else if (window._bgManagerInstance) {
             window._bgManagerInstance.currentStage = 5;
         }
     },
