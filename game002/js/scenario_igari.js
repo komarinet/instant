@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.4"; // バージョン更新（ステージ5のシナリオを追加）
+const VER_SCENARIO_IGARI = "0.4.5"; // バージョン更新（ステージ5のシナリオを大幅改稿）
 
 window.scenarios = window.scenarios || {};
 
@@ -284,35 +284,77 @@ scenarios.igari = {
     },
     5: {
         stgId: 'godai',
-        adv: [],
-        pre_stg: [
-            { bg: 'univ.png', place: 'Moon', time: '2025.07', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: 'ついに月まで来ちまったな…', delay: 60, isRight: true, bgm: 'dark' },
-            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '宇宙空間でも息ができるなんて、魔法って便利でしょ？', isRight: true },
-            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '油断するな。目標はすぐ近くにいるはずだ', isRight: true },
-            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: 'よくここまで辿り着きましたね、エラー因子たちよ', isRight: false },
-            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'お前が神宮寺を操っていた黒幕か！', isRight: true, effect: 'shake' },
-            { bg: 'univ.png', character: 'godai.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '私はG・O・D・A・I。世界を最適化するための管理システムです', isRight: false },
-            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '旧世界の自動防衛システムか！なぜお前が歴史への干渉を？', isRight: true },
-            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '計算の結果、魔女の生存が世界のノイズになると判定されました', isRight: false },
-            { bg: 'univ.png', character: 'godai.png', spriteIndex: 2, speaker: 'G・O・D・A・I', text: 'よって、排除します', isRight: false },
-            { bg: 'univ.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'ふざけんな！機械の都合で殺されてたまるかよ！', isRight: true },
-            { bg: 'univ.png', character: 'godai.png', spriteIndex: 3, speaker: 'G・O・D・A・I', text: '全兵装展開。アセット・ミサイル発射準備', isRight: false },
-            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '来るぞ、総員戦闘準備！', isRight: true }
+        adv: [
+            { bg: 'univ.png', place: 'Moon', time: '2025.07', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '驚いたな。シャトルまで作れるのか君は', delay: 60, isRight: true, bgm: 'relax' },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: '昔、親父に叩き込まれてね', isRight: true },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '大抵の機械に関してはそらで図面引けるよ', isRight: true },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'ぜ、全然カッコよくなんてないんだからね', isRight: true },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 8, speaker: '椎名', text: '何、その唐突なツンデレ', isRight: false },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: 'オトコはマンネリが一番ダメなのよ', isRight: true },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 2, speaker: '椎名', text: '気分が変調しすぎる相手も疲れると思うけど', isRight: false },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '何ですって!?', isRight: true, effect: 'shake' },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'しかし、月の裏側か', isRight: true },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: '月の裏側の石、持って帰ってもいいかな', isRight: true },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: '確かに。ロマンあるよね', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'わかる？　やっぱ男子たるものそうだよな！', isRight: true },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'ライバル出現!?', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '違うと思うぞ', isRight: true },
+            { bg: 'univ.png', effect: 'shake', text: '', bgm: 'stop' },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'な、なに!?', isRight: true, effect: 'flashRed' }
         ],
-        mid_stg: [],
+        pre_stg: [
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'レーダーに反応。これは・・・戦闘機!?', isRight: true, bgm: 'dark' },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: '現代の科学技術で宇宙空間を飛ぶ戦闘機なんて・・・', isRight: false },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '当然だろう。君らが相手しているのは、科学文明軍', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界移動が出来るほどの技術力がある奴らだ', isRight: true },
+            { bg: 'univ.png', speaker: '？？？', text: '警告する', isRight: false },
+            { bg: 'univ.png', speaker: '？？？', text: 'それ以上近づけば、我々は諸君らを撃墜する', isRight: false },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '意外に紳士的ね', isRight: true },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '１年後、私の飛行機を爆破するときも予告してきたのかな', isRight: true },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'いや、あの時は突然だった', isRight: true },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: '彼らも一枚岩ではないのかもしれない', isRight: false },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'いずれにせよ、彼らを突破しなければ月には着かないが', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '引き返すか？', isRight: true },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'んなわきゃあるかよ！　イグニッション！', isRight: true, effect: 'shake' },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'シャトルに砲台が付いた!?', isRight: true },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '何としても辿り着くぞ、月に', isRight: true }
+        ],
+        mid_stg: [
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・通信？', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '警告したはずだが？', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '悪いが、こちらも退けない理由があってね', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '君たちは科学文明軍で間違いないか', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 2, speaker: 'G・O・D・A・I', text: '・・・！　我々を知るか', isRight: false },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '異世界保険組合だ。聞いたことくらいはあるだろ', isRight: true },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '１年後、君らがやろうとしてる計画、止めることは出来ないか', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '・・・それは、無理だ', isRight: false },
+            { bg: 'univ.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '分かってると思うが、それは', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 2, speaker: 'G・O・D・A・I', text: '異世界条項47に抵触するのだろう？', isRight: false },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '知ってて・・・!?', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '御婦人、この世には', isRight: false },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '自身でハンドルを握ることが出来ない者がいるのだ', isRight: false },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: 'つまり、君のボスが諸悪の根源ってことか', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '退く気がないのなら倒さざるを得ない', isRight: true },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '承知の上だ。私はGODAI', isRight: false },
+            { bg: 'univ.png', character: 'godai.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '科学文明軍の最高戦力だ', isRight: false, effect: 'shake' }
+        ],
         post_stg: [
-            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'ピ…ガガ…システムに…深刻なダメージ…', delay: 60, isRight: false, bgm: 'stop' },
-            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'やったか…？', isRight: true, bgm: 'relax' },
-            { bg: 'postuniv.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'ただの機械なんて、私たちの敵じゃないわね', isRight: true },
-            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '警告…マスターフレームの再起動を確認…', isRight: false },
-            { bg: 'postuniv.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'マスターフレームだと！？', isRight: true, effect: 'shake' },
-            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '私はあくまで端末。真の管理者「科学文明軍」が目覚めます…', isRight: false },
-            { bg: 'postuniv.png', character: 'urashiina.png', spriteIndex: 1, speaker: '椎名', text: 'おいおい、こいつが親玉じゃなかったのかよ', isRight: true },
-            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '科学文明軍…！最初にお前が言っていたテロリストか！', isRight: true, bgm: 'dark' },
-            { bg: 'postuniv.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'ああ。時空を超えて我々の世界を破壊しようとする最悪の敵だ', isRight: true },
-            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '次が本当の決戦ってわけだな', isRight: true },
-            { bg: 'postuniv.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: 'とことん付き合うわよ、俊基', isRight: true },
-            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: 'ああ、行こう。俺たちの未来を取り戻すために！', isRight: true }
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '強い・・・お前達の、勝ちだ', delay: 60, isRight: false, bgm: 'stop' },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '・・・お前、手ぇ抜いてただろ', isRight: true, bgm: 'relax' },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '否定する', isRight: false },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '月に設置された、巨大砲台', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'あれを撃たれていたら俺達は全滅していた', isRight: true },
+            { bg: 'postuniv.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'なぜ早く言わなかった！', isRight: true, effect: 'shake' },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '気付いたのが月に近づいてからだったんだよ！', isRight: true },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'エネルギー充填が不十分だっただけだ', isRight: false },
+            { bg: 'postuniv.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '俊基、どうするの', isRight: true },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '私を破壊しなければ自爆プログラムが働く', isRight: false },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: '月もろとも破壊するだろう', isRight: false },
+            { bg: 'postuniv.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '猪狩、もたもたすんじゃねぇ', isRight: true, bgm: 'dark' },
+            { bg: 'postuniv.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: 'こいつ自身が幕を引けって言ってんだ', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '・・・分かった', isRight: true },
+            { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '分解！', isRight: true, effect: 'whiteout' },
+            { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'あり・・・がとう・・・', isRight: false }
         ]
     }
 };
