@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.14"; // バージョン更新（神宮寺などのキャラクター名・ルビ・カラー表示対応）
+const VER_ADV = "0.4.15"; // バージョン更新（godaimo.pngの表示対応）
 
 class ADVManager {
     constructor() {
@@ -271,11 +271,12 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
+        // ★修正：godaimo.png を godai.png と同じ行数（3）として扱うように追加
         const getRows = (key) => {
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
-            if (key === 'godai.png') return 3; 
+            if (key === 'godai.png' || key === 'godaimo.png') return 3; 
             return 4; 
         };
 
@@ -315,9 +316,10 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
+                // ★修正：godaimo.png を godai.png と同じスケール・オフセットで扱うように追加
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
-                else if (cData.key === 'godai.png') {
+                else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
                     charScale = 1.0; 
                     specificXOffset = alignRight ? -20 : 60; 
                 }
@@ -369,7 +371,6 @@ class ADVManager {
                 let speakerRuby = "";
                 let nameColor = '#00ffff'; 
 
-                // ★修正：神宮寺、G・O・D・A・I、AI の名前・ルビ・カラー指定を追加
                 if (currentMsg.speaker === '猪狩') {
                     speakerName = '猪狩 俊基'; speakerRuby = 'いがり としき'; nameColor = '#ff3366';
                 } else if (currentMsg.speaker === '柊') {
@@ -379,7 +380,7 @@ class ADVManager {
                 } else if (currentMsg.speaker === '椎名') {
                     speakerName = '椎名 護'; speakerRuby = 'しいな まもる'; nameColor = '#33ccff';
                 } else if (currentMsg.speaker === '神宮寺') {
-                    speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ つねなり'; nameColor = '#ffcc00';
+                    speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ こうせい'; nameColor = '#ffcc00';
                 } else if (currentMsg.speaker === 'G・O・D・A・I') {
                     speakerName = 'G・O・D・A・I'; speakerRuby = ''; nameColor = '#aaaaaa';
                 } else if (currentMsg.speaker === 'AI') {
