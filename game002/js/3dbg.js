@@ -1,4 +1,4 @@
-const VER_3DBG = "0.3.4"; // バージョン更新（宇宙空間のFogを完全無効化し、星と月の明度をアップ）
+const VER_3DBG = "0.3.5"; // バージョン更新（月の巨大化スピードと上昇スピードをアップし4500フレームに合わせる）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -151,7 +151,6 @@ class BGManager3D {
             this.candles.forEach(c => c.visible = false);
             this.clouds.forEach(c => c.visible = false);
             
-            // 宇宙空間ではFogの影響を完全にゼロにするため、極端に遠い値に設定
             this.scene.fog.near = 9999999;
             this.scene.fog.far = 10000000; 
             this.renderer.setClearColor(0x000000, 1); 
@@ -401,7 +400,7 @@ class BGManager3D {
             size: 4, 
             color: 0xffffff, 
             transparent: true, 
-            opacity: 1.0, // 星をくっきりさせるために透明度をなくす
+            opacity: 1.0, 
             depthWrite: false
         });
         this.starField = new THREE.Points(starGeo, starMat);
@@ -413,7 +412,7 @@ class BGManager3D {
             map: this.textures.moon || null, 
             roughness: 0.8, 
             metalness: 0.1,
-            emissive: 0x666666 // 暗闇でも月がはっきり見えるように明度をアップ
+            emissive: 0x666666 
         });
         this.moon = new THREE.Mesh(moonGeo, moonMat);
         this.moon.visible = false;
@@ -436,13 +435,14 @@ class BGManager3D {
 
         if (this.currentStage === 5) {
             if (this.moon) {
-                if (this.moon.position.y < -3600) { 
-                    this.moon.position.y += 0.3; 
+                // ★修正：4500フレームかけて画面いっぱいに広がるように速度アップ
+                if (this.moon.position.y < -2000) { 
+                    this.moon.position.y += 0.55; 
                 }
-                if (this.moon.scale.x < 1.6) { 
-                    this.moon.scale.x += 0.0003; 
-                    this.moon.scale.y += 0.0003;
-                    this.moon.scale.z += 0.0003;
+                if (this.moon.scale.x < 4.5) { 
+                    this.moon.scale.x += 0.0009; 
+                    this.moon.scale.y += 0.0009;
+                    this.moon.scale.z += 0.0009;
                 }
                 
                 this.moon.rotation.y += 0.001;
