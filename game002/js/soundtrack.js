@@ -1,4 +1,4 @@
-export const VER_SOUNDTRACK = "0.1.0"; // サウンドトラックモード新規実装
+export const VER_SOUNDTRACK = "0.1.1"; // バージョン更新（ステージ4、ステージ5のBGM追加）
 
 // サントラに表示する曲のリスト
 const trackList = [
@@ -11,8 +11,12 @@ const trackList = [
     { id: 'boss_hiragi', name: '07. Boss - Hiragi', src: 'bgm/boss_hiragi.mp3' },
     { id: 'stage_shiina', name: '08. Stage 3 - Chronos Mask', src: 'bgm/stage_shiina.mp3' },
     { id: 'boss_shiina', name: '09. Boss - Shiina', src: 'bgm/boss_shiina.mp3' },
-    { id: 'clear', name: '10. Stage Clear', src: 'bgm/clear.mp3' },
-    { id: 'gameover', name: '11. Game Over', src: 'bgm/gameover.mp3' }
+    { id: 'stage_jingu', name: '10. Stage 4 - ZINN Company', src: 'bgm/stage_jingu.mp3' },
+    { id: 'boss_jingu', name: '11. Boss - Jingu', src: 'bgm/boss_jingu.mp3' },
+    { id: 'stage_godai', name: '12. Stage 5 - Dark Side of the Moon', src: 'bgm/stage_godai.mp3' },
+    { id: 'boss_godai', name: '13. Boss - G.O.D.A.I.', src: 'bgm/boss_godai.mp3' },
+    { id: 'clear', name: '14. Stage Clear', src: 'bgm/clear.mp3' },
+    { id: 'gameover', name: '15. Game Over', src: 'bgm/gameover.mp3' }
 ];
 
 let currentAudio = null;
