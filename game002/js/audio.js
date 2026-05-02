@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.3.1"; // バージョン更新（stopBGMの確実化とミュート機能の実装）
+export const VER_AUDIO = "0.3.2"; // バージョン更新（ステージ4、ステージ5のBGM追加）
 
 export const soundManager = {
     bgm: {},
@@ -56,6 +56,24 @@ export const soundManager = {
         this.bgm['boss_shiina'].loop = true;
         this.bgm['boss_shiina'].volume = 0.4;
 
+        // --- STAGE 4: 神宮寺 恒成 ---
+        this.bgm['stage_jingu'] = new Audio('bgm/stage_jingu.mp3');
+        this.bgm['stage_jingu'].loop = true;
+        this.bgm['stage_jingu'].volume = 0.4;
+
+        this.bgm['boss_jingu'] = new Audio('bgm/boss_jingu.mp3');
+        this.bgm['boss_jingu'].loop = true;
+        this.bgm['boss_jingu'].volume = 0.4;
+
+        // --- STAGE 5: G・O・D・A・I ---
+        this.bgm['stage_godai'] = new Audio('bgm/stage_godai.mp3');
+        this.bgm['stage_godai'].loop = true;
+        this.bgm['stage_godai'].volume = 0.4;
+
+        this.bgm['boss_godai'] = new Audio('bgm/boss_godai.mp3');
+        this.bgm['boss_godai'].loop = true;
+        this.bgm['boss_godai'].volume = 0.4;
+
 
         // --- SE（効果音） ---
         this.se['smallb'] = new Audio('se/smallb.mp3');
@@ -87,7 +105,6 @@ export const soundManager = {
     },
     
     stopBGM: function() {
-        // ★修正：特定の曲だけでなく、登録されているすべてのBGMを確実に停止させる
         for (let key in this.bgm) {
             this.bgm[key].pause();
             this.bgm[key].currentTime = 0;
