@@ -31,5 +31,10 @@ export const imagesToPreload3D = [
     { key: 'ground', src: 'ground01.png' },
     { key: 'ground2', src: 'ground02.png' }, 
     { key: 'candle', src: 'candle.png' },
-    { key: 'moon', src: 'moon.jpg' } // ★追加：3D空間用の月のテクスチャ
+    { key: 'moon', src: 'moon.jpg' } ,
+    // ★最終ステージ用 追加分
+    { key: 'trenchFloor', src: 'trench_floor.png' },
+    { key: 'trenchWall', src: 'trench_wall.png' },
+    { key: 'coreBg', src: 'core_bg.png' },
+    { key: 'coreReactor', src: 'core_reactor.png' }
 ];
