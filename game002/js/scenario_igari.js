@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.4.5"; // バージョン更新（ステージ5のシナリオを大幅改稿）
+const VER_SCENARIO_IGARI = "0.5.1"; // バージョン更新（最新版をベースにステージ6のシナリオを追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -355,6 +355,30 @@ scenarios.igari = {
             { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '・・・分かった', isRight: true },
             { bg: 'postuniv.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '分解！', isRight: true, effect: 'whiteout' },
             { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'あり・・・がとう・・・', isRight: false }
+        ]
+    },
+    6: { // ★新規追加：ステージ6（科学文明軍リーダー）デモシナリオ
+        stgId: 'final', 
+        adv: [],
+        pre_stg: [
+            { bg: 'univ.png', place: 'Enemy Mothership', time: '2025.07', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'ここが科学文明軍の母船か…！', delay: 60, bgm: 'dark' },
+            { bg: 'univ.png', character: 'cap.png', spriteIndex: 1, speaker: '隊長', text: 'ガハハハハ！よくぞ辿り着いたな、猪狩隆盛の息子よ！', isRight: false },
+            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'お前が親玉か！なぜ俺の周りの人間を狙う！', isRight: true, effect: 'shake' },
+            { bg: 'univ.png', character: 'cap.png', spriteIndex: 0, speaker: '隊長', text: '我々は歴史を正しく導く「科学文明軍」。', isRight: false },
+            { bg: 'univ.png', character: 'cap.png', spriteIndex: 3, speaker: '隊長', text: '非科学的な「魔女」や「異能者」は、完璧な未来には不要なのだよ。', isRight: false },
+            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '勝手に人の存在価値を決めないでよね！', isRight: true },
+            { bg: 'univ.png', character: 'cap.png', spriteIndex: 5, speaker: '隊長', text: 'チッ…G・O・D・A・Iの奴め、このエラー因子どもを取り逃がしおって。', isRight: false },
+            { bg: 'univ.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '能書きはもういい。さっさとぶっ飛ばして帰るぞ。', isRight: true },
+            { bg: 'univ.png', character: 'cap.png', spriteIndex: 4, speaker: '隊長', text: 'いいだろう。私が直々に貴様らを歴史から消去してやる！', isRight: false, effect: 'shake' }
+        ],
+        mid_stg: [],
+        post_stg: [
+            { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 6, speaker: '隊長', text: 'ば、馬鹿な！我が科学文明軍の誇る究極兵器が…！', delay: 60, isRight: false, bgm: 'stop' },
+            { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 8, speaker: '隊長', text: 'グハァッ…！', isRight: false, effect: 'shake' },
+            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '科学は人を不幸にするためのものじゃない。親父が教えてくれた事だ。', isRight: true, bgm: 'relax' },
+            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'これで、歴史の歪みは正された。ご苦労だったな。', isRight: true },
+            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '終わった…のね。俊基ぃ〜！', isRight: true },
+            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'ああ、帰ろう。俺たちの世界へ！', isRight: true }
         ]
     }
 };
