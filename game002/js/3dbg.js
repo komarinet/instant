@@ -1,4 +1,4 @@
-const VER_3DBG = "0.5.2"; // バージョン更新（スマホ画面幅に合わせて壁の配置位置をアスペクト比で計算）
+const VER_3DBG = "0.5.3"; // バージョン更新（月とコアの大きさをアスペクト比に依存させる修正）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -175,6 +175,9 @@ class BGManager3D {
         if (this.coreGroup) this.coreGroup.visible = false;
         this.isCoreTransitioning = false;
         
+        // ★PCの横長画面では1.0、スマホの縦長画面では0.5などの比率になる係数
+        const aspectFactor = Math.min(1, this.camera.aspect);
+
         if (stageNum === 6) { 
             this.scene.fog.near = 100;
             this.scene.fog.far = 1200; 
@@ -183,7 +186,6 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                // ★修正：初期化時にもカメラの比率（aspect）から壁の位置を計算
                 const edgeX = 40 * this.camera.aspect;
                 this.trenchLeftWall.position.x = -edgeX;
                 this.trenchRightWall.position.x = edgeX;
@@ -191,6 +193,11 @@ class BGManager3D {
             if (this.coreGroup) {
                 this.coreGroup.visible = false; 
                 this.coreGroup.position.y = -1500; 
+                
+                // ★追加：ボスのコア球体もスマホ幅に合わせて縮小
+                if (this.coreReactor) {
+                    this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
+                }
             }
         } 
         else if (stageNum === 5) {
@@ -205,7 +212,8 @@ class BGManager3D {
             if (this.moon) {
                 this.moon.visible = true;
                 this.moon.position.set(0, -4500, -1200); 
-                this.moon.scale.set(0.6, 0.6, 0.6); 
+                // ★追加：月の初期サイズもスマホ幅にフィットさせる
+                this.moon.scale.set(0.6 * aspectFactor, 0.6 * aspectFactor, 0.6 * aspectFactor); 
             }
             if (this.moonLight) this.moonLight.visible = true;
         } else if (stageNum === 2) {
