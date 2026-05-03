@@ -1,4 +1,4 @@
-const VER_3DBG = "0.4.1"; // バージョン更新（v0.3.5をベースに最終ステージのデス・スター突入演出を追加）
+const VER_3DBG = "0.4.2"; // バージョン更新（スクロール方向の修正、スマホ画面に合わせた壁位置の調整）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -190,9 +190,9 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                // 壁の位置をリセット
-                this.trenchLeftWall.position.x = -200;
-                this.trenchRightWall.position.x = 200;
+                // ★修正：壁の位置をスマホ画面にフィットさせる（-200, 200 から -60, 60 へ）
+                this.trenchLeftWall.position.x = -60;
+                this.trenchRightWall.position.x = 60;
             }
             if (this.coreGroup) {
                 this.coreGroup.visible = false; // 最初は見えない
@@ -470,16 +470,16 @@ class BGManager3D {
     createFinalStage() {
         this.trenchGroup = new THREE.Group();
         
-        // 1. トレンチの床（指定の上下反転シームレスを反映）
+        // 1. トレンチの床
         const floorTex = this.textures.trenchFloor;
         let floorMat;
         if (floorTex) {
-            floorTex.wrapS = THREE.MirroredRepeatWrapping; // 左右反転リピート
-            floorTex.wrapT = THREE.MirroredRepeatWrapping; // ★上下反転リピート（ご要望のシームレス化）
-            floorTex.repeat.set(2, 20); // 敷き詰める回数
+            floorTex.wrapS = THREE.MirroredRepeatWrapping; 
+            floorTex.wrapT = THREE.MirroredRepeatWrapping; 
+            floorTex.repeat.set(2, 20); 
             floorMat = new THREE.MeshPhongMaterial({ map: floorTex, emissive: 0x333333 });
         } else {
-            floorMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+            floorMat = new MeshPhongMaterial({ color: 0x222222 });
         }
         this.trenchFloor = new THREE.Mesh(new THREE.PlaneGeometry(400, 3000), floorMat);
         this.trenchFloor.rotation.x = -Math.PI / 2;
@@ -487,7 +487,7 @@ class BGManager3D {
         this.trenchFloor.position.z = -500;
         this.trenchGroup.add(this.trenchFloor);
 
-        // 2. トレンチの左右の壁（反転リピート）
+        // 2. トレンチの左右の壁
         const wallTex = this.textures.trenchWall;
         let wallMat;
         if (wallTex) {
@@ -502,12 +502,14 @@ class BGManager3D {
         const wallGeo = new THREE.PlaneGeometry(3000, 300);
         this.trenchLeftWall = new THREE.Mesh(wallGeo, wallMat);
         this.trenchLeftWall.rotation.y = Math.PI / 2;
-        this.trenchLeftWall.position.set(-200, 0, -500);
+        // ★修正：初期位置をスマホ幅に調整
+        this.trenchLeftWall.position.set(-60, 0, -500);
         this.trenchGroup.add(this.trenchLeftWall);
 
         this.trenchRightWall = new THREE.Mesh(wallGeo, wallMat);
         this.trenchRightWall.rotation.y = -Math.PI / 2;
-        this.trenchRightWall.position.set(200, 0, -500);
+        // ★修正：初期位置をスマホ幅に調整
+        this.trenchRightWall.position.set(60, 0, -500);
         this.trenchGroup.add(this.trenchRightWall);
 
         this.trenchGroup.visible = false;
@@ -516,13 +518,11 @@ class BGManager3D {
         // 3. コア空間（ボスの部屋）
         this.coreGroup = new THREE.Group();
         
-        // コア部屋の背景壁
         const coreBgMat = this.textures.coreBg ? new THREE.MeshBasicMaterial({ map: this.textures.coreBg }) : new THREE.MeshBasicMaterial({ color: 0x550000 });
         this.coreBg = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), coreBgMat);
         this.coreBg.position.set(0, 0, -800);
         this.coreGroup.add(this.coreBg);
 
-        // ★透過平面ではなく、球体に貼り付けて回す動力炉
         const reactorTex = this.textures.coreReactor;
         let reactorMat;
         if (reactorTex) {
@@ -534,7 +534,6 @@ class BGManager3D {
         this.coreReactor.position.set(0, -100, -600);
         this.coreGroup.add(this.coreReactor);
 
-        // 警告の赤いライト
         const redLight = new THREE.PointLight(0xff0000, 2, 1000);
         redLight.position.set(0, 0, -400);
         this.coreGroup.add(redLight);
@@ -552,7 +551,6 @@ class BGManager3D {
             }
         }
 
-        // --- ステージ5の月演出 ---
         if (this.currentStage === 5) {
             if (this.moon) {
                 if (this.moon.position.y < -2000) { 
@@ -573,27 +571,23 @@ class BGManager3D {
             }
         }
 
-        // --- ★ステージ6のデス・スター突入演出 ---
         if (this.currentStage === 6) {
             if (this.trenchGroup && this.trenchGroup.visible) {
-                // テクスチャのY（またはX）オフセットを動かして猛スピードのスクロールを表現
+                // ★修正：スクロール方向を逆転（奥へ進むように変更）
                 if (this.trenchFloor && this.trenchFloor.material.map) {
-                    this.trenchFloor.material.map.offset.y -= this.trenchScrollSpeed * 0.01;
+                    this.trenchFloor.material.map.offset.y += this.trenchScrollSpeed * 0.01;
                 }
                 if (this.trenchLeftWall && this.trenchLeftWall.material.map) {
-                    this.trenchLeftWall.material.map.offset.x += this.trenchScrollSpeed * 0.01;
-                    this.trenchRightWall.material.map.offset.x -= this.trenchScrollSpeed * 0.01;
+                    this.trenchLeftWall.material.map.offset.x -= this.trenchScrollSpeed * 0.01;
+                    this.trenchRightWall.material.map.offset.x += this.trenchScrollSpeed * 0.01;
                 }
 
-                // コア突入フラグが立ったら、左右の壁を開いてコア部屋を見せる
                 if (this.isCoreTransitioning) {
                     this.coreGroup.visible = true;
-                    // 壁が左右に開く
                     if (this.trenchLeftWall.position.x > -800) {
                         this.trenchLeftWall.position.x -= 4;
                         this.trenchRightWall.position.x += 4;
                     }
-                    // コア部屋が下からせり上がってくる
                     if (this.coreGroup.position.y < -200) {
                         this.coreGroup.position.y += 5;
                     }
@@ -601,16 +595,13 @@ class BGManager3D {
             }
 
             if (this.coreGroup && this.coreGroup.visible && this.coreReactor) {
-                // 球体コアをゆっくり回転
                 this.coreReactor.rotation.y += 0.01;
                 this.coreReactor.rotation.x += 0.005;
-                // 赤いライトの明滅
                 const redLight = this.coreGroup.children[2];
                 if(redLight) redLight.intensity = 2 + Math.sin(Date.now() * 0.005) * 1.0;
             }
         }
 
-        // --- その他ステージ ---
         if (this.ground && this.ground.material.map && this.ground.visible) {
             this.ground.material.map.offset.y += (this.scrollSpeed / 40) * Math.sign(this.ground.material.map.repeat.y);
         }
