@@ -317,7 +317,7 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                // ★修正：cap.png のスケールを1.2倍にする
+                // ★修正：cap.png のスケールを1.0倍にする
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
@@ -325,7 +325,7 @@ class ADVManager {
                     specificXOffset = alignRight ? -20 : 60; 
                 }
                 else if (cData.key === 'cap.png') {
-                    charScale = 1.2; 
+                    charScale = 1.0; 
                 }
 
                 const drawHeight = cssHeight * 0.50 * charScale; 
