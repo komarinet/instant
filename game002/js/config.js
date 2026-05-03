@@ -20,7 +20,9 @@ export const imagesToPreload = [
     'potable.png','potable2.png','phone.png','bluesky.png','phone2.png','phone3.png',
     // --- 新規追加分 ---
     'moon.jpg','godai.png','univ.png','postuniv.png','godaimo.png','gtypea.png','gtypeb.png','gtypec.png',
-    'gtypeboss.png','cap.png'    
+    'gtypeboss.png','cap.png',
+    // --- 新規追加分 ---
+    'trench_floor.png','trench_wall.png','​core_bg.png','core_reactor.png','gtyped.png','gtypee.png'
 ];
 
 export const imagesToPreload3D = [
