@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.1.0"; // 3Dオブジェクトの生成・アニメーションロジックの分離
+const VER_3DBG_OBJ = "0.1.2"; // バージョン更新（アスペクト比に基づいた壁の動的配置ロジックを追加）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -222,7 +222,7 @@ window.BG3DObjects = {
         if (floorTex) {
             floorTex.wrapS = THREE.MirroredRepeatWrapping; 
             floorTex.wrapT = THREE.MirroredRepeatWrapping; 
-            floorTex.repeat.set(2, 20); 
+            floorTex.repeat.set(8, 40); 
             floorMat = new THREE.MeshPhongMaterial({ map: floorTex, emissive: 0x333333 });
         } else {
             floorMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
@@ -238,21 +238,24 @@ window.BG3DObjects = {
         if (wallTex) {
             wallTex.wrapS = THREE.MirroredRepeatWrapping;
             wallTex.wrapT = THREE.MirroredRepeatWrapping;
-            wallTex.repeat.set(20, 2); 
+            wallTex.repeat.set(40, 4); 
             wallMat = new THREE.MeshPhongMaterial({ map: wallTex, emissive: 0x333333 });
         } else {
             wallMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
         }
         
+        // ★初期化時にもカメラの比率（aspect）を使って壁の位置を計算
+        const edgeX = 40 * m.camera.aspect;
         const wallGeo = new THREE.PlaneGeometry(3000, 300);
+        
         m.trenchLeftWall = new THREE.Mesh(wallGeo, wallMat);
         m.trenchLeftWall.rotation.y = Math.PI / 2;
-        m.trenchLeftWall.position.set(-60, 0, -500);
+        m.trenchLeftWall.position.set(-edgeX, 0, -500);
         m.trenchGroup.add(m.trenchLeftWall);
 
         m.trenchRightWall = new THREE.Mesh(wallGeo, wallMat);
         m.trenchRightWall.rotation.y = -Math.PI / 2;
-        m.trenchRightWall.position.set(60, 0, -500);
+        m.trenchRightWall.position.set(edgeX, 0, -500);
         m.trenchGroup.add(m.trenchRightWall);
 
         m.trenchGroup.visible = false;
@@ -306,6 +309,14 @@ window.BG3DObjects = {
 
         if (m.currentStage === 6) {
             if (m.trenchGroup && m.trenchGroup.visible) {
+                
+                // ★追加：壁が開く演出中でなければ、常にスマホのアスペクト比に合わせて壁の位置を追従させる
+                if (!m.isCoreTransitioning) {
+                    const dynamicEdgeX = 40 * m.camera.aspect; 
+                    m.trenchLeftWall.position.x = -dynamicEdgeX;
+                    m.trenchRightWall.position.x = dynamicEdgeX;
+                }
+
                 if (m.trenchFloor && m.trenchFloor.material.map) {
                     m.trenchFloor.material.map.offset.y += m.trenchScrollSpeed * 0.01;
                 }
