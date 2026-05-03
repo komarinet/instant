@@ -1,4 +1,4 @@
-const VER_3DBG = "0.5.0"; // バージョン更新（肥大化した生成処理を 3dbg_objects.js へ分離）
+const VER_3DBG = "0.5.2"; // バージョン更新（スマホ画面幅に合わせて壁の配置位置をアスペクト比で計算）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -14,12 +14,10 @@ class BGManager3D {
         this.clouds = []; 
         this.candles = []; 
         
-        // ステージ5用の背景オブジェクト
         this.starField = null;
         this.moon = null;
         this.moonLight = null; 
 
-        // ステージ6（最終面）用の背景オブジェクト
         this.trenchGroup = null;
         this.trenchFloor = null;
         this.trenchLeftWall = null;
@@ -145,7 +143,6 @@ class BGManager3D {
 
         this.renderer.shadowMap.enabled = false; 
 
-        // ★オブジェクトの生成処理を別ファイルに委譲
         if (window.BG3DObjects) {
             window.BG3DObjects.createGround(this);
             window.BG3DObjects.createBuildings(this);
@@ -186,8 +183,10 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                this.trenchLeftWall.position.x = -60;
-                this.trenchRightWall.position.x = 60;
+                // ★修正：初期化時にもカメラの比率（aspect）から壁の位置を計算
+                const edgeX = 40 * this.camera.aspect;
+                this.trenchLeftWall.position.x = -edgeX;
+                this.trenchRightWall.position.x = edgeX;
             }
             if (this.coreGroup) {
                 this.coreGroup.visible = false; 
@@ -254,7 +253,6 @@ class BGManager3D {
             }
         }
 
-        // ★アニメーション処理を別ファイルに委譲
         if (window.BG3DObjects) {
             window.BG3DObjects.updateAnimations(this);
         }
