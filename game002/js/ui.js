@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.4"; // バージョン更新（バージョン情報表示に stg_godai を追加）
+export const VER_UI = "0.3.5"; // バージョン更新（Stage 6: stg_cap.js のバージョン表示に対応）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -79,7 +79,6 @@ export function showVersions(moduleVersions) {
         catch(e) { return '---'; }
     };
 
-    // ★旧コードの変数宣言の形は一切変えずに、安全な取得方法だけを適用
     const dVer = getV('VER_DATA');
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
@@ -89,8 +88,9 @@ export function showVersions(moduleVersions) {
     const stgKagami = getV('VER_STG_KAGAMI');
     const stgHiragi = getV('VER_STG_HIRAGI');
     const stgShiina = getV('VER_STG_SHIINA');
-    const stgJingu = getV('VER_STG_JINGU'); // ★追加：stg_jingu.jsのバージョンを取得
-    const stgGodai = getV('VER_STG_GODAI'); // ★追加：stg_godai.jsのバージョンを取得
+    const stgJingu = getV('VER_STG_JINGU');
+    const stgGodai = getV('VER_STG_GODAI');
+    const stgCap = getV('VER_STG_CAP'); // ★追加：最終ボスのステージロジック
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -118,14 +118,16 @@ export function showVersions(moduleVersions) {
             s_hira:v${stgHiragi}<br>
             s_shii:v${stgShiina}<br>
             s_jin:v${stgJingu}<br>
-            s_god:v${stgGodai}    </div>
+            s_god:v${stgGodai}<br>
+            s_cap:v${stgCap}    </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
             iga:v${scIgari}<br>
             mam:v${scMamoru}<br>
             hir:v${scHiragi}<br>
             kag:v${scKagami}<br>
-            god:v${scGodai}<br>   jin:v${scJingu}       </div>
+            god:v${scGodai}<br>   
+            jin:v${scJingu}       </div>
     `;
     titleScreen.appendChild(verDiv);
 }
@@ -145,24 +147,19 @@ export function createBombButton(onBombTrigger) {
     document.getElementById('game-container').appendChild(btn);
 }
 
-// ★追加：画面左上に表示されるサウンドON/OFFボタンの作成
 export function createMuteButton(onToggleCallback) {
     const oldBtn = document.getElementById('mute-btn');
     if (oldBtn) oldBtn.remove();
     
     const btn = document.createElement('button');
     btn.id = 'mute-btn';
-    // SKIPボタン（右上）と被らないように左上に配置します
     btn.style.cssText = 'position:absolute; top:20px; left:20px; z-index:1000; padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid #fff; color:#fff; font-size:1rem; cursor:pointer; width:auto; border-radius:5px; transition: all 0.2s;';
     btn.innerText = '🔊 ON'; 
     
     btn.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        // audio.js の toggleMute() を呼び出して、結果（ミュート状態）を受け取る
         const isMuted = onToggleCallback();
-        
-        // ミュート状態に応じて見た目を変更
         if (isMuted) {
             btn.innerText = '🔇 OFF';
             btn.style.color = '#888';
@@ -177,7 +174,6 @@ export function createMuteButton(onToggleCallback) {
     document.getElementById('game-container').appendChild(btn);
 }
 
-// ★復元：ステージリストの名前と色を更新する処理
 export function initStageListTexts() {
     const stageList = document.getElementById('stage-list');
     if (stageList) {
@@ -195,7 +191,6 @@ export function initStageListTexts() {
     }
 }
 
-// ★復元：プリロード完了前のNOW LOADING表示処理
 export function setStageListLoading() {
     const stageList = document.getElementById('stage-list');
     if (stageList) {
