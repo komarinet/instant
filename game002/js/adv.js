@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.15"; // バージョン更新（godaimo.pngの表示対応）
+const VER_ADV = "0.4.16"; // バージョン更新（科学文明軍リーダー cap.png のスケールと表示設定を追加）
 
 class ADVManager {
     constructor() {
@@ -271,12 +271,13 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // ★修正：godaimo.png を godai.png と同じ行数（3）として扱うように追加
+        // キャラクター描画
         const getRows = (key) => {
             if (key === 'urashiina.png') return 2; 
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
             if (key === 'godai.png' || key === 'godaimo.png') return 3; 
+            if (key === 'cap.png') return 4; // ★新規追加：cap.png は4行
             return 4; 
         };
 
@@ -316,12 +317,15 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                // ★修正：godaimo.png を godai.png と同じスケール・オフセットで扱うように追加
+                // ★修正：cap.png のスケールを1.2倍にする
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
                     charScale = 1.0; 
                     specificXOffset = alignRight ? -20 : 60; 
+                }
+                else if (cData.key === 'cap.png') {
+                    charScale = 1.2; 
                 }
 
                 const drawHeight = cssHeight * 0.50 * charScale; 
@@ -385,6 +389,8 @@ class ADVManager {
                     speakerName = 'G・O・D・A・I'; speakerRuby = ''; nameColor = '#aaaaaa';
                 } else if (currentMsg.speaker === 'AI') {
                     speakerName = 'AI'; speakerRuby = ''; nameColor = '#dddddd';
+                } else if (currentMsg.speaker === '隊長') { // ★新規追加
+                    speakerName = '科学文明軍 隊長'; speakerRuby = 'たいちょう'; nameColor = '#ff6600';
                 }
 
                 ctx.fillStyle = nameColor;
