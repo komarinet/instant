@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.0"; // バージョン更新（コアをカメラ視野内に配置し、赤い床と壁の二層構造を実装）
+const VER_3DBG_OBJ = "0.3.1"; // バージョン更新（コアを超巨大化し、床が割れると同時に地下からせり上がる演出を追加）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -289,15 +289,19 @@ window.BG3DObjects = {
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
 
-        // ★修正：コアをカメラから確実に見える手前位置（z: -150）へ移動
+        // ★修正：コアを超巨大化し、カメラの少し奥に配置（浮上するまでは地下待機）
         const reactorTex = m.textures.coreReactor;
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
-        m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(40, 32, 32), reactorMat);
-        m.coreReactor.position.set(0, -90, -150); 
+        
+        // 半径を40から250に激増させました
+        m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(250, 32, 32), reactorMat);
+        
+        // 初めはY軸を-400（地下深く）にして隠しておきます
+        m.coreReactor.position.set(0, -400, -400); 
         m.coreGroup.add(m.coreReactor);
 
-        const redLight = new THREE.PointLight(0xff0000, 2.5, 1000);
-        redLight.position.set(0, -60, -100);
+        const redLight = new THREE.PointLight(0xff0000, 3.0, 1500);
+        redLight.position.set(0, -20, -200);
         m.coreGroup.add(redLight);
 
         m.coreGroup.visible = true; // 初めから置いておき、グレーの床で隠す
@@ -364,6 +368,11 @@ window.BG3DObjects = {
                         m.trenchRightWall.position.x += openSpeed;
                         if (m.trenchFloorLeft) m.trenchFloorLeft.position.x -= openSpeed;
                         if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
+                    }
+
+                    // ★追加：床が割れると同時に、地下深くから超巨大コアが浮上してくる演出
+                    if (m.coreReactor && m.coreReactor.position.y < 20) {
+                        m.coreReactor.position.y += 1.5;
                     }
                 }
             }
