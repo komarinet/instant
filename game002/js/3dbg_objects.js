@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.1"; // バージョン更新（コアを超巨大化し、床が割れると同時に地下からせり上がる演出を追加）
+const VER_3DBG_OBJ = "0.3.2"; // バージョン更新（テクスチャの独立化によるスクロールバグ修正と、コアのサイズを1.5倍に最適化）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -260,9 +260,10 @@ window.BG3DObjects = {
         // ==========================================
         m.coreGroup = new THREE.Group();
         
-        // 赤い床
-        const coreFloorMat = m.textures.coreBg ? new THREE.MeshPhongMaterial({ map: m.textures.coreBg, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
-        if (m.textures.coreBg) { m.textures.coreBg.wrapS = THREE.MirroredRepeatWrapping; m.textures.coreBg.wrapT = THREE.MirroredRepeatWrapping; m.textures.coreBg.repeat.set(8, 40); }
+        // ★バグ修正：テクスチャを独立させるため clone() を使用
+        const coreFloorTex = m.textures.coreBg ? m.textures.coreBg.clone() : null;
+        if (coreFloorTex) { coreFloorTex.wrapS = THREE.MirroredRepeatWrapping; coreFloorTex.wrapT = THREE.MirroredRepeatWrapping; coreFloorTex.repeat.set(8, 40); coreFloorTex.needsUpdate = true; }
+        const coreFloorMat = coreFloorTex ? new THREE.MeshPhongMaterial({ map: coreFloorTex, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
         
         m.coreFloorLeft = new THREE.Mesh(floorGeo, coreFloorMat);
         m.coreFloorLeft.rotation.x = -Math.PI / 2;
@@ -274,11 +275,12 @@ window.BG3DObjects = {
         m.coreFloorRight.position.set(500, -140, -500);
         m.coreGroup.add(m.coreFloorRight);
 
-        // 赤い壁
-        const coreWallMat = m.textures.coreBg ? new THREE.MeshPhongMaterial({ map: m.textures.coreBg, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
-        if (m.textures.coreBg) { m.textures.coreBg.wrapS = THREE.MirroredRepeatWrapping; m.textures.coreBg.wrapT = THREE.MirroredRepeatWrapping; m.textures.coreBg.repeat.set(40, 4); }
+        // ★バグ修正：壁用にも clone() で独立したテクスチャを用意
+        const coreWallTex = m.textures.coreBg ? m.textures.coreBg.clone() : null;
+        if (coreWallTex) { coreWallTex.wrapS = THREE.MirroredRepeatWrapping; coreWallTex.wrapT = THREE.MirroredRepeatWrapping; coreWallTex.repeat.set(40, 4); coreWallTex.needsUpdate = true; }
+        const coreWallMat = coreWallTex ? new THREE.MeshPhongMaterial({ map: coreWallTex, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
         
-        const redEdgeX = 140 * m.camera.aspect; // グレー壁より外側
+        const redEdgeX = 140 * m.camera.aspect; 
         m.coreLeftWall = new THREE.Mesh(wallGeo, coreWallMat);
         m.coreLeftWall.rotation.y = Math.PI / 2;
         m.coreLeftWall.position.set(-redEdgeX, -80, -500);
@@ -289,15 +291,12 @@ window.BG3DObjects = {
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
 
-        // ★修正：コアを超巨大化し、カメラの少し奥に配置（浮上するまでは地下待機）
+        // ★修正：コアサイズを 40の1.5倍(60) に設定し、Z軸でしっかりカメラ内に収まる位置に調整
         const reactorTex = m.textures.coreReactor;
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
         
-        // 半径を40から250に激増させました
-        m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(250, 32, 32), reactorMat);
-        
-        // 初めはY軸を-400（地下深く）にして隠しておきます
-        m.coreReactor.position.set(0, -400, -400); 
+        m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 32), reactorMat);
+        m.coreReactor.position.set(0, -300, -300); // 初期は地下（Y:-300）に隠しておく
         m.coreGroup.add(m.coreReactor);
 
         const redLight = new THREE.PointLight(0xff0000, 3.0, 1500);
@@ -335,7 +334,6 @@ window.BG3DObjects = {
         if (m.currentStage === 6) {
             if (m.trenchGroup && m.trenchGroup.visible) {
                 
-                // 割れていない時はアスペクト比に従って隙間なく閉じておく
                 if (!m.isCoreTransitioning) {
                     const dynamicEdgeX = 90 * m.camera.aspect; 
                     m.trenchLeftWall.position.x = -dynamicEdgeX;
@@ -344,13 +342,11 @@ window.BG3DObjects = {
                     if (m.trenchFloorLeft) m.trenchFloorLeft.position.x = -500;
                     if (m.trenchFloorRight) m.trenchFloorRight.position.x = 500;
 
-                    // 下の赤い壁もアスペクト比に合わせる
                     const redEdgeX = 140 * m.camera.aspect;
                     if (m.coreLeftWall) m.coreLeftWall.position.x = -redEdgeX;
                     if (m.coreRightWall) m.coreRightWall.position.x = redEdgeX;
                 }
 
-                // グレー層のスクロール
                 if (m.trenchFloorLeft && m.trenchFloorLeft.material.map) {
                     m.trenchFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01;
                     m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01;
@@ -360,7 +356,6 @@ window.BG3DObjects = {
                     m.trenchRightWall.material.map.offset.x += m.trenchScrollSpeed * 0.01;
                 }
 
-                // 演出開始時、上層の床と壁が左右にスライドして割れる
                 if (m.isCoreTransitioning) {
                     const openSpeed = 2.0;
                     if (m.trenchLeftWall.position.x > -800) {
@@ -370,15 +365,14 @@ window.BG3DObjects = {
                         if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
                     }
 
-                    // ★追加：床が割れると同時に、地下深くから超巨大コアが浮上してくる演出
-                    if (m.coreReactor && m.coreReactor.position.y < 20) {
-                        m.coreReactor.position.y += 1.5;
+                    // ★修正：目標位置（赤い床の上に乗る位置：Y = -60付近）までせり上げる
+                    if (m.coreReactor && m.coreReactor.position.y < -60) {
+                        m.coreReactor.position.y += 2.0;
                     }
                 }
             }
 
             if (m.coreGroup && m.coreGroup.visible) {
-                // 赤い層のスクロール
                 if (m.coreFloorLeft && m.coreFloorLeft.material.map) {
                     m.coreFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01;
                     m.coreFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01;
