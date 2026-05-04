@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.6.0"; // 中ボス撃破後の赤いコア空間でのザコ戦（タメ）を延長し、その後にADVを差し込む
+const VER_STG_CAP = "0.7.0"; // バージョン更新（コアの弾幕スピードと密度を大幅に緩和）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -27,7 +27,6 @@ window.StageConfigs['final'] = {
     },
 
     updateWaves: function(stg, timer, sW, sH) {
-        // フェーズ1：最初のトレンチ疾走（ザコ敵）
         if (stg.phase === 1) {
             if (timer > 100 && timer < 2500) {
                 if (timer % 60 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
@@ -44,7 +43,6 @@ window.StageConfigs['final'] = {
                     stg.enemies.push(new Enemy('gtypee', xPos, -50, stg.player.charData, stg.advManager, stg.stgId));
                 }
             }
-            // 2600フレームで中ボス（GODAIコピー）2機出現 -> 自動的に mid_stg 発動
             if (timer === 2600) {
                 let b1 = new Enemy('gtypeboss', sW * 0.25, -100, stg.player.charData, stg.advManager, stg.stgId);
                 let b2 = new Enemy('gtypeboss', sW * 0.75, -100, stg.player.charData, stg.advManager, stg.stgId);
@@ -55,19 +53,16 @@ window.StageConfigs['final'] = {
             }
         }
         
-        // フェーズ2：中ボス戦闘＆撃破後、床が割れる
         else if (stg.phase === 2) {
             let bossAlive = stg.enemies.some(e => e.type === 'gtypeboss');
             if (!bossAlive && !stg.isTimeStopped) {
                 stg.phaseTimer++;
                 if (stg.phaseTimer === 60 && !stg.coreTransitioned) {
-                    // 床と壁が割れる演出スタート
                     if (window._bgManagerInstance && typeof window._bgManagerInstance.transitionToCore === 'function') {
                         window._bgManagerInstance.transitionToCore(); 
                     }
                     stg.coreTransitioned = true;
                 }
-                // 完全に割れ切るまで待つ
                 if (stg.phaseTimer === 180) {
                     stg.phase = 3;
                     stg.phaseTimer = 0;
@@ -75,25 +70,19 @@ window.StageConfigs['final'] = {
             }
         }
         
-        // フェーズ3：赤いコア空間でのザコ戦（ここを大幅に延長して「タメ」を作る）
         else if (stg.phase === 3) {
             stg.phaseTimer++;
             
-            // ★修正：ザコ敵が出る時間を 0〜1100フレーム（約18秒）に延長
             if (stg.phaseTimer > 0 && stg.phaseTimer < 1100) {
                 if (stg.phaseTimer % 50 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-                // 赤い空間ではa（突撃機）も混ぜて激しくする
                 if (stg.phaseTimer % 80 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
             
-            // ★修正：ザコ戦が終わり、少し静寂を挟んだ後（1300フレーム目）にコア（大ボス）を出現させる
-            // この瞬間に STGManager がボスを検知し、自動的に `mid_stg2` (post_mid ADV) が差し込まれます
             if (stg.phaseTimer === 1300) {
                 let boss = new Enemy('capboss', sW/2, sH * 0.25, stg.player.charData, stg.advManager, stg.stgId);
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
-                    // 本体の丸は描画せず（透明）、HPゲージのみ表示
                     if (this.hp > 0 && !this.isDying) {
                         const bW = 100, bH = 10;
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -103,7 +92,7 @@ window.StageConfigs['final'] = {
                     ctx.restore();
                 };
                 stg.enemies.push(boss);
-                stg.phase = 4; // 最終ボス戦フェーズへ
+                stg.phase = 4; 
             }
         }
     },
@@ -168,19 +157,19 @@ window.StageConfigs['final'] = {
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang-0.2)*5, Math.sin(ang-0.2)*5, '#ff5500'));
         }
         else if (e.type === 'capboss') {
-            // ADV終了後（フェーズ4）から弾幕開始
-            if (stg.frame % 20 === 0) {
+            // ★修正：コアの弾幕密度とスピードを大幅に緩和
+            if (stg.frame % 30 === 0) { // 発射間隔を延長 (20 -> 30)
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
                     const offset = i * Math.PI / 2;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + offset)*5, Math.sin(ang + offset)*5, '#ff0000'));
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(-ang + offset)*5, Math.sin(-ang + offset)*5, '#ff8800'));
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); // スピード 5 -> 3
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); // スピード 5 -> 3
                 }
             }
-            if (stg.frame % 90 === 0) {
+            if (stg.frame % 120 === 0) { // 発射間隔を延長 (90 -> 120)
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
-                for(let i=-3; i<=3; i++) {
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + i*0.1)*8, Math.sin(ang + i*0.1)*8, '#ffffff'));
+                for(let i=-2; i<=2; i++) { // 弾数を削減 (7WAY -> 5WAY)
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff')); // スピード 8 -> 4.5
                 }
             }
         }
