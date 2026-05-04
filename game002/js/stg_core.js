@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.9"; // バージョン更新（既存コードを一切削除せず、中ボス撃破時の誤クリア防止を追記）
+const VER_STG_CORE = "0.8.11"; // バージョン更新（ご提示の0.8.7をベースに、ボムドロップ・フェーズ管理・無敵180Fを完全統合）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -263,8 +263,8 @@ class STGManager {
                     if (!this.enemies.some(enemy => enemy.isBoss && enemy.alive && enemy !== e)) {
                         this.isStageClear = true;
                     }
-                    
-                    // ★完全新規追記：ただし、フェーズ管理があるステージで、まだ最終フェーズ（4）に到達していない場合はクリアを取り消す
+
+                    // ★追記：フェーズ管理がある場合、最終フェーズ（4）に到達していなければクリアを取り消す
                     if (this.phase !== undefined && this.phase < 4) {
                         this.isStageClear = false;
                     }
@@ -288,14 +288,14 @@ class STGManager {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
-                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追加：既存の行を一切触らずにボムを追記
+                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追記
                         }
                     }
                 }
             });
             
             if (e.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((e.x-this.player.x)**2 + (e.y-this.player.y)**2) < (e.size+this.player.size)/2) {
-                this.player.hp--; this.player.invincibleTimer = 90; 
+                this.player.hp--; this.player.invincibleTimer = 180; // ★変更（90から180）
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
@@ -303,7 +303,7 @@ class STGManager {
         
         for (let eb of this.enemyBullets) {
             if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
-                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
+                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 180; // ★変更（90から180）
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
@@ -313,7 +313,7 @@ class STGManager {
                 it.alive = false;
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
-                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追加：既存の分岐をそのまま残して追記
+                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追記
             }
         });
 
