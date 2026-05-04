@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.7"; // バージョン更新（既存コードを維持したまま複数回の mid_stg 呼び出しに対応）
+const VER_STG_CORE = "0.8.8"; // バージョン更新（既存コードを一切削除せず、ボムドロップと取得処理を追記）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -283,6 +283,7 @@ class STGManager {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
+                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追加：既存の行を一切触らずにボムを追記
                         }
                     }
                 }
@@ -307,6 +308,7 @@ class STGManager {
                 it.alive = false;
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
+                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追加：既存の分岐をそのまま残して追記
             }
         });
 
