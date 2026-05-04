@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.4"; // バージョン更新（igariシナリオ時のみステージ5をgodai等に設定し、他キャラはkagamiに固定）
+const VER_STG_CORE = "0.8.7"; // バージョン更新（既存コードを維持したまま複数回の mid_stg 呼び出しに対応）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -145,6 +145,9 @@ class STGManager {
         this.bgmChanged = false;
         // 全体で1回だけADVを呼ぶためのフラグ
         this.bossAdvTriggered = false;
+        
+        // ★追加：ADVが呼ばれた回数を管理する変数
+        this.bossAdvCount = 0;
 
         this.config = window.StageConfigs[this.stgId] || {};
         if (this.config && this.config.init) this.config.init(this, canvas);
@@ -186,11 +189,13 @@ class STGManager {
             }
         }
 
-        if (hasNewBoss && !this.bossAdvTriggered) {
+        // ★変更：1回だけのロック(!this.bossAdvTriggered)を外し、新しいボスが出るたびに実行できるようにした
+        if (hasNewBoss) {
             this.bossAdvTriggered = true;
+            this.bossAdvCount++; // ★追加：何回目のADVかをカウント
+            
             let midAdvData = [];
             try {
-                // ★修正：playerクラスから正しくIDを取得し、グローバル変数とwindowプロパティの両方をカバーして安全にシナリオをロード
                 const charId = this.player.id || 'igari';
                 let charScenario = null;
                 if (typeof scenarios !== 'undefined') {
@@ -201,8 +206,12 @@ class STGManager {
 
                 if (charScenario) {
                     for (let stageKey in charScenario) {
-                        if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId && charScenario[stageKey].mid_stg) {
-                            midAdvData = charScenario[stageKey].mid_stg;
+                        if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId) {
+                            // ★追加：回数に応じて、mid_stg または mid_stg2 以降を取得する
+                            let advKey = (this.bossAdvCount === 1) ? 'mid_stg' : 'mid_stg' + this.bossAdvCount;
+                            if (charScenario[stageKey][advKey]) {
+                                midAdvData = charScenario[stageKey][advKey];
+                            }
                             break;
                         }
                     }
@@ -248,7 +257,13 @@ class STGManager {
                     }
                 }
                 if (e.deathTimer >= 180) {
-                    e.alive = false; this.isStageClear = true;
+                    e.alive = false; 
+                    
+                    // ★ここだけ変更：中ボスの撃破でステージが終わらないよう、他にボスが残っていないかチェック
+                    if (!this.enemies.some(enemy => enemy.isBoss && enemy.alive && enemy !== e)) {
+                        this.isStageClear = true;
+                    }
+
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                     if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
