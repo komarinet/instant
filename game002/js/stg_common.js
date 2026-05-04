@@ -1,4 +1,4 @@
-const VER_STG_COMMON = "0.1.3"; // バージョン更新（既存の記述を一切削除せず、引継ぎとボムアイテム描画を追加）
+const VER_STG_COMMON = "0.1.4"; // バージョン更新（既存コードを維持したままスコアシステムを追記）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -9,19 +9,22 @@ class Player {
         this.x = 0; this.y = 0; this.size = 20; this.speed = 5; this.bullets = []; this.isEntering = true; 
         this.maxHp = 5; this.hp = this.maxHp; this.invincibleTimer = 0; this.powerLevel = 0; 
         this.bombs = 3; 
+        this.score = 0; // ★完全追記：スコア変数を追加
 
         // ★追加：既存の初期化記述（上記）を一切消さずに、グローバルから引き継ぐ処理を追記
         if (typeof window.globalPlayerState === 'undefined') {
-            window.globalPlayerState = { powerLevel: this.powerLevel, bombs: this.bombs };
+            window.globalPlayerState = { powerLevel: this.powerLevel, bombs: this.bombs, score: this.score }; // ★スコアを追加
         } else {
             // ステージ2以降は、上で「0」や「3」に初期化された数値をグローバル状態の数値で上書き（HPはそのまま全快）
             this.powerLevel = window.globalPlayerState.powerLevel;
             this.bombs = window.globalPlayerState.bombs;
+            this.score = window.globalPlayerState.score || 0; // ★スコアを追加
         }
 
         // ★追加：以降のプレイ中の変動をグローバル変数に自動同期させる
         let _pw = this.powerLevel;
         let _bm = this.bombs;
+        let _sc = this.score; // ★追記
         Object.defineProperty(this, 'powerLevel', {
             get: () => _pw,
             set: (val) => { _pw = val; window.globalPlayerState.powerLevel = val; }
@@ -29,6 +32,11 @@ class Player {
         Object.defineProperty(this, 'bombs', {
             get: () => _bm,
             set: (val) => { _bm = val; window.globalPlayerState.bombs = val; }
+        });
+        // ★完全追記：スコアのグローバル自動同期
+        Object.defineProperty(this, 'score', {
+            get: () => _sc,
+            set: (val) => { _sc = val; window.globalPlayerState.score = val; }
         });
     }
     initPosition(canvas) { const dpr = window.devicePixelRatio || 1; this.x = canvas.width / dpr / 2; this.y = canvas.height / dpr + this.size * 2; }
