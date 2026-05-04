@@ -1,4 +1,4 @@
-const VER_MAIN = "0.8.9"; // バージョン更新（120Hzスマホでのタッチ時倍速バグを防止するFPS制御を追加）
+const VER_MAIN = "0.9.1"; // バージョン更新（ゲームオーバー時にスコアとアイテムをリセットする処理を追記）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -38,7 +38,6 @@ let bgManager3D = null;
 let dpr = window.devicePixelRatio || 1;
 let gameLoopId;
 
-// ★追加：60FPS固定用のタイマー変数
 let lastFrameTime = performance.now();
 const TARGET_FPS = 60;
 const FRAME_INTERVAL = 1000 / TARGET_FPS;
@@ -234,7 +233,7 @@ function executeStart(stageNum) {
             });
         });
         cancelAnimationFrame(gameLoopId);
-        lastFrameTime = performance.now(); // ★追加：ループ再開前に時間をリセット
+        lastFrameTime = performance.now();
         loop();
 
     } else {
@@ -259,7 +258,7 @@ function executeStart(stageNum) {
             });
         });
         cancelAnimationFrame(gameLoopId);
-        lastFrameTime = performance.now(); // ★追加：ループ再開前に時間をリセット
+        lastFrameTime = performance.now();
         loop();
     }
 }
@@ -317,6 +316,14 @@ function handleStgPlay() {
         soundManager.stopBGM(); 
         soundManager.playBGM('gameover');
         document.getElementById('result-title').innerText = "GAME OVER";
+        
+        // ★完全追記：ゲームオーバー時にスコアとアイテム状態をリセット
+        if (typeof window.globalPlayerState !== 'undefined') {
+            window.globalPlayerState.score = 0;
+            window.globalPlayerState.powerLevel = 0;
+            window.globalPlayerState.bombs = 3;
+        }
+
         window.changeScreen('result-screen');
     } else if (status === 'STAGE_CLEAR') {
         gameState = 'POST_STG_DIALOGUE';
@@ -390,22 +397,17 @@ function handleTransitionFade() {
 
 // --- メインループ ---
 function loop(timestamp) {
-    // 次のフレームを要求
     gameLoopId = requestAnimationFrame(loop);
 
-    // ★追加：120Hzディスプレイ等での倍速動作を防ぐためのFPS制御処理
     if (!timestamp) timestamp = performance.now();
     const elapsed = timestamp - lastFrameTime;
 
-    // 16.6ms（60FPSの設定間隔）経っていなければ、描画や更新処理をスキップする
     if (elapsed < FRAME_INTERVAL) {
         return;
     }
 
-    // 次回の計算基準時間を設定（余剰時間を差し引いて精度を上げる）
     lastFrameTime = timestamp - (elapsed % FRAME_INTERVAL);
 
-    // ▼▼ これより下は既存の処理そのまま ▼▼
     if (gameState === 'UI') return;
     
     ui.updateGameUI(gameState, selectedCharId, stgManager);
