@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.5.0"; // 道中延長、ザコaの減速、およびフェーズ管理完全版
+const VER_STG_CAP = "0.6.0"; // 中ボス撃破後の赤いコア空間でのザコ戦（タメ）を延長し、その後にADVを差し込む
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -16,7 +16,6 @@ window.StageConfigs['final'] = {
     updateBackground: function(stg, sW, sH) {},
     drawBackground: function(stg, ctx, sW, sH) {},
     getEnemyData: function(type) {
-        // a〜eが全て出ます
         if (type === 'gtypea') return { imgSrc: 'gtypea.png', size: 22, hp: 2, maxHp: 2 };
         if (type === 'gtypeb') return { imgSrc: 'gtypeb.png', size: 30, hp: 5, maxHp: 5 };
         if (type === 'gtypec') return { imgSrc: 'gtypec.png', size: 26, hp: 3, maxHp: 3 };
@@ -30,13 +29,11 @@ window.StageConfigs['final'] = {
     updateWaves: function(stg, timer, sW, sH) {
         // フェーズ1：最初のトレンチ疾走（ザコ敵）
         if (stg.phase === 1) {
-            // ★修正: 中ボスまでの道中を大幅に延長（2500フレーム）
             if (timer > 100 && timer < 2500) {
                 if (timer % 60 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer % 150 === 0) stg.enemies.push(new Enemy('gtypeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer > 500 && timer % 120 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 
-                // dとe（固定砲台）は壁の近くに配置
                 if (timer % 180 === 0) {
                     const isLeft = Math.random() > 0.5;
                     const xPos = isLeft ? sW * 0.15 : sW * 0.85; 
@@ -47,7 +44,7 @@ window.StageConfigs['final'] = {
                     stg.enemies.push(new Enemy('gtypee', xPos, -50, stg.player.charData, stg.advManager, stg.stgId));
                 }
             }
-            // 2600フレームで中ボス（GODAIコピー）2機出現
+            // 2600フレームで中ボス（GODAIコピー）2機出現 -> 自動的に mid_stg 発動
             if (timer === 2600) {
                 let b1 = new Enemy('gtypeboss', sW * 0.25, -100, stg.player.charData, stg.advManager, stg.stgId);
                 let b2 = new Enemy('gtypeboss', sW * 0.75, -100, stg.player.charData, stg.advManager, stg.stgId);
@@ -64,11 +61,13 @@ window.StageConfigs['final'] = {
             if (!bossAlive && !stg.isTimeStopped) {
                 stg.phaseTimer++;
                 if (stg.phaseTimer === 60 && !stg.coreTransitioned) {
+                    // 床と壁が割れる演出スタート
                     if (window._bgManagerInstance && typeof window._bgManagerInstance.transitionToCore === 'function') {
                         window._bgManagerInstance.transitionToCore(); 
                     }
                     stg.coreTransitioned = true;
                 }
+                // 完全に割れ切るまで待つ
                 if (stg.phaseTimer === 180) {
                     stg.phase = 3;
                     stg.phaseTimer = 0;
@@ -76,19 +75,25 @@ window.StageConfigs['final'] = {
             }
         }
         
-        // フェーズ3：赤いコア空間でのザコ戦
+        // フェーズ3：赤いコア空間でのザコ戦（ここを大幅に延長して「タメ」を作る）
         else if (stg.phase === 3) {
             stg.phaseTimer++;
-            if (stg.phaseTimer > 0 && stg.phaseTimer < 600) {
+            
+            // ★修正：ザコ敵が出る時間を 0〜1100フレーム（約18秒）に延長
+            if (stg.phaseTimer > 0 && stg.phaseTimer < 1100) {
                 if (stg.phaseTimer % 50 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+                // 赤い空間ではa（突撃機）も混ぜて激しくする
+                if (stg.phaseTimer % 80 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
             
-            // ザコ戦終了後、最終ボス出現（透明の当たり判定）
-            if (stg.phaseTimer === 700) {
+            // ★修正：ザコ戦が終わり、少し静寂を挟んだ後（1300フレーム目）にコア（大ボス）を出現させる
+            // この瞬間に STGManager がボスを検知し、自動的に `mid_stg2` (post_mid ADV) が差し込まれます
+            if (stg.phaseTimer === 1300) {
                 let boss = new Enemy('capboss', sW/2, sH * 0.25, stg.player.charData, stg.advManager, stg.stgId);
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
+                    // 本体の丸は描画せず（透明）、HPゲージのみ表示
                     if (this.hp > 0 && !this.isDying) {
                         const bW = 100, bH = 10;
                         ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -98,7 +103,7 @@ window.StageConfigs['final'] = {
                     ctx.restore();
                 };
                 stg.enemies.push(boss);
-                stg.phase = 4;
+                stg.phase = 4; // 最終ボス戦フェーズへ
             }
         }
     },
@@ -108,7 +113,6 @@ window.StageConfigs['final'] = {
         e.moveTimer = (e.moveTimer || 0) + 1;
         
         if (e.type === 'gtypea') { 
-            // ★修正: 飛行機aの速度を 5 から 3.5 へ減速
             e.y += 3.5; e.x += Math.sin(e.moveTimer * 0.05) * 3; 
         } 
         else if (e.type === 'gtypeb') { 
@@ -116,7 +120,6 @@ window.StageConfigs['final'] = {
             else { e.x += Math.cos(e.moveTimer * 0.03) * 2.5; if (e.moveTimer > 250) e.y -= 2; }
         }
         else if (e.type === 'gtypec') { 
-            // ★修正: 飛行機cの速度を 4 から 2.5 へ減速
             e.y += 2.5; if (e.y < canvas.height/dpr * 0.8) e.x += (player.x - e.x) * 0.025; 
         }
         else if (e.type === 'gtyped' || e.type === 'gtypee') {
@@ -131,7 +134,6 @@ window.StageConfigs['final'] = {
             }
         }
         else if (e.type === 'capboss') {
-            // ボス当たり判定位置（背景コアと一致する位置）
             e.x = canvas.width/dpr/2;
             e.y = canvas.height/dpr * 0.25;
         }
@@ -166,6 +168,7 @@ window.StageConfigs['final'] = {
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang-0.2)*5, Math.sin(ang-0.2)*5, '#ff5500'));
         }
         else if (e.type === 'capboss') {
+            // ADV終了後（フェーズ4）から弾幕開始
             if (stg.frame % 20 === 0) {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
