@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.1.4"; // バージョン更新（トレンチの壁のベース幅を広げ、画面端に比率配置する）
+const VER_3DBG_OBJ = "0.2.1"; // バージョン更新（壁幅の拡張と、床が中央から割れる演出を追加）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -222,16 +222,24 @@ window.BG3DObjects = {
         if (floorTex) {
             floorTex.wrapS = THREE.MirroredRepeatWrapping; 
             floorTex.wrapT = THREE.MirroredRepeatWrapping; 
-            floorTex.repeat.set(8, 40); 
+            floorTex.repeat.set(4, 40); // ★修正：左右2枚に分割するため、横リピートを半分の4に調整
             floorMat = new THREE.MeshPhongMaterial({ map: floorTex, emissive: 0x333333 });
         } else {
             floorMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
         }
-        m.trenchFloor = new THREE.Mesh(new THREE.PlaneGeometry(400, 3000), floorMat);
-        m.trenchFloor.rotation.x = -Math.PI / 2;
-        m.trenchFloor.position.y = -60;
-        m.trenchFloor.position.z = -500;
-        m.trenchGroup.add(m.trenchFloor);
+        
+        // ★修正：1枚だった床を、左右2枚（LeftとRight）に分割しました
+        const floorGeo = new THREE.PlaneGeometry(1000, 3000);
+        
+        m.trenchFloorLeft = new THREE.Mesh(floorGeo, floorMat);
+        m.trenchFloorLeft.rotation.x = -Math.PI / 2;
+        m.trenchFloorLeft.position.set(-500, -60, -500); // ぴったり中央（0）でくっつく位置
+        m.trenchGroup.add(m.trenchFloorLeft);
+
+        m.trenchFloorRight = new THREE.Mesh(floorGeo, floorMat);
+        m.trenchFloorRight.rotation.x = -Math.PI / 2;
+        m.trenchFloorRight.position.set(500, -60, -500);
+        m.trenchGroup.add(m.trenchFloorRight);
 
         const wallTex = m.textures.trenchWall;
         let wallMat;
@@ -244,7 +252,7 @@ window.BG3DObjects = {
             wallMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
         }
         
-        // ★修正：ベース値を90に広げて、画面端にフィットさせます
+        // ★修正：壁の位置を 40 から 90 に広げ、画面の端にフィットさせます
         const edgeX = 90 * m.camera.aspect;
         const wallGeo = new THREE.PlaneGeometry(3000, 300);
         
@@ -265,7 +273,7 @@ window.BG3DObjects = {
         
         const coreBgMat = m.textures.coreBg ? new THREE.MeshBasicMaterial({ map: m.textures.coreBg }) : new THREE.MeshBasicMaterial({ color: 0x550000 });
         m.coreBg = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), coreBgMat);
-        m.coreBg.position.set(0, 0, -800);
+        m.coreBg.position.set(0, -50, -800); // ★修正：少し下に配置して床で隠しておきます
         m.coreGroup.add(m.coreBg);
 
         const reactorTex = m.textures.coreReactor;
@@ -280,10 +288,11 @@ window.BG3DObjects = {
         m.coreGroup.add(m.coreReactor);
 
         const redLight = new THREE.PointLight(0xff0000, 2, 1000);
-        redLight.position.set(0, 0, -400);
+        redLight.position.set(0, -50, -400);
         m.coreGroup.add(redLight);
 
-        m.coreGroup.visible = false;
+        // ★修正：コアは初めから描画しておき、床で覆い隠しておきます
+        m.coreGroup.visible = true;
         m.scene.add(m.coreGroup);
     },
 
@@ -314,29 +323,34 @@ window.BG3DObjects = {
         if (m.currentStage === 6) {
             if (m.trenchGroup && m.trenchGroup.visible) {
                 
+                // ★修正：割れていない時は常にアスペクト比に従い、床も隙間なく閉じておきます
                 if (!m.isCoreTransitioning) {
-                    // ★修正：ベース値を90に広げて、画面端にフィットさせます
                     const dynamicEdgeX = 90 * m.camera.aspect; 
                     m.trenchLeftWall.position.x = -dynamicEdgeX;
                     m.trenchRightWall.position.x = dynamicEdgeX;
+                    
+                    if (m.trenchFloorLeft) m.trenchFloorLeft.position.x = -500;
+                    if (m.trenchFloorRight) m.trenchFloorRight.position.x = 500;
                 }
 
-                if (m.trenchFloor && m.trenchFloor.material.map) {
-                    m.trenchFloor.material.map.offset.y += m.trenchScrollSpeed * 0.01;
+                // 床と壁のスクロール
+                if (m.trenchFloorLeft && m.trenchFloorLeft.material.map) {
+                    m.trenchFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01;
+                    m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01;
                 }
                 if (m.trenchLeftWall && m.trenchLeftWall.material.map) {
                     m.trenchLeftWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01;
                     m.trenchRightWall.material.map.offset.x += m.trenchScrollSpeed * 0.01;
                 }
 
+                // ★修正：ADV終了後、壁と一緒に左右の「床」もスライドしてパカッと割れます
                 if (m.isCoreTransitioning) {
-                    m.coreGroup.visible = true;
+                    const openSpeed = 2.0;
                     if (m.trenchLeftWall.position.x > -800) {
-                        m.trenchLeftWall.position.x -= 4;
-                        m.trenchRightWall.position.x += 4;
-                    }
-                    if (m.coreGroup.position.y < -200) {
-                        m.coreGroup.position.y += 5;
+                        m.trenchLeftWall.position.x -= openSpeed;
+                        m.trenchRightWall.position.x += openSpeed;
+                        if (m.trenchFloorLeft) m.trenchFloorLeft.position.x -= openSpeed;
+                        if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
                     }
                 }
             }
