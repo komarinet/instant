@@ -1,157 +1,363 @@
-const VER_STG_COMMON = "0.1.3"; // バージョン更新（既存の記述を一切削除せず、引継ぎとボムアイテム描画を追加）
+const VER_STG_CORE = "0.8.7"; // バージョン更新（既存コードを維持したまま複数回の mid_stg 呼び出しに対応）
 
-window.PlayerControllers = window.PlayerControllers || {};
+window.StageConfigs = window.StageConfigs || {};
 
-// 全キャラ共通のプレイヤークラス（移動や被弾処理など共通のルールだけを持つ）
-class Player {
-    constructor(charData) {
-        this.id = charData.id; this.name = charData.name; this.color = charData.color;
-        this.x = 0; this.y = 0; this.size = 20; this.speed = 5; this.bullets = []; this.isEntering = true; 
-        this.maxHp = 5; this.hp = this.maxHp; this.invincibleTimer = 0; this.powerLevel = 0; 
-        this.bombs = 3; 
-
-        // ★追加：既存の初期化記述（上記）を一切消さずに、グローバルから引き継ぐ処理を追記
-        if (typeof window.globalPlayerState === 'undefined') {
-            window.globalPlayerState = { powerLevel: this.powerLevel, bombs: this.bombs };
-        } else {
-            // ステージ2以降は、上で「0」や「3」に初期化された数値をグローバル状態の数値で上書き（HPはそのまま全快）
-            this.powerLevel = window.globalPlayerState.powerLevel;
-            this.bombs = window.globalPlayerState.bombs;
+class Enemy {
+    constructor(type, x, y, charData, advManager, stgId) {
+        this.type = type; this.x = x; this.y = y; this.startX = x; this.startY = y;
+        this.charData = charData; this.alive = true; this.angle = 0; this.moveTimer = 0; 
+        this.advManager = advManager; 
+        
+        this.isDying = false; 
+        this.deathTimer = 0;
+        
+        if (!stgId) {
+            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
+            let charId = (this.charData && this.charData.id) ? this.charData.id : 'igari';
+            if (typeof currentStage !== 'undefined') {
+                let cStage = Number(currentStage);
+                if (charId === 'igari') {
+                    if (cStage === 1) stgId = 'kagami';
+                    else if (cStage === 2) stgId = 'hiragi';
+                    else if (cStage === 3) stgId = 'shiina';
+                    else if (cStage === 4) stgId = 'jingu'; 
+                    else if (cStage === 5) stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else stgId = 'kagami';
+                } else {
+                    stgId = 'kagami'; // igari以外はとりあえずkagami
+                }
+            } else {
+                stgId = 'kagami';
+            }
         }
+        this.config = window.StageConfigs[stgId] || {};
 
-        // ★追加：以降のプレイ中の変動をグローバル変数に自動同期させる
-        let _pw = this.powerLevel;
-        let _bm = this.bombs;
-        Object.defineProperty(this, 'powerLevel', {
-            get: () => _pw,
-            set: (val) => { _pw = val; window.globalPlayerState.powerLevel = val; }
-        });
-        Object.defineProperty(this, 'bombs', {
-            get: () => _bm,
-            set: (val) => { _bm = val; window.globalPlayerState.bombs = val; }
-        });
+        let data = null;
+        if (this.config.getEnemyData) { data = this.config.getEnemyData(type); }
+        if (!data) { data = { imgSrc: null, size: 20, hp: 1, maxHp: 1 }; }
+
+        this.imgSrc = data.imgSrc; 
+        this.size = data.size || 20; 
+        this.hp = data.hp || 1; 
+        this.maxHp = data.maxHp || data.hp || 1;
+
+        // 動的なボス判定。「data.isBoss」指定があるか、「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
+        this.isBoss = data.isBoss === true || type.includes('boss') || (this.imgSrc && this.imgSrc.includes('boss')) || this.maxHp >= 100;
+
+        // ADV制御用のステータス
+        this.advTriggered = false;
+        this.isHidden = false;
+
+        if(data.init) data.init(this);
     }
-    initPosition(canvas) { const dpr = window.devicePixelRatio || 1; this.x = canvas.width / dpr / 2; this.y = canvas.height / dpr + this.size * 2; }
     
-    update(canvas) {
+    update(canvas, player) {
+        if(this.config.updateEnemy) this.config.updateEnemy(this, canvas, player);
         const dpr = window.devicePixelRatio || 1;
-        if (this.invincibleTimer > 0) this.invincibleTimer--;
-        if (this.isEntering) {
-            const tY = canvas.height / dpr * 0.8; this.y -= (this.y - tY) * 0.05;
-            if (Math.abs(this.y - tY) < 1) { this.y = tY; this.isEntering = false; } return; 
-        }
-        if (this.x < this.size) this.x = this.size; if (this.x > canvas.width/dpr - this.size) this.x = canvas.width/dpr - this.size;
-        if (this.y < this.size) this.y = this.size; if (this.y > canvas.height/dpr - this.size) this.y = canvas.height/dpr - this.size;
+        if (this.y > canvas.height/dpr + this.size * 2 || (this.state === 'leave' && this.y < -this.size * 2)) this.alive = false;
     }
     
-    // 描画、射撃、ボムは「キャラ別コントローラー」に丸投げする（委譲）
-    draw(ctx, advManager) {
-        if (this.invincibleTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) return; 
+    draw(ctx) {
+        const img = (this.advManager && this.advManager.assets) ? this.advManager.assets[this.imgSrc] : null;
+        ctx.save(); ctx.translate(this.x, this.y);
         
-        if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].draw) {
-            window.PlayerControllers[this.id].draw(this, ctx, advManager);
-        } else {
-            // 専用ファイルが無いキャラのデフォルト描画（三角形）
-            ctx.fillStyle = this.color; ctx.beginPath();
-            ctx.moveTo(this.x, this.y - this.size); ctx.lineTo(this.x - this.size, this.y + this.size); ctx.lineTo(this.x + this.size, this.y + this.size);
-            ctx.closePath(); ctx.fill();
+        if (this.config.transformEnemy) this.config.transformEnemy(this, ctx);
+
+        if (img && img.naturalWidth > 0) {
+            const ar = img.width / img.height; let dW, dH;
+            if (ar > 1) { dW = this.size * 2; dH = dW / ar; } else { dH = this.size * 2; dW = dH * ar; }
+            
+            if (this.isDying && this.deathTimer >= 60) {
+                const progress = (this.deathTimer - 60) / 120; 
+                const block = Math.max(1, Math.floor(progress * 15)); 
+                
+                if (block > 1) {
+                    if (!this.mosaicCanvas) {
+                        this.mosaicCanvas = document.createElement('canvas');
+                        this.mosaicCtx = this.mosaicCanvas.getContext('2d');
+                    }
+                    this.mosaicCanvas.width = Math.max(1, Math.floor(dW / block));
+                    this.mosaicCanvas.height = Math.max(1, Math.floor(dH / block));
+                    this.mosaicCtx.clearRect(0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
+                    this.mosaicCtx.drawImage(img, 0, 0, this.mosaicCanvas.width, this.mosaicCanvas.height);
+                    
+                    ctx.imageSmoothingEnabled = false; 
+                    ctx.globalAlpha = Math.max(0, 1.0 - progress); 
+                    ctx.drawImage(this.mosaicCanvas, -dW/2, -dH/2, dW, dH);
+                    ctx.imageSmoothingEnabled = true; ctx.globalAlpha = 1.0;
+                } else {
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
+                }
+            } else {
+                ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
+            }
+        } else { 
+            // ボス描画のフォールバック色判定
+            ctx.fillStyle = this.isBoss ? '#ff00ff' : '#00ffff'; 
+            ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
+
+        // ボスのHPゲージ描画
+        if (this.isBoss && this.hp > 0 && !this.isDying) {
+            const bW = this.size * 1.5, bH = 10;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
+            ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
+            ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
+        }
+        ctx.restore();
+    }
+}
+
+class STGManager {
+    constructor(canvas, charData, stgId) {
+        this.player = new Player(charData); this.player.initPosition(canvas);
+        this.enemies = []; this.enemyBullets = []; this.items = []; this.explosions = []; this.frame = 0; this.bossSpawned = false;
+        this.stageTimer = 0; this.isStageClear = false; 
+        this.advManager = (typeof advManager !== 'undefined') ? advManager : null; 
+        
+        this.flashTimer = 0; this.shakeTimer = 0;
+
+        this.bombState = 'READY'; 
+        this.bombTimer = 0;
+        this.bombData = null; 
+        this.isTimeStopped = false; 
+        
+        this.stgId = stgId;
+        if (!this.stgId) {
+            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
+            let charId = (charData && charData.id) ? charData.id : 'igari';
+            if (typeof currentStage !== 'undefined') {
+                let cStage = Number(currentStage);
+                if (charId === 'igari') {
+                    if (cStage === 1) this.stgId = 'kagami';
+                    else if (cStage === 2) this.stgId = 'hiragi';
+                    else if (cStage === 3) this.stgId = 'shiina';
+                    else if (cStage === 4) this.stgId = 'jingu'; 
+                    else if (cStage === 5) this.stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else this.stgId = 'kagami'; 
+                } else {
+                    this.stgId = 'kagami'; // igari以外はとりあえずkagami
+                }
+            } else { this.stgId = 'kagami'; }
+        }
+        
+        // BGM切り替え管理フラグ
+        this.bgmChanged = false;
+        // 全体で1回だけADVを呼ぶためのフラグ
+        this.bossAdvTriggered = false;
+        
+        // ★追加：ADVが呼ばれた回数を管理する変数
+        this.bossAdvCount = 0;
+
+        this.config = window.StageConfigs[this.stgId] || {};
+        if (this.config && this.config.init) this.config.init(this, canvas);
+    }
+
+    triggerBomb() {
+        this.player.triggerBomb(this);
     }
     
-    shoot() {
-        if (this.isEntering) return;
-        if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].shoot) {
-            window.PlayerControllers[this.id].shoot(this);
-        } else {
-            // 専用ファイルが無いキャラのデフォルト射撃
-            const bS = 10;
-            this.bullets.push(new Bullet(this.x, this.y - this.size, 0, -bS, this.color, null, this.id));
-        }
-    }
+    updateEntrance() { const c = document.getElementById('gameCanvas'); this.player.update(c); return !this.player.isEntering; }
 
-    triggerBomb(stgManager) {
-        if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].triggerBomb) {
-            window.PlayerControllers[this.id].triggerBomb(this, stgManager);
-        }
-    }
-    updateBomb(stgManager, sW, sH) {
-        if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].updateBomb) {
-            window.PlayerControllers[this.id].updateBomb(this, stgManager, sW, sH);
-        }
-    }
-    drawBomb(stgManager, ctx, sW, sH, shakeX, shakeY) {
-        if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].drawBomb) {
-            window.PlayerControllers[this.id].drawBomb(this, stgManager, ctx, sW, sH, shakeX, shakeY);
-        }
-    }
-}
+    updateGameplay() {
+        const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
-// ==========================================
-// 共通オブジェクト（弾・アイテム・爆発）
-// ==========================================
-class Bullet {
-    constructor(x, y, vx, vy, color, text = null, shooterId = null) {
-        this.x = x; this.y = y; this.vx = vx; this.vy = vy; this.size = text ? 12 : 4; this.color = color; this.text = text; this.alive = true;
-        this.shooterId = shooterId; 
-    }
-    update(canvas) {
-        this.x += this.vx; this.y += this.vy; const dpr = window.devicePixelRatio || 1;
-        if (this.y < -this.size * 4 || this.y > canvas.height/dpr + this.size * 4 || this.x < -this.size * 4 || this.x > canvas.width/dpr + this.size * 4) this.alive = false;
-    }
-    draw(ctx) {
-        if (this.text) {
-            ctx.fillStyle = this.color; ctx.font = 'bold 20px "Segoe UI"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-            ctx.shadowColor = 'rgba(255,255,255,0.8)'; ctx.shadowBlur = 5; ctx.fillText(this.text, this.x, this.y);
-            ctx.shadowBlur = 0; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-        } else {
-            // 専用弾の描画はキャラ専用ファイルで行うため、ここは敵弾などのデフォルト丸弾
-            ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+        if (this.isTimeStopped) {
+            this.player.updateBomb(this, sW, sH);
+            this.explosions.forEach(ex => ex.update());
+            this.explosions = this.explosions.filter(ex => !ex.isDead);
+            return 'PLAYING'; 
         }
-    }
-}
 
-class Item {
-    constructor(type, x, y) { this.type = type; this.x = x; this.y = y; this.size = 15; this.alive = true; this.vy = 2; this.angle = 0; }
-    update(canvas) { this.y += this.vy; this.angle += 0.1; this.x += Math.sin(this.angle) * 1; if (this.y > canvas.height/(window.devicePixelRatio||1) + this.size) this.alive = false; }
-    draw(ctx) {
-        // ★修正：既存の三項演算子を拡張してボムの色（水色）を追加
-        ctx.fillStyle = this.type === 'power' ? '#ffaa00' : (this.type === 'bomb' ? '#33ccff' : '#33ff33'); ctx.beginPath();
-        if (this.type === 'power') {
-            for (let i = 0; i < 5; i++) { const ang = i * Math.PI * 2 / 5 - Math.PI / 2; ctx.lineTo(this.x + Math.cos(ang) * this.size, this.y + Math.sin(ang) * this.size); }
-        } else if (this.type === 'bomb') {
-            // ★追加：ボムアイテムは丸い形にする
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        } else {
-            ctx.rect(this.x - this.size, this.y - this.size / 3, this.size * 2, this.size / 1.5); ctx.fill(); ctx.beginPath(); ctx.rect(this.x - this.size / 3, this.y - this.size, this.size / 1.5, this.size * 2);
-        }
-        ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
+        this.frame++; this.stageTimer++;
         
-        // ★修正：既存の三項演算子を拡張して 'B' の文字を追加
-        ctx.fillText(this.type === 'power' ? 'P' : (this.type === 'bomb' ? 'B' : 'H'), this.x, this.y + 6); ctx.textAlign = 'left'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    }
-}
+        this.player.update(canvas); if (!this.player.isEntering && this.frame % 8 === 0) this.player.shoot(); 
+        
+        if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
+        if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
 
-class Explosion {
-    constructor(x, y, targetSize, advManager) {
-        this.x = x; this.y = y; this.targetSize = targetSize * 1.5; 
-        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.png'] : null;
-        this.isDead = false; this.cols = 3; this.rows = 3; this.frameIndex = 0; this.totalFrames = 9; 
-        this.timer = 0; this.interval = 3; 
-        if (this.img && this.img.naturalWidth > 0) {
-            this.sw = this.img.width / this.cols; this.sh = this.img.height / this.rows;
-        } else { this.isDead = true; }
-    }
-    update() {
-        if (this.isDead) return;
-        this.timer++;
-        if (this.timer >= this.interval) {
-            this.timer = 0; this.frameIndex++;
-            if (this.frameIndex >= this.totalFrames) this.isDead = true; 
+        if (!this.bossSpawned && this.enemies.some(e => e.isBoss)) {
+            this.bossSpawned = true;
         }
+
+        let hasNewBoss = false;
+        for (let e of this.enemies) {
+            if (e.isBoss && !e.advTriggered) {
+                hasNewBoss = true;
+                e.advTriggered = true;
+                e.isHidden = true; 
+            }
+        }
+
+        // ★変更：1回だけのロック(!this.bossAdvTriggered)を外し、新しいボスが出るたびに実行できるようにした
+        if (hasNewBoss) {
+            this.bossAdvTriggered = true;
+            this.bossAdvCount++; // ★追加：何回目のADVかをカウント
+            
+            let midAdvData = [];
+            try {
+                const charId = this.player.id || 'igari';
+                let charScenario = null;
+                if (typeof scenarios !== 'undefined') {
+                    charScenario = scenarios[charId];
+                } else if (window.scenarios) {
+                    charScenario = window.scenarios[charId];
+                }
+
+                if (charScenario) {
+                    for (let stageKey in charScenario) {
+                        if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId) {
+                            // ★追加：回数に応じて、mid_stg または mid_stg2 以降を取得する
+                            let advKey = (this.bossAdvCount === 1) ? 'mid_stg' : 'mid_stg' + this.bossAdvCount;
+                            if (charScenario[stageKey][advKey]) {
+                                midAdvData = charScenario[stageKey][advKey];
+                            }
+                            break;
+                        }
+                    }
+                }
+            } catch(e) { console.warn("ADV取得エラー", e); }
+
+            const onAdvEnd = () => {
+                this.isTimeStopped = false; 
+                this.enemies.forEach(e => { if (e.isBoss) e.isHidden = false; });
+                if (!this.bgmChanged) {
+                    this.bgmChanged = true;
+                    if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_' + this.stgId);
+                }
+            };
+
+            if (midAdvData.length > 0 && typeof window.startMidStgADV === 'function') {
+                this.isTimeStopped = true; 
+                window.startMidStgADV(midAdvData, onAdvEnd);
+            } else {
+                onAdvEnd();
+            }
+        }
+
+        this.player.bullets.forEach(b => b.update(canvas)); this.enemyBullets.forEach(b => b.update(canvas));
+        this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
+        this.items.forEach(it => it.update(canvas)); this.items = this.items.filter(it => it.alive);
+        
+        this.explosions.forEach(ex => ex.update()); this.explosions = this.explosions.filter(ex => !ex.isDead);
+
+        for (let e of this.enemies) {
+            if (e.isHidden) continue;
+
+            if (e.isDying) {
+                e.deathTimer++;
+                if (e.deathTimer === 1) this.flashTimer = 15;
+                if (e.deathTimer === 30) this.flashTimer = 15;
+                if (e.deathTimer === 60) { this.flashTimer = 20; this.shakeTimer = 120; }
+                if (e.deathTimer >= 60 && e.deathTimer < 180) {
+                    if (this.frame % 4 === 0) {
+                        const exX = e.x + (Math.random() - 0.5) * e.size * 2.5; const exY = e.y + (Math.random() - 0.5) * e.size * 2.5;
+                        this.explosions.push(new Explosion(exX, exY, (e.size * 2) * (Math.random() * 0.5 + 0.5), this.advManager));
+                        if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                    }
+                }
+                if (e.deathTimer >= 180) {
+                    e.alive = false; 
+                    
+                    // ★ここだけ変更：中ボスの撃破でステージが終わらないよう、他にボスが残っていないかチェック
+                    if (!this.enemies.some(enemy => enemy.isBoss && enemy.alive && enemy !== e)) {
+                        this.isStageClear = true;
+                    }
+
+                    this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
+                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                }
+                continue; 
+            }
+
+            e.update(canvas, this.player);
+            if (e.alive && !this.player.isEntering && this.config.shootEnemy) this.config.shootEnemy(e, this);
+
+            this.player.bullets.forEach(b => {
+                if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
+                    b.alive = false; e.hp--;
+                    if (e.hp <= 0) {
+                        if (e.isBoss) {
+                            e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
+                        } else {
+                            e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
+                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                            if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
+                        }
+                    }
+                }
+            });
+            
+            if (e.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((e.x-this.player.x)**2 + (e.y-this.player.y)**2) < (e.size+this.player.size)/2) {
+                this.player.hp--; this.player.invincibleTimer = 90; 
+                if (this.player.hp <= 0) return 'GAMEOVER';
+            }
+        }
+        this.enemies = this.enemies.filter(e => e.alive);
+        
+        for (let eb of this.enemyBullets) {
+            if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
+                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 90; 
+                if (this.player.hp <= 0) return 'GAMEOVER';
+            }
+        }
+        
+        this.items.forEach(it => {
+            if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
+                it.alive = false;
+                if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
+                else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
+            }
+        });
+
+        if (this.isStageClear) return 'STAGE_CLEAR';
+        return 'PLAYING';
     }
+
     draw(ctx) {
-        if (this.isDead || !this.img) return;
-        const fx = this.frameIndex % this.cols, fy = Math.floor(this.frameIndex / this.cols);
-        ctx.drawImage(this.img, fx * this.sw, fy * this.sh, this.sw, this.sh, this.x - this.targetSize / 2, this.y - this.targetSize / 2, this.targetSize, this.targetSize);
+        const c = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = c.width/dpr, sH = c.height/dpr;
+        ctx.save();
+        
+        let shakeX = 0, shakeY = 0;
+        if (this.shakeTimer > 0) {
+            shakeX = (Math.random() - 0.5) * 15; shakeY = (Math.random() - 0.5) * 15;
+            ctx.translate(shakeX, shakeY);
+            if (!this.isTimeStopped) this.shakeTimer--;
+        }
+
+        if (this.config && this.config.drawBackground) { this.config.drawBackground(this, ctx, sW, sH); } 
+        else {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, sW, sH);
+            ctx.fillStyle = '#ff3366'; ctx.font = 'bold 16px sans-serif'; ctx.fillText("【エラー】ステージデータが読み込まれていません！", 20, 60);
+        }
+
+        this.player.bullets.forEach(b => b.draw(ctx)); 
+        this.enemies.forEach(e => { if (!e.isHidden) e.draw(ctx); });
+        this.explosions.forEach(ex => ex.draw(ctx)); 
+        this.enemyBullets.forEach(eb => eb.draw(ctx)); 
+        this.items.forEach(it => it.draw(ctx)); 
+        
+        this.player.draw(ctx, this.advManager); 
+        this.player.drawBomb(this, ctx, sW, sH, shakeX, shakeY);
+
+        if (this.flashTimer > 0) {
+            ctx.fillStyle = `rgba(255, 255, 255, ${this.flashTimer / 20})`; 
+            ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
+            if (!this.isTimeStopped) this.flashTimer--;
+        }
+        ctx.restore();
+        
+        const pHP = Math.max(0, this.player.hp);
+        ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 310, 40); 
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 310, 40);
+        
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px sans-serif'; 
+        ctx.fillText(`HP: ${pHP}/${this.player.maxHp}`, 20, sH - 25);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(90, sH - 37, 100, 15);
+        ctx.fillStyle = '#33ff33'; ctx.fillRect(90, sH - 37, 100 * (pHP / this.player.maxHp), 15);
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(90, sH - 37, 100, 15);
+        
+        ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 205, sH - 25);
     }
 }
