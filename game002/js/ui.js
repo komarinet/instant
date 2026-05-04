@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.5"; // バージョン更新（Stage 6: stg_cap.js のバージョン表示に対応）
+export const VER_UI = "0.3.8"; // バージョン更新（3dbg_objects.js のバージョン表示を追加）
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -82,6 +82,7 @@ export function showVersions(moduleVersions) {
     const dVer = getV('VER_DATA');
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
+    const b3ObjVer = getV('VER_3DBG_OBJ'); // ★追加：3dbg_objects.jsのバージョンを取得
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
@@ -104,7 +105,7 @@ export function showVersions(moduleVersions) {
             data:v${dVer}<br>
             adv:v${aVer}<br>
             3dbg:v${b3Ver}<br>
-            main:v${moduleVersions.main}<br>
+            3dbo:v${b3ObjVer}<br> main:v${moduleVersions.main}<br>
             conf:v${moduleVersions.config}<br>
             aud:v${moduleVersions.audio}<br>
             ui:v${moduleVersions.ui}<br>
