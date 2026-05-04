@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.8"; // バージョン更新（既存コードを一切削除せず、ボムドロップと取得処理を追記）
+const VER_STG_CORE = "0.8.9"; // バージョン更新（既存コードを一切削除せず、中ボス撃破時の誤クリア防止を追記）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -262,6 +262,11 @@ class STGManager {
                     // ★ここだけ変更：中ボスの撃破でステージが終わらないよう、他にボスが残っていないかチェック
                     if (!this.enemies.some(enemy => enemy.isBoss && enemy.alive && enemy !== e)) {
                         this.isStageClear = true;
+                    }
+                    
+                    // ★完全新規追記：ただし、フェーズ管理があるステージで、まだ最終フェーズ（4）に到達していない場合はクリアを取り消す
+                    if (this.phase !== undefined && this.phase < 4) {
+                        this.isStageClear = false;
                     }
 
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
