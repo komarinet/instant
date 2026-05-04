@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.4.0"; // 道中延長、ザコの速度調整（早すぎた飛行機の減速）
+const VER_STG_CAP = "0.5.0"; // 道中延長、ザコaの減速、およびフェーズ管理完全版
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -16,6 +16,7 @@ window.StageConfigs['final'] = {
     updateBackground: function(stg, sW, sH) {},
     drawBackground: function(stg, ctx, sW, sH) {},
     getEnemyData: function(type) {
+        // a〜eが全て出ます
         if (type === 'gtypea') return { imgSrc: 'gtypea.png', size: 22, hp: 2, maxHp: 2 };
         if (type === 'gtypeb') return { imgSrc: 'gtypeb.png', size: 30, hp: 5, maxHp: 5 };
         if (type === 'gtypec') return { imgSrc: 'gtypec.png', size: 26, hp: 3, maxHp: 3 };
@@ -29,13 +30,13 @@ window.StageConfigs['final'] = {
     updateWaves: function(stg, timer, sW, sH) {
         // フェーズ1：最初のトレンチ疾走（ザコ敵）
         if (stg.phase === 1) {
-            // ★修正: 中ボスまでの道中を 2500フレーム（約40秒）に大幅延長！
+            // ★修正: 中ボスまでの道中を大幅に延長（2500フレーム）
             if (timer > 100 && timer < 2500) {
                 if (timer % 60 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer % 150 === 0) stg.enemies.push(new Enemy('gtypeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer > 500 && timer % 120 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 
-                // dとe（固定砲台）は画面端付近に出現するように調整
+                // dとe（固定砲台）は壁の近くに配置
                 if (timer % 180 === 0) {
                     const isLeft = Math.random() > 0.5;
                     const xPos = isLeft ? sW * 0.15 : sW * 0.85; 
@@ -46,7 +47,7 @@ window.StageConfigs['final'] = {
                     stg.enemies.push(new Enemy('gtypee', xPos, -50, stg.player.charData, stg.advManager, stg.stgId));
                 }
             }
-            // ★修正: 2600フレームで中ボス（GODAIコピー）2機出現
+            // 2600フレームで中ボス（GODAIコピー）2機出現
             if (timer === 2600) {
                 let b1 = new Enemy('gtypeboss', sW * 0.25, -100, stg.player.charData, stg.advManager, stg.stgId);
                 let b2 = new Enemy('gtypeboss', sW * 0.75, -100, stg.player.charData, stg.advManager, stg.stgId);
@@ -57,6 +58,7 @@ window.StageConfigs['final'] = {
             }
         }
         
+        // フェーズ2：中ボス戦闘＆撃破後、床が割れる
         else if (stg.phase === 2) {
             let bossAlive = stg.enemies.some(e => e.type === 'gtypeboss');
             if (!bossAlive && !stg.isTimeStopped) {
@@ -74,6 +76,7 @@ window.StageConfigs['final'] = {
             }
         }
         
+        // フェーズ3：赤いコア空間でのザコ戦
         else if (stg.phase === 3) {
             stg.phaseTimer++;
             if (stg.phaseTimer > 0 && stg.phaseTimer < 600) {
@@ -81,6 +84,7 @@ window.StageConfigs['final'] = {
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
             
+            // ザコ戦終了後、最終ボス出現（透明の当たり判定）
             if (stg.phaseTimer === 700) {
                 let boss = new Enemy('capboss', sW/2, sH * 0.25, stg.player.charData, stg.advManager, stg.stgId);
                 boss.draw = function(ctx) {
@@ -104,7 +108,7 @@ window.StageConfigs['final'] = {
         e.moveTimer = (e.moveTimer || 0) + 1;
         
         if (e.type === 'gtypea') { 
-            // ★修正: 早すぎたので y+=5 から 3.5 に減速し、蛇行幅も調整
+            // ★修正: 飛行機aの速度を 5 から 3.5 へ減速
             e.y += 3.5; e.x += Math.sin(e.moveTimer * 0.05) * 3; 
         } 
         else if (e.type === 'gtypeb') { 
@@ -112,11 +116,10 @@ window.StageConfigs['final'] = {
             else { e.x += Math.cos(e.moveTimer * 0.03) * 2.5; if (e.moveTimer > 250) e.y -= 2; }
         }
         else if (e.type === 'gtypec') { 
-            // ★修正: y+=4 から 2.5 に減速
+            // ★修正: 飛行機cの速度を 4 から 2.5 へ減速
             e.y += 2.5; if (e.y < canvas.height/dpr * 0.8) e.x += (player.x - e.x) * 0.025; 
         }
         else if (e.type === 'gtyped' || e.type === 'gtypee') {
-            // dとeは固定砲台なので、背景スクロールと大体同じ速度で降りてきます
             e.y += 2.5; 
         }
         else if (e.type === 'gtypeboss') {
@@ -128,6 +131,7 @@ window.StageConfigs['final'] = {
             }
         }
         else if (e.type === 'capboss') {
+            // ボス当たり判定位置（背景コアと一致する位置）
             e.x = canvas.width/dpr/2;
             e.y = canvas.height/dpr * 0.25;
         }
