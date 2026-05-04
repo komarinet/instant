@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.1.3"; // バージョン更新（月の巨大化スピード・最大サイズをアスペクト比で動的計算）
+const VER_3DBG_OBJ = "0.1.4"; // バージョン更新（トレンチの壁のベース幅を広げ、画面端に比率配置する）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -244,7 +244,8 @@ window.BG3DObjects = {
             wallMat = new THREE.MeshPhongMaterial({ color: 0x333333 });
         }
         
-        const edgeX = 40 * m.camera.aspect;
+        // ★修正：ベース値を90に広げて、画面端にフィットさせます
+        const edgeX = 90 * m.camera.aspect;
         const wallGeo = new THREE.PlaneGeometry(3000, 300);
         
         m.trenchLeftWall = new THREE.Mesh(wallGeo, wallMat);
@@ -289,7 +290,6 @@ window.BG3DObjects = {
     updateAnimations: function(m) {
         if (m.currentStage === 5) {
             if (m.moon) {
-                // ★追加：アスペクト比に基づいた計算（スマホなら0.5前後）
                 const aspectFactor = Math.min(1, m.camera.aspect);
                 const targetScale = 4.5 * aspectFactor;
                 
@@ -297,7 +297,6 @@ window.BG3DObjects = {
                     m.moon.position.y += 0.55; 
                 }
                 
-                // ★追加：巨大化のスピードもスマホ幅に合わせて調整（到達タイミングをPCと合わせる）
                 if (m.moon.scale.x < targetScale) { 
                     m.moon.scale.x += 0.0009 * aspectFactor; 
                     m.moon.scale.y += 0.0009 * aspectFactor;
@@ -316,7 +315,8 @@ window.BG3DObjects = {
             if (m.trenchGroup && m.trenchGroup.visible) {
                 
                 if (!m.isCoreTransitioning) {
-                    const dynamicEdgeX = 40 * m.camera.aspect; 
+                    // ★修正：ベース値を90に広げて、画面端にフィットさせます
+                    const dynamicEdgeX = 90 * m.camera.aspect; 
                     m.trenchLeftWall.position.x = -dynamicEdgeX;
                     m.trenchRightWall.position.x = dynamicEdgeX;
                 }
