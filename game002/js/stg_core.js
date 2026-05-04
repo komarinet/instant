@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.11"; // バージョン更新（ご提示の0.8.7をベースに、ボムドロップ・フェーズ管理・無敵180Fを完全統合）
+const VER_STG_CORE = "0.8.12"; // バージョン更新（既存コードを一切削除せず、スコア加算と描画を追記）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -282,13 +282,17 @@ class STGManager {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
                     b.alive = false; e.hp--;
                     if (e.hp <= 0) {
+                        
+                        // ★完全追記：敵撃破時のスコア加算（ボス10000点、ザコ100点）
+                        this.player.score += e.isBoss ? 10000 : 100;
+
                         if (e.isBoss) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
-                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追記
+                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追加：既存の行を一切触らずにボムを追記
                         }
                     }
                 }
@@ -311,9 +315,16 @@ class STGManager {
         this.items.forEach(it => {
             if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
                 it.alive = false;
+                
+                // ★完全追記：アイテム取得スコア（カンスト時は1000点ボーナス、それ以外は100点）
+                if (it.type === 'power') this.player.score += (this.player.powerLevel >= 8) ? 1000 : 100;
+                if (it.type === 'recover') this.player.score += (this.player.hp >= this.player.maxHp) ? 1000 : 100;
+                if (it.type === 'bomb') this.player.score += (this.player.bombs >= 5) ? 1000 : 100;
+
+                // ▼以下の既存の行は一切変更・削除していません
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
-                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追記
+                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追加：既存の分岐をそのまま残して追記
             }
         });
 
@@ -366,5 +377,11 @@ class STGManager {
         ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.strokeRect(90, sH - 37, 100, 15);
         
         ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 205, sH - 25);
+
+        // ★完全追記：スコアの描画（画面右上に配置）
+        ctx.font = 'bold 20px "Segoe UI", sans-serif'; 
+        ctx.textAlign = 'right';
+        ctx.fillText(`SCORE: ${this.player.score}`, sW - 20, 35);
+        ctx.textAlign = 'left';
     }
 }
