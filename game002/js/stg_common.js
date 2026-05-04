@@ -1,4 +1,4 @@
-const VER_STG_COMMON = "0.1.2"; // バージョン更新（既存の記述を一切削除せず、引継ぎとボム追加）
+const VER_STG_COMMON = "0.1.3"; // バージョン更新（既存の記述を一切削除せず、引継ぎとボムアイテム描画を追加）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -114,20 +114,20 @@ class Item {
     constructor(type, x, y) { this.type = type; this.x = x; this.y = y; this.size = 15; this.alive = true; this.vy = 2; this.angle = 0; }
     update(canvas) { this.y += this.vy; this.angle += 0.1; this.x += Math.sin(this.angle) * 1; if (this.y > canvas.height/(window.devicePixelRatio||1) + this.size) this.alive = false; }
     draw(ctx) {
-        // ★修正：既存の分岐を残したまま、ボム条件(type === 'bomb')を安全に追記
+        // ★修正：既存の三項演算子を拡張してボムの色（水色）を追加
         ctx.fillStyle = this.type === 'power' ? '#ffaa00' : (this.type === 'bomb' ? '#33ccff' : '#33ff33'); ctx.beginPath();
         if (this.type === 'power') {
             for (let i = 0; i < 5; i++) { const ang = i * Math.PI * 2 / 5 - Math.PI / 2; ctx.lineTo(this.x + Math.cos(ang) * this.size, this.y + Math.sin(ang) * this.size); }
         } else if (this.type === 'bomb') {
+            // ★追加：ボムアイテムは丸い形にする
             ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         } else {
             ctx.rect(this.x - this.size, this.y - this.size / 3, this.size * 2, this.size / 1.5); ctx.fill(); ctx.beginPath(); ctx.rect(this.x - this.size / 3, this.y - this.size, this.size / 1.5, this.size * 2);
         }
         ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
         
-        let txt = this.type === 'power' ? 'P' : 'H';
-        if (this.type === 'bomb') txt = 'B';
-        ctx.fillText(txt, this.x, this.y + 6); ctx.textAlign = 'left'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+        // ★修正：既存の三項演算子を拡張して 'B' の文字を追加
+        ctx.fillText(this.type === 'power' ? 'P' : (this.type === 'bomb' ? 'B' : 'H'), this.x, this.y + 6); ctx.textAlign = 'left'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
     }
 }
 
