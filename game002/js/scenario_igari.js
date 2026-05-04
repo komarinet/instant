@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.5.1"; // バージョン更新（最新版をベースにステージ6のシナリオを追加）
+const VER_SCENARIO_IGARI = "0.5.2"; // バージョン更新（ステージ6に mid_stg と mid_stg2 の2段階ADVを実装）
 
 window.scenarios = window.scenarios || {};
 
@@ -371,7 +371,16 @@ scenarios.igari = {
             { bg: 'univ.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '能書きはもういい。さっさとぶっ飛ばして帰るぞ。', isRight: true },
             { bg: 'univ.png', character: 'cap.png', spriteIndex: 4, speaker: '隊長', text: 'いいだろう。私が直々に貴様らを歴史から消去してやる！', isRight: false, effect: 'shake' }
         ],
-        mid_stg: [],
+        mid_stg: [
+            { bg: 'trench_floor.png', character: 'godaimo.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '侵入者ヲ検知。排除シマス。', isRight: false },
+            { bg: 'trench_floor.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'こいつ、G・O・D・A・Iか！？いや、量産型のコピーか！', isRight: true },
+            { bg: 'trench_floor.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '何機来ようが、まとめてスクラップにしてやる！', isRight: true }
+        ],
+        mid_stg2: [
+            { bg: 'core_bg.png', character: 'cap.png', spriteIndex: 0, speaker: '隊長', text: '防衛ラインを突破し、ここまで辿り着くとはな。', isRight: false },
+            { bg: 'core_bg.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'お前が諸悪の根源か。ここで終わらせてやる！', isRight: true },
+            { bg: 'core_bg.png', character: 'cap.png', spriteIndex: 4, speaker: '隊長', text: '私が直々に貴様らを歴史から消去してやる！', isRight: false, effect: 'shake' }
+        ],
         post_stg: [
             { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 6, speaker: '隊長', text: 'ば、馬鹿な！我が科学文明軍の誇る究極兵器が…！', delay: 60, isRight: false, bgm: 'stop' },
             { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 8, speaker: '隊長', text: 'グハァッ…！', isRight: false, effect: 'shake' },
