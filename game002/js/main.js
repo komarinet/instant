@@ -1,13 +1,12 @@
-const VER_MAIN = "0.8.8"; // バージョン更新（サントラ移行時の処理を強化）
+const VER_MAIN = "0.8.9"; // バージョン更新（120Hzスマホでのタッチ時倍速バグを防止するFPS制御を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
 import * as ui from './ui.js';
-import * as st from './soundtrack.js'; // ★追加：サントラモジュールの読み込み
+import * as st from './soundtrack.js'; 
 
 window.VER_MAIN = VER_MAIN;
 
-// ★追加：モジュール内でインポートした音響システムを、外部のSTGシステムからも呼べるように窓口を開く
 window.soundManager = soundManager; 
 
 const getGlobal = (varName, fallback) => {
@@ -23,7 +22,6 @@ const getGlobal = (varName, fallback) => {
 let selectedCharId = 'igari';
 
 let currentStage = 1;
-// ★追加：3D背景システムがステージ番号を監視できるように窓口を開く
 window.currentStage = currentStage; 
 
 let gameState = 'UI'; 
@@ -33,13 +31,17 @@ const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
 const advManager = new ADVManager();
-// ★追加：STGシステムが敵の画像を読み込めるように窓口を開く
 window.advManager = advManager; 
 
 let stgManager = null;
 let bgManager3D = null;
 let dpr = window.devicePixelRatio || 1;
 let gameLoopId;
+
+// ★追加：60FPS固定用のタイマー変数
+let lastFrameTime = performance.now();
+const TARGET_FPS = 60;
+const FRAME_INTERVAL = 1000 / TARGET_FPS;
 
 // --- 画面遷移の外部公開 ---
 window.changeScreen = function(screenId) {
@@ -57,21 +59,18 @@ window.changeScreen = function(screenId) {
     ui.updateGameUI(gameState, selectedCharId, stgManager);
     if (screenId === 'title-screen' || screenId === 'char-select-screen') {
         soundManager.stopBGM();
-        // ★追加：タイトル・キャラ選択画面に戻った時はタイトルBGMを鳴らす
         soundManager.playBGM('title'); 
     }
 };
 
-// ★追加：サントラ画面を開くときの処理
 window.openSoundtrack = function() {
-    soundManager.stopBGM(); // 本編のタイトルBGMを止める
+    soundManager.stopBGM(); 
     window.changeScreen('soundtrack-screen');
-    st.initSoundtrack(); // ★追加：サントラのUIを初期状態にリセットする
+    st.initSoundtrack(); 
 };
 
-// ★追加：サントラ画面から戻るときの処理
 window.closeSoundtrack = function() {
-    st.forceStop(); // サントラの再生を強制停止
+    st.forceStop(); 
     window.changeScreen('title-screen');
 };
 
@@ -141,7 +140,6 @@ async function init() {
         return soundManager.toggleMute();
     });
 
-    // ★追加：サントラの初期化を呼び出す
     st.initSoundtrack();
     
     ui.showVersions({
@@ -165,7 +163,6 @@ async function init() {
     
     ui.initStageListTexts();
 
-    // ★追加：起動時にタイトルBGMを再生開始
     soundManager.playBGM('title');
 
     if (pendingStageStart !== null) {
@@ -198,7 +195,7 @@ function executeStart(stageNum) {
     if (skipBtn) skipBtn.classList.remove('hidden');
 
     currentStage = stageNum;
-    window.currentStage = currentStage; // ★追加：ステージ切り替え時に窓口の番号も更新
+    window.currentStage = currentStage; 
 
     stgManager = null;
 
@@ -237,6 +234,7 @@ function executeStart(stageNum) {
             });
         });
         cancelAnimationFrame(gameLoopId);
+        lastFrameTime = performance.now(); // ★追加：ループ再開前に時間をリセット
         loop();
 
     } else {
@@ -261,6 +259,7 @@ function executeStart(stageNum) {
             });
         });
         cancelAnimationFrame(gameLoopId);
+        lastFrameTime = performance.now(); // ★追加：ループ再開前に時間をリセット
         loop();
     }
 }
@@ -303,7 +302,6 @@ function handleStgEnter() {
     stgManager.draw(ctx);
     if (stgManager.updateEntrance()) {
         gameState = 'STG_PLAY';
-        // ★修正：どのキャラのステージか（stgId）を判定して、自動で対応する道中BGMを流す
         const bgmKey = `stage_${stgManager.stgId}`;
         soundManager.playBGM(bgmKey);
     }
@@ -317,14 +315,12 @@ function handleStgPlay() {
         gameState = 'UI';
         stgManager = null; 
         soundManager.stopBGM(); 
-        // ★追加：ゲームオーバーBGMを再生
         soundManager.playBGM('gameover');
         document.getElementById('result-title').innerText = "GAME OVER";
         window.changeScreen('result-screen');
     } else if (status === 'STAGE_CLEAR') {
         gameState = 'POST_STG_DIALOGUE';
         soundManager.stopBGM(); 
-        // ★追加：ADV（会話）に入るので、一旦BGMを平穏な曲にする
         soundManager.playBGM('relax');
         
         const skipBtn = document.getElementById('skip-btn');
@@ -357,7 +353,7 @@ function handleTransitionFade() {
     transitionTimer--;
     if (transitionTimer <= 0) {
         currentStage++;
-        window.currentStage = currentStage; // ★追加：ステージ進行時に窓口の番号も更新
+        window.currentStage = currentStage; 
 
         const safeChars = getGlobal('characters', []);
         const safeScenarios = getGlobal('scenarios', {});
@@ -384,7 +380,6 @@ function handleTransitionFade() {
         } else {
             gameState = 'UI';
             stgManager = null; 
-            // ★追加：全クリア時は「clear」BGMを再生
             soundManager.playBGM('clear');
             document.getElementById('result-title').innerText = "ALL CLEAR!";
             document.getElementById('result-title').style.color = "#00ffff";
@@ -394,7 +389,23 @@ function handleTransitionFade() {
 }
 
 // --- メインループ ---
-function loop() {
+function loop(timestamp) {
+    // 次のフレームを要求
+    gameLoopId = requestAnimationFrame(loop);
+
+    // ★追加：120Hzディスプレイ等での倍速動作を防ぐためのFPS制御処理
+    if (!timestamp) timestamp = performance.now();
+    const elapsed = timestamp - lastFrameTime;
+
+    // 16.6ms（60FPSの設定間隔）経っていなければ、描画や更新処理をスキップする
+    if (elapsed < FRAME_INTERVAL) {
+        return;
+    }
+
+    // 次回の計算基準時間を設定（余剰時間を差し引いて精度を上げる）
+    lastFrameTime = timestamp - (elapsed % FRAME_INTERVAL);
+
+    // ▼▼ これより下は既存の処理そのまま ▼▼
     if (gameState === 'UI') return;
     
     ui.updateGameUI(gameState, selectedCharId, stgManager);
@@ -438,8 +449,6 @@ function loop() {
             handleTransitionFade();
             break;
     }
-
-    gameLoopId = requestAnimationFrame(loop);
 }
 
 window.startMidStgADV = (scenarioData, onComplete) => {
