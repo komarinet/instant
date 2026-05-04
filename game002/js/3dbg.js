@@ -1,4 +1,4 @@
-const VER_3DBG = "0.5.3"; // バージョン更新（月とコアの大きさをアスペクト比に依存させる修正）
+const VER_3DBG = "0.6.0"; // バージョン更新（床が割れる演出に合わせてコアを初期から背面に配置）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -19,7 +19,8 @@ class BGManager3D {
         this.moonLight = null; 
 
         this.trenchGroup = null;
-        this.trenchFloor = null;
+        this.trenchFloorLeft = null;  // ★修正：床を左右分割に対応
+        this.trenchFloorRight = null; // ★修正：床を左右分割に対応
         this.trenchLeftWall = null;
         this.trenchRightWall = null;
         this.coreGroup = null;
@@ -186,13 +187,18 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                const edgeX = 40 * this.camera.aspect;
+                const edgeX = 90 * this.camera.aspect; // ★修正：40から90へ広げました
                 this.trenchLeftWall.position.x = -edgeX;
                 this.trenchRightWall.position.x = edgeX;
+                // ★追加：床の隙間を閉じておく（リセット）
+                if (this.trenchFloorLeft) {
+                    this.trenchFloorLeft.position.x = -500;
+                    this.trenchFloorRight.position.x = 500;
+                }
             }
             if (this.coreGroup) {
-                this.coreGroup.visible = false; 
-                this.coreGroup.position.y = -1500; 
+                this.coreGroup.visible = true; // ★修正：床の奥に常に表示しておく
+                this.coreGroup.position.y = 0; // ★修正：-1500から0へ
                 
                 // ★追加：ボスのコア球体もスマホ幅に合わせて縮小
                 if (this.coreReactor) {
