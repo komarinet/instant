@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.5"; // バージョン更新（壁テクスチャの90度回転と、スクロール軸の修正）
+const VER_3DBG_OBJ = "0.3.6"; // バージョン更新（壁の密度低下と、コアの自動上昇アニメーション削除）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -232,7 +232,6 @@ window.BG3DObjects = {
         m.trenchFloorRight.position.set(500, -60, -500);
         m.trenchGroup.add(m.trenchFloorRight);
 
-        // ★修正：テクスチャを90度回転させ、リピート比率も (40, 4) から (4, 40) に反転
         const wallTexLeft = m.textures.trenchWall ? m.textures.trenchWall.clone() : null;
         if (wallTexLeft) { 
             wallTexLeft.wrapS = THREE.MirroredRepeatWrapping; 
@@ -287,14 +286,14 @@ window.BG3DObjects = {
         m.coreFloorRight.position.set(500, -140, -500);
         m.coreGroup.add(m.coreFloorRight);
 
-        // ★修正：コア側（後半）の壁も同様に90度回転させて反転
+        // ★修正：後半の壁のリピート数を減らし、壁を少なく（模様を大きく）しました
         const coreWallTexLeft = m.textures.coreBg ? m.textures.coreBg.clone() : null;
         if (coreWallTexLeft) { 
             coreWallTexLeft.wrapS = THREE.MirroredRepeatWrapping; 
             coreWallTexLeft.wrapT = THREE.MirroredRepeatWrapping; 
             coreWallTexLeft.rotation = Math.PI / 2;
             coreWallTexLeft.center.set(0.5, 0.5);
-            coreWallTexLeft.repeat.set(4, 40); 
+            coreWallTexLeft.repeat.set(2, 10); 
             coreWallTexLeft.needsUpdate = true; 
         }
         const coreWallMatLeft = coreWallTexLeft ? new THREE.MeshPhongMaterial({ map: coreWallTexLeft, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
@@ -305,7 +304,7 @@ window.BG3DObjects = {
             coreWallTexRight.wrapT = THREE.MirroredRepeatWrapping; 
             coreWallTexRight.rotation = Math.PI / 2;
             coreWallTexRight.center.set(0.5, 0.5);
-            coreWallTexRight.repeat.set(4, 40); 
+            coreWallTexRight.repeat.set(2, 10); 
             coreWallTexRight.needsUpdate = true; 
         }
         const coreWallMatRight = coreWallTexRight ? new THREE.MeshPhongMaterial({ map: coreWallTexRight, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
@@ -381,7 +380,6 @@ window.BG3DObjects = {
                     m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.trenchLeftWall && m.trenchLeftWall.material.map) {
-                    // ★修正：テクスチャを90度回転させたため、流す軸を X ではなく Y (offset.y) に変更
                     m.trenchLeftWall.material.map.offset.y -= m.trenchScrollSpeed * 0.01 * delta;
                     m.trenchRightWall.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
@@ -394,10 +392,8 @@ window.BG3DObjects = {
                         if (m.trenchFloorLeft) m.trenchFloorLeft.position.x -= openSpeed;
                         if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
                     }
-
-                    if (m.coreReactor && m.coreReactor.position.y < -60) {
-                        m.coreReactor.position.y += 2.0 * delta;
-                    }
+                    
+                    // ★修正：ここにあった m.coreReactor の自動上昇処理を削除。2D側（stg_cap.js）から引き上げる形に変更。
                 }
             }
 
@@ -407,7 +403,6 @@ window.BG3DObjects = {
                     m.coreFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.coreLeftWall && m.coreLeftWall.material.map) {
-                    // ★修正：同じく Y 軸で流すように修正
                     m.coreLeftWall.material.map.offset.y -= m.trenchScrollSpeed * 0.01 * delta;
                     m.coreRightWall.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
