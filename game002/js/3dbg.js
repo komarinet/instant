@@ -1,4 +1,4 @@
-const VER_3DBG = "0.6.0"; // バージョン更新（床が割れる演出に合わせてコアを初期から背面に配置）
+const VER_3DBG = "0.6.5"; // バージョン更新（タッチ時の120Hzバグを防ぐためデルタタイムを導入）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -19,8 +19,8 @@ class BGManager3D {
         this.moonLight = null; 
 
         this.trenchGroup = null;
-        this.trenchFloorLeft = null;  // ★修正：床を左右分割に対応
-        this.trenchFloorRight = null; // ★修正：床を左右分割に対応
+        this.trenchFloorLeft = null;  
+        this.trenchFloorRight = null; 
         this.trenchLeftWall = null;
         this.trenchRightWall = null;
         this.coreGroup = null;
@@ -52,6 +52,9 @@ class BGManager3D {
         
         this.currentStage = 1;
         this.flameMaterial = null; 
+        
+        // ★デルタタイム用タイマー
+        this.lastTime = 0;
 
         if (!window._bgManagerInstance) {
             window._bgManagerInstance = this;
@@ -176,7 +179,6 @@ class BGManager3D {
         if (this.coreGroup) this.coreGroup.visible = false;
         this.isCoreTransitioning = false;
         
-        // ★PCの横長画面では1.0、スマホの縦長画面では0.5などの比率になる係数
         const aspectFactor = Math.min(1, this.camera.aspect);
 
         if (stageNum === 6) { 
@@ -187,21 +189,23 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                const edgeX = 90 * this.camera.aspect; // ★修正：40から90へ広げました
+                const edgeX = 90 * this.camera.aspect; 
                 this.trenchLeftWall.position.x = -edgeX;
                 this.trenchRightWall.position.x = edgeX;
-                // ★追加：床の隙間を閉じておく（リセット）
                 if (this.trenchFloorLeft) {
                     this.trenchFloorLeft.position.x = -500;
                     this.trenchFloorRight.position.x = 500;
                 }
             }
             if (this.coreGroup) {
-                this.coreGroup.visible = true; // ★修正：床の奥に常に表示しておく
-                this.coreGroup.position.y = 0; // ★修正：-1500から0へ
+                this.coreGroup.visible = true; 
+                this.coreGroup.position.y = 0; 
                 
-                // ★追加：ボスのコア球体もスマホ幅に合わせて縮小
+                // 床の表示状態を初期化
+                if (this.coreFloorLeft) this.coreFloorLeft.visible = true;
+                if (this.coreFloorRight) this.coreFloorRight.visible = true;
                 if (this.coreReactor) {
+                    this.coreReactor.visible = true;
                     this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
                 }
             }
@@ -218,7 +222,6 @@ class BGManager3D {
             if (this.moon) {
                 this.moon.visible = true;
                 this.moon.position.set(0, -4500, -1200); 
-                // ★追加：月の初期サイズもスマホ幅にフィットさせる
                 this.moon.scale.set(0.6 * aspectFactor, 0.6 * aspectFactor, 0.6 * aspectFactor); 
             }
             if (this.moonLight) this.moonLight.visible = true;
@@ -258,8 +261,15 @@ class BGManager3D {
         }
     }
 
-    loop() {
+    loop(timestamp) {
         if (!this.isActive) return;
+
+        // ★追加：タッチ等で120Hzにジャンプした際も速度を保つためのデルタタイム計算
+        if (!this.lastTime) this.lastTime = timestamp || performance.now();
+        const now = timestamp || performance.now();
+        let delta = (now - this.lastTime) / (1000 / 60); 
+        if (delta > 2 || delta <= 0) delta = 1; // 異常値セーフガード
+        this.lastTime = now;
 
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
@@ -268,10 +278,11 @@ class BGManager3D {
         }
 
         if (window.BG3DObjects) {
-            window.BG3DObjects.updateAnimations(this);
+            // 計算したデルタタイムを渡す
+            window.BG3DObjects.updateAnimations(this, delta);
         }
 
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame(() => this.loop());
+        requestAnimationFrame((t) => this.loop(t));
     }
 }
