@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.3"; // バージョン更新（壁のテクスチャ相殺バグ修正とデルタタイム適用）
+const VER_3DBG_OBJ = "0.3.5"; // バージョン更新（壁テクスチャの90度回転と、スクロール軸の修正）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -232,13 +232,27 @@ window.BG3DObjects = {
         m.trenchFloorRight.position.set(500, -60, -500);
         m.trenchGroup.add(m.trenchFloorRight);
 
-        // ★壁が個別にスクロールできるようマテリアルとテクスチャをクローンで分割
+        // ★修正：テクスチャを90度回転させ、リピート比率も (40, 4) から (4, 40) に反転
         const wallTexLeft = m.textures.trenchWall ? m.textures.trenchWall.clone() : null;
-        if (wallTexLeft) { wallTexLeft.wrapS = THREE.MirroredRepeatWrapping; wallTexLeft.wrapT = THREE.MirroredRepeatWrapping; wallTexLeft.repeat.set(40, 4); wallTexLeft.needsUpdate = true; }
+        if (wallTexLeft) { 
+            wallTexLeft.wrapS = THREE.MirroredRepeatWrapping; 
+            wallTexLeft.wrapT = THREE.MirroredRepeatWrapping; 
+            wallTexLeft.rotation = Math.PI / 2; 
+            wallTexLeft.center.set(0.5, 0.5);
+            wallTexLeft.repeat.set(4, 40); 
+            wallTexLeft.needsUpdate = true; 
+        }
         let wallMatLeft = wallTexLeft ? new THREE.MeshPhongMaterial({ map: wallTexLeft, emissive: 0x333333 }) : new THREE.MeshPhongMaterial({ color: 0x333333 });
 
         const wallTexRight = m.textures.trenchWall ? m.textures.trenchWall.clone() : null;
-        if (wallTexRight) { wallTexRight.wrapS = THREE.MirroredRepeatWrapping; wallTexRight.wrapT = THREE.MirroredRepeatWrapping; wallTexRight.repeat.set(40, 4); wallTexRight.needsUpdate = true; }
+        if (wallTexRight) { 
+            wallTexRight.wrapS = THREE.MirroredRepeatWrapping; 
+            wallTexRight.wrapT = THREE.MirroredRepeatWrapping; 
+            wallTexRight.rotation = Math.PI / 2;
+            wallTexRight.center.set(0.5, 0.5);
+            wallTexRight.repeat.set(4, 40); 
+            wallTexRight.needsUpdate = true; 
+        }
         let wallMatRight = wallTexRight ? new THREE.MeshPhongMaterial({ map: wallTexRight, emissive: 0x333333 }) : new THREE.MeshPhongMaterial({ color: 0x333333 });
 
         const edgeX = 90 * m.camera.aspect;
@@ -273,13 +287,27 @@ window.BG3DObjects = {
         m.coreFloorRight.position.set(500, -140, -500);
         m.coreGroup.add(m.coreFloorRight);
 
-        // ★赤い壁も独立してクローン
+        // ★修正：コア側（後半）の壁も同様に90度回転させて反転
         const coreWallTexLeft = m.textures.coreBg ? m.textures.coreBg.clone() : null;
-        if (coreWallTexLeft) { coreWallTexLeft.wrapS = THREE.MirroredRepeatWrapping; coreWallTexLeft.wrapT = THREE.MirroredRepeatWrapping; coreWallTexLeft.repeat.set(40, 4); coreWallTexLeft.needsUpdate = true; }
+        if (coreWallTexLeft) { 
+            coreWallTexLeft.wrapS = THREE.MirroredRepeatWrapping; 
+            coreWallTexLeft.wrapT = THREE.MirroredRepeatWrapping; 
+            coreWallTexLeft.rotation = Math.PI / 2;
+            coreWallTexLeft.center.set(0.5, 0.5);
+            coreWallTexLeft.repeat.set(4, 40); 
+            coreWallTexLeft.needsUpdate = true; 
+        }
         const coreWallMatLeft = coreWallTexLeft ? new THREE.MeshPhongMaterial({ map: coreWallTexLeft, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
 
         const coreWallTexRight = m.textures.coreBg ? m.textures.coreBg.clone() : null;
-        if (coreWallTexRight) { coreWallTexRight.wrapS = THREE.MirroredRepeatWrapping; coreWallTexRight.wrapT = THREE.MirroredRepeatWrapping; coreWallTexRight.repeat.set(40, 4); coreWallTexRight.needsUpdate = true; }
+        if (coreWallTexRight) { 
+            coreWallTexRight.wrapS = THREE.MirroredRepeatWrapping; 
+            coreWallTexRight.wrapT = THREE.MirroredRepeatWrapping; 
+            coreWallTexRight.rotation = Math.PI / 2;
+            coreWallTexRight.center.set(0.5, 0.5);
+            coreWallTexRight.repeat.set(4, 40); 
+            coreWallTexRight.needsUpdate = true; 
+        }
         const coreWallMatRight = coreWallTexRight ? new THREE.MeshPhongMaterial({ map: coreWallTexRight, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
         
         const redEdgeX = 140 * m.camera.aspect; 
@@ -308,7 +336,6 @@ window.BG3DObjects = {
         m.scene.add(m.coreGroup);
     },
 
-    // ★追加: 引数に delta を受け取るよう修正
     updateAnimations: function(m, delta = 1) {
         if (m.currentStage === 5) {
             if (m.moon) {
@@ -354,9 +381,9 @@ window.BG3DObjects = {
                     m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.trenchLeftWall && m.trenchLeftWall.material.map) {
-                    // ★修正：相殺を防ぐためのクローン化と、床の流れに合うように符号を反転
-                    m.trenchLeftWall.material.map.offset.x += m.trenchScrollSpeed * 0.01 * delta;
-                    m.trenchRightWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01 * delta;
+                    // ★修正：テクスチャを90度回転させたため、流す軸を X ではなく Y (offset.y) に変更
+                    m.trenchLeftWall.material.map.offset.y -= m.trenchScrollSpeed * 0.01 * delta;
+                    m.trenchRightWall.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
 
                 if (m.isCoreTransitioning) {
@@ -380,9 +407,9 @@ window.BG3DObjects = {
                     m.coreFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.coreLeftWall && m.coreLeftWall.material.map) {
-                    // ★修正：こちらも符号を反転
-                    m.coreLeftWall.material.map.offset.x += m.trenchScrollSpeed * 0.01 * delta;
-                    m.coreRightWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01 * delta;
+                    // ★修正：同じく Y 軸で流すように修正
+                    m.coreLeftWall.material.map.offset.y -= m.trenchScrollSpeed * 0.01 * delta;
+                    m.coreRightWall.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
 
                 if (m.coreReactor) {
