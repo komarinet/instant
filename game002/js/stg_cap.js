@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.8.5"; // バージョン更新（3D球体をボスに復元、床暗闇化を維持）
+const VER_STG_CAP = "0.8.6"; // バージョン更新（3Dコアと2Dボスの座標完全同期、登場タイミングの修正）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -23,7 +23,7 @@ window.StageConfigs['final'] = {
         if (type === 'gtypee') return { imgSrc: 'gtypee.png', size: 28, hp: 10, maxHp: 10 };
         
         if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.png', size: 45, hp: 150, maxHp: 150, isBoss: true };
-        // 画像はnullにし、当たり判定（サイズ60）だけを持たせる
+        // 画像はnull（3Dコアに任せる）、当たり判定（サイズ60）を持たせる
         if (type === 'capboss') return { imgSrc: null, size: 60, hp: 1500, maxHp: 1500, isBoss: true };
     },
 
@@ -63,7 +63,7 @@ window.StageConfigs['final'] = {
                         if (typeof window._bgManagerInstance.transitionToCore === 'function') {
                             window._bgManagerInstance.transitionToCore(); 
                         }
-                        // 床だけを非表示にし、3Dコアはそのまま表示させておく
+                        // 床だけを非表示にする
                         if (window._bgManagerInstance.coreFloorLeft) window._bgManagerInstance.coreFloorLeft.visible = false;
                         if (window._bgManagerInstance.coreFloorRight) window._bgManagerInstance.coreFloorRight.visible = false;
                     }
@@ -86,8 +86,9 @@ window.StageConfigs['final'] = {
             }
             
             if (stg.phaseTimer === 800) {
-                let boss = new Enemy('capboss', sW/2, sH * 0.25, stg.player.charData, stg.advManager, stg.stgId);
-                // カスタム描画関数でHPバーだけを描く（姿は3D側に任せる）
+                // ★修正：ザコ戦が終わった後、画面下（奥）から登場させる
+                let boss = new Enemy('capboss', sW/2, sH + 100, stg.player.charData, stg.advManager, stg.stgId);
+                // HPバーだけを描画
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
                     if (this.hp > 0 && !this.isDying) {
@@ -130,9 +131,29 @@ window.StageConfigs['final'] = {
             }
         }
         else if (e.type === 'capboss') {
-            // 当たり判定の位置は元のコード通り固定（3D側と合うように維持）
-            e.x = canvas.width/dpr/2;
-            e.y = canvas.height/dpr * 0.25;
+            // ★修正：下から上がり、定位置でゆっくり左右に動く
+            const tY = canvas.height/dpr * 0.25;
+            const startY = canvas.height/dpr + 100;
+            
+            if (e.y > tY) {
+                e.y += (tY - e.y) * 0.02; // 上へ移動
+            } else {
+                // 左右にゆっくり動く
+                e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
+            }
+
+            // ★追加：3D側のコアの座標を2Dの動きと完全に同期させる
+            if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
+                const cx = canvas.width/dpr/2;
+                // X座標の同期
+                window._bgManagerInstance.coreReactor.position.x = (e.x - cx) * 2.0; 
+                
+                // Y座標（奥行き）の同期
+                let yRatio = (e.y - tY) / (startY - tY);
+                if (yRatio < 0) yRatio = 0;
+                if (yRatio > 1) yRatio = 1;
+                window._bgManagerInstance.coreReactor.position.y = -60 - (yRatio * 240);
+            }
         }
     },
 
@@ -165,18 +186,19 @@ window.StageConfigs['final'] = {
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang-0.2)*5, Math.sin(ang-0.2)*5, '#ff5500'));
         }
         else if (e.type === 'capboss') {
+            // ★修正：コアの中心（e.y）から弾を発生させるように修正
             if (stg.frame % 30 === 0) {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
                     const offset = i * Math.PI / 2;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
                 }
             }
             if (stg.frame % 120 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
                 for(let i=-2; i<=2; i++) {
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
                 }
             }
         }
