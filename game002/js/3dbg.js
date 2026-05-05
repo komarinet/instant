@@ -1,4 +1,4 @@
-const VER_3DBG = "0.6.0"; // バージョン更新（床が割れる演出に合わせてコアを初期から背面に配置）
+const VER_3DBG = "0.7.1"; // バージョン更新（3D背景のコアグループを完全に削除）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -23,9 +23,6 @@ class BGManager3D {
         this.trenchFloorRight = null; // ★修正：床を左右分割に対応
         this.trenchLeftWall = null;
         this.trenchRightWall = null;
-        this.coreGroup = null;
-        this.coreBg = null;
-        this.coreReactor = null;
         this.isCoreTransitioning = false; 
         
         this.textures = {
@@ -36,9 +33,7 @@ class BGManager3D {
             candle: null,
             moon: null,
             trenchFloor: null, 
-            trenchWall: null, 
-            coreBg: null, 
-            coreReactor: null
+            trenchWall: null
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, 
@@ -173,7 +168,6 @@ class BGManager3D {
         if (this.moon) this.moon.visible = false;
         if (this.moonLight) this.moonLight.visible = false;
         if (this.trenchGroup) this.trenchGroup.visible = false;
-        if (this.coreGroup) this.coreGroup.visible = false;
         this.isCoreTransitioning = false;
         
         // ★PCの横長画面では1.0、スマホの縦長画面では0.5などの比率になる係数
@@ -194,15 +188,6 @@ class BGManager3D {
                 if (this.trenchFloorLeft) {
                     this.trenchFloorLeft.position.x = -500;
                     this.trenchFloorRight.position.x = 500;
-                }
-            }
-            if (this.coreGroup) {
-                this.coreGroup.visible = true; // ★修正：床の奥に常に表示しておく
-                this.coreGroup.position.y = 0; // ★修正：-1500から0へ
-                
-                // ★追加：ボスのコア球体もスマホ幅に合わせて縮小
-                if (this.coreReactor) {
-                    this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
                 }
             }
         } 
