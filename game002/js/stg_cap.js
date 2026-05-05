@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.8.0"; // バージョン更新（コアを2Dボスに変更、背景の床暗闇化を実装）
+const VER_STG_CAP = "0.8.5"; // バージョン更新（3D球体をボスに復元、床暗闇化を維持）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -23,8 +23,8 @@ window.StageConfigs['final'] = {
         if (type === 'gtypee') return { imgSrc: 'gtypee.png', size: 28, hp: 10, maxHp: 10 };
         
         if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.png', size: 45, hp: 150, maxHp: 150, isBoss: true };
-        // ★修正：コアを2Dボスとして設定。画像とサイズ（当たり判定）を付与
-        if (type === 'capboss') return { imgSrc: 'core_reactor.png', size: 60, hp: 1500, maxHp: 1500, isBoss: true };
+        // 画像はnullにし、当たり判定（サイズ60）だけを持たせる
+        if (type === 'capboss') return { imgSrc: null, size: 60, hp: 1500, maxHp: 1500, isBoss: true };
     },
 
     updateWaves: function(stg, timer, sW, sH) {
@@ -63,10 +63,9 @@ window.StageConfigs['final'] = {
                         if (typeof window._bgManagerInstance.transitionToCore === 'function') {
                             window._bgManagerInstance.transitionToCore(); 
                         }
-                        // ★修正：床を暗闇（非表示）にし、3Dのコアも非表示にする（2Dボスとして出すため）
+                        // 床だけを非表示にし、3Dコアはそのまま表示させておく
                         if (window._bgManagerInstance.coreFloorLeft) window._bgManagerInstance.coreFloorLeft.visible = false;
                         if (window._bgManagerInstance.coreFloorRight) window._bgManagerInstance.coreFloorRight.visible = false;
-                        if (window._bgManagerInstance.coreReactor) window._bgManagerInstance.coreReactor.visible = false;
                     }
                     stg.coreTransitioned = true;
                 }
@@ -80,17 +79,25 @@ window.StageConfigs['final'] = {
         else if (stg.phase === 3) {
             stg.phaseTimer++;
             
-            // ★修正：壁だけが流れる中で少しザコと戦う（尺を少し短縮してテンポ調整）
             if (stg.phaseTimer > 0 && stg.phaseTimer < 700) {
                 if (stg.phaseTimer % 60 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 90 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
             
-            // ★修正：コアが2Dボスとして上から登場
             if (stg.phaseTimer === 800) {
-                let boss = new Enemy('capboss', sW/2, -150, stg.player.charData, stg.advManager, stg.stgId);
-                // カスタムdrawを削除し、stg_core.jsの共通描画（画像＋HPバー）に任せる
+                let boss = new Enemy('capboss', sW/2, sH * 0.25, stg.player.charData, stg.advManager, stg.stgId);
+                // カスタム描画関数でHPバーだけを描く（姿は3D側に任せる）
+                boss.draw = function(ctx) {
+                    ctx.save(); ctx.translate(this.x, this.y);
+                    if (this.hp > 0 && !this.isDying) {
+                        const bW = 100, bH = 10;
+                        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
+                        ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
+                        ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
+                    }
+                    ctx.restore();
+                };
                 stg.enemies.push(boss);
                 stg.phase = 4; 
             }
@@ -123,14 +130,9 @@ window.StageConfigs['final'] = {
             }
         }
         else if (e.type === 'capboss') {
-            // ★修正：固定位置ではなく、上から降りてきて揺れる動きを追加
-            const tY = canvas.height/dpr * 0.25;
-            if (e.y < tY) {
-                e.y += (tY - e.y) * 0.02;
-            } else {
-                e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.01) * 30;
-                e.y = tY + Math.sin(e.moveTimer * 0.015) * 10;
-            }
+            // 当たり判定の位置は元のコード通り固定（3D側と合うように維持）
+            e.x = canvas.width/dpr/2;
+            e.y = canvas.height/dpr * 0.25;
         }
     },
 
