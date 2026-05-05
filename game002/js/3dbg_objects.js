@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.2"; // バージョン更新（テクスチャの独立化によるスクロールバグ修正と、コアのサイズを1.5倍に最適化）
+const VER_3DBG_OBJ = "0.3.3"; // バージョン更新（壁のテクスチャ相殺バグ修正とデルタタイム適用）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -215,9 +215,6 @@ window.BG3DObjects = {
     },
 
     createFinalStage: function(m) {
-        // ==========================================
-        // 上層：グレーのトレンチ（割れる床と壁）
-        // ==========================================
         m.trenchGroup = new THREE.Group();
         
         const floorTex = m.textures.trenchFloor;
@@ -235,19 +232,24 @@ window.BG3DObjects = {
         m.trenchFloorRight.position.set(500, -60, -500);
         m.trenchGroup.add(m.trenchFloorRight);
 
-        const wallTex = m.textures.trenchWall;
-        let wallMat = wallTex ? new THREE.MeshPhongMaterial({ map: wallTex, emissive: 0x333333 }) : new THREE.MeshPhongMaterial({ color: 0x333333 });
-        if (wallTex) { wallTex.wrapS = THREE.MirroredRepeatWrapping; wallTex.wrapT = THREE.MirroredRepeatWrapping; wallTex.repeat.set(40, 4); }
-        
+        // ★壁が個別にスクロールできるようマテリアルとテクスチャをクローンで分割
+        const wallTexLeft = m.textures.trenchWall ? m.textures.trenchWall.clone() : null;
+        if (wallTexLeft) { wallTexLeft.wrapS = THREE.MirroredRepeatWrapping; wallTexLeft.wrapT = THREE.MirroredRepeatWrapping; wallTexLeft.repeat.set(40, 4); wallTexLeft.needsUpdate = true; }
+        let wallMatLeft = wallTexLeft ? new THREE.MeshPhongMaterial({ map: wallTexLeft, emissive: 0x333333 }) : new THREE.MeshPhongMaterial({ color: 0x333333 });
+
+        const wallTexRight = m.textures.trenchWall ? m.textures.trenchWall.clone() : null;
+        if (wallTexRight) { wallTexRight.wrapS = THREE.MirroredRepeatWrapping; wallTexRight.wrapT = THREE.MirroredRepeatWrapping; wallTexRight.repeat.set(40, 4); wallTexRight.needsUpdate = true; }
+        let wallMatRight = wallTexRight ? new THREE.MeshPhongMaterial({ map: wallTexRight, emissive: 0x333333 }) : new THREE.MeshPhongMaterial({ color: 0x333333 });
+
         const edgeX = 90 * m.camera.aspect;
         const wallGeo = new THREE.PlaneGeometry(3000, 300);
         
-        m.trenchLeftWall = new THREE.Mesh(wallGeo, wallMat);
+        m.trenchLeftWall = new THREE.Mesh(wallGeo, wallMatLeft);
         m.trenchLeftWall.rotation.y = Math.PI / 2;
         m.trenchLeftWall.position.set(-edgeX, 0, -500);
         m.trenchGroup.add(m.trenchLeftWall);
 
-        m.trenchRightWall = new THREE.Mesh(wallGeo, wallMat);
+        m.trenchRightWall = new THREE.Mesh(wallGeo, wallMatRight);
         m.trenchRightWall.rotation.y = -Math.PI / 2;
         m.trenchRightWall.position.set(edgeX, 0, -500);
         m.trenchGroup.add(m.trenchRightWall);
@@ -255,19 +257,15 @@ window.BG3DObjects = {
         m.trenchGroup.visible = false;
         m.scene.add(m.trenchGroup);
 
-        // ==========================================
-        // 下層：赤いコア空間（割れた下から現れる）
-        // ==========================================
         m.coreGroup = new THREE.Group();
         
-        // ★バグ修正：テクスチャを独立させるため clone() を使用
         const coreFloorTex = m.textures.coreBg ? m.textures.coreBg.clone() : null;
         if (coreFloorTex) { coreFloorTex.wrapS = THREE.MirroredRepeatWrapping; coreFloorTex.wrapT = THREE.MirroredRepeatWrapping; coreFloorTex.repeat.set(8, 40); coreFloorTex.needsUpdate = true; }
         const coreFloorMat = coreFloorTex ? new THREE.MeshPhongMaterial({ map: coreFloorTex, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
         
         m.coreFloorLeft = new THREE.Mesh(floorGeo, coreFloorMat);
         m.coreFloorLeft.rotation.x = -Math.PI / 2;
-        m.coreFloorLeft.position.set(-500, -140, -500); // グレー床(-60)のさらに下
+        m.coreFloorLeft.position.set(-500, -140, -500); 
         m.coreGroup.add(m.coreFloorLeft);
 
         m.coreFloorRight = new THREE.Mesh(floorGeo, coreFloorMat);
@@ -275,59 +273,63 @@ window.BG3DObjects = {
         m.coreFloorRight.position.set(500, -140, -500);
         m.coreGroup.add(m.coreFloorRight);
 
-        // ★バグ修正：壁用にも clone() で独立したテクスチャを用意
-        const coreWallTex = m.textures.coreBg ? m.textures.coreBg.clone() : null;
-        if (coreWallTex) { coreWallTex.wrapS = THREE.MirroredRepeatWrapping; coreWallTex.wrapT = THREE.MirroredRepeatWrapping; coreWallTex.repeat.set(40, 4); coreWallTex.needsUpdate = true; }
-        const coreWallMat = coreWallTex ? new THREE.MeshPhongMaterial({ map: coreWallTex, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
+        // ★赤い壁も独立してクローン
+        const coreWallTexLeft = m.textures.coreBg ? m.textures.coreBg.clone() : null;
+        if (coreWallTexLeft) { coreWallTexLeft.wrapS = THREE.MirroredRepeatWrapping; coreWallTexLeft.wrapT = THREE.MirroredRepeatWrapping; coreWallTexLeft.repeat.set(40, 4); coreWallTexLeft.needsUpdate = true; }
+        const coreWallMatLeft = coreWallTexLeft ? new THREE.MeshPhongMaterial({ map: coreWallTexLeft, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
+
+        const coreWallTexRight = m.textures.coreBg ? m.textures.coreBg.clone() : null;
+        if (coreWallTexRight) { coreWallTexRight.wrapS = THREE.MirroredRepeatWrapping; coreWallTexRight.wrapT = THREE.MirroredRepeatWrapping; coreWallTexRight.repeat.set(40, 4); coreWallTexRight.needsUpdate = true; }
+        const coreWallMatRight = coreWallTexRight ? new THREE.MeshPhongMaterial({ map: coreWallTexRight, emissive: 0x550000 }) : new THREE.MeshPhongMaterial({ color: 0xaa0000 });
         
         const redEdgeX = 140 * m.camera.aspect; 
-        m.coreLeftWall = new THREE.Mesh(wallGeo, coreWallMat);
+        m.coreLeftWall = new THREE.Mesh(wallGeo, coreWallMatLeft);
         m.coreLeftWall.rotation.y = Math.PI / 2;
         m.coreLeftWall.position.set(-redEdgeX, -80, -500);
         m.coreGroup.add(m.coreLeftWall);
 
-        m.coreRightWall = new THREE.Mesh(wallGeo, coreWallMat);
+        m.coreRightWall = new THREE.Mesh(wallGeo, coreWallMatRight);
         m.coreRightWall.rotation.y = -Math.PI / 2;
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
 
-        // ★修正：コアサイズを 40の1.5倍(60) に設定し、Z軸でしっかりカメラ内に収まる位置に調整
         const reactorTex = m.textures.coreReactor;
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
         
         m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 32), reactorMat);
-        m.coreReactor.position.set(0, -300, -300); // 初期は地下（Y:-300）に隠しておく
+        m.coreReactor.position.set(0, -300, -300); 
         m.coreGroup.add(m.coreReactor);
 
         const redLight = new THREE.PointLight(0xff0000, 3.0, 1500);
         redLight.position.set(0, -20, -200);
         m.coreGroup.add(redLight);
 
-        m.coreGroup.visible = true; // 初めから置いておき、グレーの床で隠す
+        m.coreGroup.visible = true; 
         m.scene.add(m.coreGroup);
     },
 
-    updateAnimations: function(m) {
+    // ★追加: 引数に delta を受け取るよう修正
+    updateAnimations: function(m, delta = 1) {
         if (m.currentStage === 5) {
             if (m.moon) {
                 const aspectFactor = Math.min(1, m.camera.aspect);
                 const targetScale = 4.5 * aspectFactor;
                 
                 if (m.moon.position.y < -2000) { 
-                    m.moon.position.y += 0.55; 
+                    m.moon.position.y += 0.55 * delta; 
                 }
                 
                 if (m.moon.scale.x < targetScale) { 
-                    m.moon.scale.x += 0.0009 * aspectFactor; 
-                    m.moon.scale.y += 0.0009 * aspectFactor;
-                    m.moon.scale.z += 0.0009 * aspectFactor;
+                    m.moon.scale.x += 0.0009 * aspectFactor * delta; 
+                    m.moon.scale.y += 0.0009 * aspectFactor * delta;
+                    m.moon.scale.z += 0.0009 * aspectFactor * delta;
                 }
-                m.moon.rotation.y += 0.001;
-                m.moon.rotation.x += 0.0005;
+                m.moon.rotation.y += 0.001 * delta;
+                m.moon.rotation.x += 0.0005 * delta;
             }
             if (m.starField) {
-                m.starField.rotation.y += 0.0003;
-                m.starField.rotation.x += 0.0001;
+                m.starField.rotation.y += 0.0003 * delta;
+                m.starField.rotation.x += 0.0001 * delta;
             }
         }
 
@@ -348,16 +350,17 @@ window.BG3DObjects = {
                 }
 
                 if (m.trenchFloorLeft && m.trenchFloorLeft.material.map) {
-                    m.trenchFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01;
-                    m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01;
+                    m.trenchFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
+                    m.trenchFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.trenchLeftWall && m.trenchLeftWall.material.map) {
-                    m.trenchLeftWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01;
-                    m.trenchRightWall.material.map.offset.x += m.trenchScrollSpeed * 0.01;
+                    // ★修正：相殺を防ぐためのクローン化と、床の流れに合うように符号を反転
+                    m.trenchLeftWall.material.map.offset.x += m.trenchScrollSpeed * 0.01 * delta;
+                    m.trenchRightWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01 * delta;
                 }
 
                 if (m.isCoreTransitioning) {
-                    const openSpeed = 2.0;
+                    const openSpeed = 2.0 * delta;
                     if (m.trenchLeftWall.position.x > -800) {
                         m.trenchLeftWall.position.x -= openSpeed;
                         m.trenchRightWall.position.x += openSpeed;
@@ -365,26 +368,26 @@ window.BG3DObjects = {
                         if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
                     }
 
-                    // ★修正：目標位置（赤い床の上に乗る位置：Y = -60付近）までせり上げる
                     if (m.coreReactor && m.coreReactor.position.y < -60) {
-                        m.coreReactor.position.y += 2.0;
+                        m.coreReactor.position.y += 2.0 * delta;
                     }
                 }
             }
 
             if (m.coreGroup && m.coreGroup.visible) {
                 if (m.coreFloorLeft && m.coreFloorLeft.material.map) {
-                    m.coreFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01;
-                    m.coreFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01;
+                    m.coreFloorLeft.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
+                    m.coreFloorRight.material.map.offset.y += m.trenchScrollSpeed * 0.01 * delta;
                 }
                 if (m.coreLeftWall && m.coreLeftWall.material.map) {
-                    m.coreLeftWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01;
-                    m.coreRightWall.material.map.offset.x += m.trenchScrollSpeed * 0.01;
+                    // ★修正：こちらも符号を反転
+                    m.coreLeftWall.material.map.offset.x += m.trenchScrollSpeed * 0.01 * delta;
+                    m.coreRightWall.material.map.offset.x -= m.trenchScrollSpeed * 0.01 * delta;
                 }
 
                 if (m.coreReactor) {
-                    m.coreReactor.rotation.y += 0.01;
-                    m.coreReactor.rotation.x += 0.005;
+                    m.coreReactor.rotation.y += 0.01 * delta;
+                    m.coreReactor.rotation.x += 0.005 * delta;
                 }
                 const redLight = m.coreGroup.children.find(c => c.isPointLight);
                 if(redLight) redLight.intensity = 2.5 + Math.sin(Date.now() * 0.005) * 1.5;
@@ -392,17 +395,17 @@ window.BG3DObjects = {
         }
 
         if (m.ground && m.ground.material.map && m.ground.visible) {
-            m.ground.material.map.offset.y += (m.scrollSpeed / 40) * Math.sign(m.ground.material.map.repeat.y);
+            m.ground.material.map.offset.y += (m.scrollSpeed / 40) * Math.sign(m.ground.material.map.repeat.y) * delta;
         }
 
         if (m.flameMaterial) {
-            m.flameMaterial.uniforms.uTime.value += 0.016; 
+            m.flameMaterial.uniforms.uTime.value += 0.016 * delta; 
         }
 
         m.candles.forEach(c => {
             if (!c.visible) return; 
             
-            c.position.z += m.scrollSpeed;
+            c.position.z += m.scrollSpeed * delta;
 
             if (c.position.z > 40) {
                 c.position.z -= 800; 
@@ -417,7 +420,7 @@ window.BG3DObjects = {
 
         m.buildings.forEach(b => {
             if (!b.visible) return; 
-            b.position.z += m.scrollSpeed;
+            b.position.z += m.scrollSpeed * delta;
             if (b.position.z > 40) {
                 b.position.z -= 400;
                 b.position.x = (Math.random() - 0.5) * 200;
@@ -426,8 +429,8 @@ window.BG3DObjects = {
 
         m.clouds.forEach(c => {
             if (!c.visible) return; 
-            c.position.z += m.cloudScrollSpeed;
-            c.rotation.z += 0.01;
+            c.position.z += m.cloudScrollSpeed * delta;
+            c.rotation.z += 0.01 * delta;
             if (c.position.z > 100) {
                 c.position.z -= 400;
                 c.position.x = (Math.random() - 0.5) * 200;
