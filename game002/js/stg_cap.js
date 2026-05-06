@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.8.6"; // バージョン更新（3Dコアと2Dボスの座標完全同期、登場タイミングの修正）
+const VER_STG_CAP = "0.8.7"; // バージョン更新（3Dコアが画面外上部に消えてしまう座標計算ミスを完全修正）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -86,7 +86,6 @@ window.StageConfigs['final'] = {
             }
             
             if (stg.phaseTimer === 800) {
-                // ★修正：ザコ戦が終わった後、画面下（奥）から登場させる
                 let boss = new Enemy('capboss', sW/2, sH + 100, stg.player.charData, stg.advManager, stg.stgId);
                 // HPバーだけを描画
                 boss.draw = function(ctx) {
@@ -131,28 +130,26 @@ window.StageConfigs['final'] = {
             }
         }
         else if (e.type === 'capboss') {
-            // ★修正：下から上がり、定位置でゆっくり左右に動く
             const tY = canvas.height/dpr * 0.25;
             const startY = canvas.height/dpr + 100;
             
             if (e.y > tY) {
-                e.y += (tY - e.y) * 0.02; // 上へ移動
+                e.y += (tY - e.y) * 0.02; // 奥から定位置へ移動
             } else {
-                // 左右にゆっくり動く
                 e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
             }
 
-            // ★追加：3D側のコアの座標を2Dの動きと完全に同期させる
+            // 3D側のコアの座標を2Dの動きと完全に同期させる
             if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
                 const cx = canvas.width/dpr/2;
-                // X座標の同期
-                window._bgManagerInstance.coreReactor.position.x = (e.x - cx) * 2.0; 
+                window._bgManagerInstance.coreReactor.position.x = (e.x - cx) * 0.8; 
                 
-                // Y座標（奥行き）の同期
                 let yRatio = (e.y - tY) / (startY - tY);
                 if (yRatio < 0) yRatio = 0;
                 if (yRatio > 1) yRatio = 1;
-                window._bgManagerInstance.coreReactor.position.y = -60 - (yRatio * 240);
+                
+                // ★修正：カメラアングル（-72度）に合わせた正しいY座標に補正。これで確実に画面内に映ります。
+                window._bgManagerInstance.coreReactor.position.y = -340 - (yRatio * 1000);
             }
         }
     },
@@ -186,7 +183,6 @@ window.StageConfigs['final'] = {
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang-0.2)*5, Math.sin(ang-0.2)*5, '#ff5500'));
         }
         else if (e.type === 'capboss') {
-            // ★修正：コアの中心（e.y）から弾を発生させるように修正
             if (stg.frame % 30 === 0) {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
