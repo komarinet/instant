@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.6"; // バージョン更新（壁の密度低下と、コアの自動上昇アニメーション削除）
+const VER_3DBG_OBJ = "0.3.7"; // バージョン更新（コアの待機位置を遥か地底に変更して見切れを防止）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -142,7 +142,7 @@ window.BG3DObjects = {
         const sideMat = m.textures.candle 
             ? new THREE.MeshPhongMaterial({ map: m.textures.candle, emissive: 0x331100 }) 
             : new THREE.MeshPhongMaterial({ color: 0xddccaa, emissive: 0x442211, shininess: 30 });
-        const topMat = new THREE.MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
+        const topMat = new MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
 
         const r = 0.8;  
@@ -286,7 +286,6 @@ window.BG3DObjects = {
         m.coreFloorRight.position.set(500, -140, -500);
         m.coreGroup.add(m.coreFloorRight);
 
-        // ★修正：後半の壁のリピート数を減らし、壁を少なく（模様を大きく）しました
         const coreWallTexLeft = m.textures.coreBg ? m.textures.coreBg.clone() : null;
         if (coreWallTexLeft) { 
             coreWallTexLeft.wrapS = THREE.MirroredRepeatWrapping; 
@@ -323,8 +322,9 @@ window.BG3DObjects = {
         const reactorTex = m.textures.coreReactor;
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
         
+        // ★修正：初期段階で絶対に画面に見切れないよう、遥か地底に隠しておく
         m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 32), reactorMat);
-        m.coreReactor.position.set(0, -300, -300); 
+        m.coreReactor.position.set(0, -2000, 0); 
         m.coreGroup.add(m.coreReactor);
 
         const redLight = new THREE.PointLight(0xff0000, 3.0, 1500);
@@ -392,8 +392,6 @@ window.BG3DObjects = {
                         if (m.trenchFloorLeft) m.trenchFloorLeft.position.x -= openSpeed;
                         if (m.trenchFloorRight) m.trenchFloorRight.position.x += openSpeed;
                     }
-                    
-                    // ★修正：ここにあった m.coreReactor の自動上昇処理を削除。2D側（stg_cap.js）から引き上げる形に変更。
                 }
             }
 
