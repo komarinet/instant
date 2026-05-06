@@ -1,9 +1,9 @@
-const VER_STG_CAP = "0.8.7"; // バージョン更新（3Dコアが画面外上部に消えてしまう座標計算ミスを完全修正）
+const VER_STG_CAP = "0.8.8"; // バージョン更新（Three.jsのunprojectを用いたピクセル座標の完全同期）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
     init: function(stg, canvas) { 
-        stg.phase = 1; // 1:トレンチ, 2:中ボス待ち, 3:壁スクロール＆ザコ, 4:コアボス
+        stg.phase = 1; // 1:トレンチ, 2:中ボス待ち, 3:コア展開＆ザコ, 4:最終ボス
         stg.phaseTimer = 0;
         stg.coreTransitioned = false; 
         
@@ -23,8 +23,7 @@ window.StageConfigs['final'] = {
         if (type === 'gtypee') return { imgSrc: 'gtypee.png', size: 28, hp: 10, maxHp: 10 };
         
         if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.png', size: 45, hp: 150, maxHp: 150, isBoss: true };
-        // 画像はnull（3Dコアに任せる）、当たり判定（サイズ60）を持たせる
-        if (type === 'capboss') return { imgSrc: null, size: 60, hp: 1500, maxHp: 1500, isBoss: true };
+        if (type === 'capboss') return { imgSrc: null, size: 80, hp: 1500, maxHp: 1500, isBoss: true };
     },
 
     updateWaves: function(stg, timer, sW, sH) {
@@ -59,13 +58,8 @@ window.StageConfigs['final'] = {
             if (!bossAlive && !stg.isTimeStopped) {
                 stg.phaseTimer++;
                 if (stg.phaseTimer === 60 && !stg.coreTransitioned) {
-                    if (window._bgManagerInstance) {
-                        if (typeof window._bgManagerInstance.transitionToCore === 'function') {
-                            window._bgManagerInstance.transitionToCore(); 
-                        }
-                        // 床だけを非表示にする
-                        if (window._bgManagerInstance.coreFloorLeft) window._bgManagerInstance.coreFloorLeft.visible = false;
-                        if (window._bgManagerInstance.coreFloorRight) window._bgManagerInstance.coreFloorRight.visible = false;
+                    if (window._bgManagerInstance && typeof window._bgManagerInstance.transitionToCore === 'function') {
+                        window._bgManagerInstance.transitionToCore(); 
                     }
                     stg.coreTransitioned = true;
                 }
@@ -79,15 +73,14 @@ window.StageConfigs['final'] = {
         else if (stg.phase === 3) {
             stg.phaseTimer++;
             
-            if (stg.phaseTimer > 0 && stg.phaseTimer < 700) {
-                if (stg.phaseTimer % 60 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (stg.phaseTimer > 0 && stg.phaseTimer < 1100) {
+                if (stg.phaseTimer % 50 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-                if (stg.phaseTimer % 90 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+                if (stg.phaseTimer % 80 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
             
-            if (stg.phaseTimer === 800) {
+            if (stg.phaseTimer === 1300) {
                 let boss = new Enemy('capboss', sW/2, sH + 100, stg.player.charData, stg.advManager, stg.stgId);
-                // HPバーだけを描画
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
                     if (this.hp > 0 && !this.isDying) {
@@ -131,7 +124,6 @@ window.StageConfigs['final'] = {
         }
         else if (e.type === 'capboss') {
             const tY = canvas.height/dpr * 0.25;
-            const startY = canvas.height/dpr + 100;
             
             if (e.y > tY) {
                 e.y += (tY - e.y) * 0.02; // 奥から定位置へ移動
@@ -139,17 +131,27 @@ window.StageConfigs['final'] = {
                 e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
             }
 
-            // 3D側のコアの座標を2Dの動きと完全に同期させる
-            if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
-                const cx = canvas.width/dpr/2;
-                window._bgManagerInstance.coreReactor.position.x = (e.x - cx) * 0.8; 
+            // ★修正：Three.jsのunproject機能を使って、ピクセル座標から正確な3D空間座標を割り出す
+            if (window._bgManagerInstance && window._bgManagerInstance.coreReactor && window._bgManagerInstance.camera) {
+                const camera = window._bgManagerInstance.camera;
+                const cw = canvas.width / dpr;
+                const ch = canvas.height / dpr;
+
+                // 2Dのピクセル座標を正規化デバイス座標(-1 〜 +1)に変換
+                const ndcX = (e.x / cw) * 2 - 1;
+                const ndcY = -(e.y / ch) * 2 + 1;
+
+                // カメラ位置から画面上の座標に向かって線を伸ばす計算
+                let vec = new THREE.Vector3(ndcX, ndcY, 0.5);
+                vec.unproject(camera);
+                let dir = vec.sub(camera.position).normalize();
                 
-                let yRatio = (e.y - tY) / (startY - tY);
-                if (yRatio < 0) yRatio = 0;
-                if (yRatio > 1) yRatio = 1;
-                
-                // ★修正：カメラアングル（-72度）に合わせた正しいY座標に補正。これで確実に画面内に映ります。
-                window._bgManagerInstance.coreReactor.position.y = -340 - (yRatio * 1000);
+                // コアを浮かせる高さ（Y座標）。背景の赤い床が Y=-140 なので、その少し上の Y=-80 を基準にする
+                let targetY = -80; 
+                let distance = (targetY - camera.position.y) / dir.y;
+                let pos = camera.position.clone().add(dir.multiplyScalar(distance));
+
+                window._bgManagerInstance.coreReactor.position.copy(pos);
             }
         }
     },
@@ -187,14 +189,14 @@ window.StageConfigs['final'] = {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
                     const offset = i * Math.PI / 2;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
                 }
             }
             if (stg.frame % 120 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
                 for(let i=-2; i<=2; i++) {
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
+                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
                 }
             }
         }
