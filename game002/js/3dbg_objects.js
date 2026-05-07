@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.9"; // バージョン更新（右壁の Mesh の THREE. 抜けを修正）
+const VER_3DBG_OBJ = "0.3.10"; // バージョン更新（コアの撃破フェードアウト演出のためにマテリアルの透明度を許可）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -314,14 +314,21 @@ window.BG3DObjects = {
         m.coreLeftWall.position.set(-redEdgeX, -80, -500);
         m.coreGroup.add(m.coreLeftWall);
 
-        // ★修正：ここが new Mesh のままになっていたのを new THREE.Mesh に直しました
         m.coreRightWall = new THREE.Mesh(wallGeo, coreWallMatRight);
         m.coreRightWall.rotation.y = -Math.PI / 2;
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
 
         const reactorTex = m.textures.coreReactor;
-        let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
+        
+        // ★修正：フェードアウトを可能にするため transparent: true と opacity: 1.0 を両方に追加
+        let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ 
+            map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5, 
+            transparent: true, opacity: 1.0 
+        }) : new THREE.MeshStandardMaterial({ 
+            color: 0xff3300, emissive: 0xff0000, wireframe: true, 
+            transparent: true, opacity: 1.0 
+        });
         
         m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 32), reactorMat);
         m.coreReactor.position.set(0, -2000, 0); 
