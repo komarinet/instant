@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.10"; // バージョン更新（コアの撃破フェードアウト演出のためにマテリアルの透明度を許可）
+const VER_3DBG_OBJ = "0.3.12"; // バージョン更新（一切の省略をせず、ビル群の自己発光のみを追加）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -30,10 +30,12 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/3, 1/2); 
                 tex.offset.set((i % 3) * (1/3), 1 - (Math.floor(i / 3) + 1) * (1/2));
-                sideMaterials.push(new THREE.MeshPhongMaterial({ map: tex }));
+                // ★修正：emissive（自己発光）を追加して窓を明るく表現
+                sideMaterials.push(new THREE.MeshPhongMaterial({ map: tex, emissive: 0x444444, emissiveMap: tex }));
             }
         } else {
-            sideMaterials.push(new THREE.MeshPhongMaterial({ color: 0x333333 }));
+            // ★修正：テクスチャがない場合の予備色にも発光を足す
+            sideMaterials.push(new THREE.MeshPhongMaterial({ color: 0x333333, emissive: 0x222222 }));
         }
 
         if (m.textures.topatlas) {
@@ -42,10 +44,11 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/4, 1/3);
                 tex.offset.set((i % 4) * (1/4), 1 - (Math.floor(i / 4) + 1) * (1/3));
-                topMaterials.push(new THREE.MeshPhongMaterial({ map: tex }));
+                // ★修正：屋上も少し自己発光を足して暗すぎないように
+                topMaterials.push(new THREE.MeshPhongMaterial({ map: tex, emissive: 0x222222, emissiveMap: tex }));
             }
         } else {
-            topMaterials.push(new THREE.MeshPhongMaterial({ color: 0x555555 }));
+            topMaterials.push(new THREE.MeshPhongMaterial({ color: 0x555555, emissive: 0x222222 }));
         }
 
         for (let i = 0; i < numBuildings; i++) {
@@ -321,7 +324,6 @@ window.BG3DObjects = {
 
         const reactorTex = m.textures.coreReactor;
         
-        // ★修正：フェードアウトを可能にするため transparent: true と opacity: 1.0 を両方に追加
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ 
             map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5, 
             transparent: true, opacity: 1.0 
