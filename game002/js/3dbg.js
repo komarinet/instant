@@ -1,4 +1,4 @@
-const VER_3DBG = "0.6.5"; // バージョン更新（タッチ時の120Hzバグを防ぐためデルタタイムを導入）
+const VER_3DBG = "0.6.1"; // バージョン更新（ステージ1・2のスクロール速度を1.3倍に高速化）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -19,8 +19,8 @@ class BGManager3D {
         this.moonLight = null; 
 
         this.trenchGroup = null;
-        this.trenchFloorLeft = null;  
-        this.trenchFloorRight = null; 
+        this.trenchFloorLeft = null;  // ★修正：床を左右分割に対応
+        this.trenchFloorRight = null; // ★修正：床を左右分割に対応
         this.trenchLeftWall = null;
         this.trenchRightWall = null;
         this.coreGroup = null;
@@ -45,16 +45,14 @@ class BGManager3D {
             top: { cols: 4, rows: 3, count: 12 }   
         };
 
-        this.scrollSpeed = 0.5; 
-        this.cloudScrollSpeed = 1.0; 
+        // ★修正：全体のスクロール速度を1.3倍に引き上げ
+        this.scrollSpeed = 0.65; // 元0.5
+        this.cloudScrollSpeed = 1.3; // 元1.0
         this.trenchScrollSpeed = 2.5; 
         this.isLoaded = false;
         
         this.currentStage = 1;
         this.flameMaterial = null; 
-        
-        // ★デルタタイム用タイマー
-        this.lastTime = 0;
 
         if (!window._bgManagerInstance) {
             window._bgManagerInstance = this;
@@ -179,6 +177,7 @@ class BGManager3D {
         if (this.coreGroup) this.coreGroup.visible = false;
         this.isCoreTransitioning = false;
         
+        // ★PCの横長画面では1.0、スマホの縦長画面では0.5などの比率になる係数
         const aspectFactor = Math.min(1, this.camera.aspect);
 
         if (stageNum === 6) { 
@@ -189,23 +188,21 @@ class BGManager3D {
             
             if (this.trenchGroup) {
                 this.trenchGroup.visible = true;
-                const edgeX = 90 * this.camera.aspect; 
+                const edgeX = 90 * this.camera.aspect; // ★修正：40から90へ広げました
                 this.trenchLeftWall.position.x = -edgeX;
                 this.trenchRightWall.position.x = edgeX;
+                // ★追加：床の隙間を閉じておく（リセット）
                 if (this.trenchFloorLeft) {
                     this.trenchFloorLeft.position.x = -500;
                     this.trenchFloorRight.position.x = 500;
                 }
             }
             if (this.coreGroup) {
-                this.coreGroup.visible = true; 
-                this.coreGroup.position.y = 0; 
+                this.coreGroup.visible = true; // ★修正：床の奥に常に表示しておく
+                this.coreGroup.position.y = 0; // ★修正：-1500から0へ
                 
-                // 床の表示状態を初期化
-                if (this.coreFloorLeft) this.coreFloorLeft.visible = true;
-                if (this.coreFloorRight) this.coreFloorRight.visible = true;
+                // ★追加：ボスのコア球体もスマホ幅に合わせて縮小
                 if (this.coreReactor) {
-                    this.coreReactor.visible = true;
                     this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
                 }
             }
@@ -222,6 +219,7 @@ class BGManager3D {
             if (this.moon) {
                 this.moon.visible = true;
                 this.moon.position.set(0, -4500, -1200); 
+                // ★追加：月の初期サイズもスマホ幅にフィットさせる
                 this.moon.scale.set(0.6 * aspectFactor, 0.6 * aspectFactor, 0.6 * aspectFactor); 
             }
             if (this.moonLight) this.moonLight.visible = true;
@@ -261,15 +259,8 @@ class BGManager3D {
         }
     }
 
-    loop(timestamp) {
+    loop() {
         if (!this.isActive) return;
-
-        // ★追加：タッチ等で120Hzにジャンプした際も速度を保つためのデルタタイム計算
-        if (!this.lastTime) this.lastTime = timestamp || performance.now();
-        const now = timestamp || performance.now();
-        let delta = (now - this.lastTime) / (1000 / 60); 
-        if (delta > 2 || delta <= 0) delta = 1; // 異常値セーフガード
-        this.lastTime = now;
 
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
@@ -278,11 +269,10 @@ class BGManager3D {
         }
 
         if (window.BG3DObjects) {
-            // 計算したデルタタイムを渡す
-            window.BG3DObjects.updateAnimations(this, delta);
+            window.BG3DObjects.updateAnimations(this);
         }
 
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame((t) => this.loop(t));
+        requestAnimationFrame(() => this.loop());
     }
 }
