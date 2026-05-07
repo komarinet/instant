@@ -23,6 +23,7 @@ export const imagesToPreload = [
     'gtypeboss.png','cap.png',
     // --- 新規追加分 ---
     'trench_floor.png','trench_wall.png','​core_bg.png','core_reactor.png','gtyped.png','gtypee.png'
+    ,'cap01.png.png'
 ];
 
 export const imagesToPreload3D = [
