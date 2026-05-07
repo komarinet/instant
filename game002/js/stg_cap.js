@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.8.9"; // バージョン更新（Three.jsのunprojectを用いたピクセル座標の完全同期）
+const VER_STG_CAP = "0.9.0"; // バージョン更新（ボスの登場位置を上部からに変更し、撃破時の3Dフェードアウト演出を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -80,7 +80,14 @@ window.StageConfigs['final'] = {
             }
             
             if (stg.phaseTimer === 1300) {
-                let boss = new Enemy('capboss', sW/2, sH + 100, stg.player.charData, stg.advManager, stg.stgId);
+                // ★修正：初期位置を Y = -100 (上部) に変更し、上から現れるようにしました
+                let boss = new Enemy('capboss', sW/2, -100, stg.player.charData, stg.advManager, stg.stgId);
+                
+                if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
+                    window._bgManagerInstance.coreReactor.material.opacity = 1.0; 
+                    window._bgManagerInstance.coreReactor.material.transparent = true;
+                }
+
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
                     if (this.hp > 0 && !this.isDying) {
@@ -89,6 +96,17 @@ window.StageConfigs['final'] = {
                         ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
                         ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
                     }
+                    
+                    // ★追加：撃破時の3Dコアのフェードアウト処理
+                    if (this.isDying && window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
+                        let opacity = 1.0;
+                        if (this.deathTimer > 60) {
+                            opacity = Math.max(0, 1.0 - (this.deathTimer - 60) / 120);
+                        }
+                        window._bgManagerInstance.coreReactor.material.opacity = opacity;
+                        window._bgManagerInstance.coreReactor.material.transparent = true;
+                    }
+                    
                     ctx.restore();
                 };
                 stg.enemies.push(boss);
@@ -125,28 +143,25 @@ window.StageConfigs['final'] = {
         else if (e.type === 'capboss') {
             const tY = canvas.height/dpr * 0.25;
             
-            if (e.y > tY) {
-                e.y += (tY - e.y) * 0.02; // 奥から定位置へ移動
+            // ★修正：上部から定位置 (tY) へ降りてくるように変更
+            if (e.y < tY) {
+                e.y += (tY - e.y) * 0.02; 
             } else {
                 e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
             }
 
-            // Three.jsのunproject機能を使って、ピクセル座標から正確な3D空間座標を割り出す
             if (window._bgManagerInstance && window._bgManagerInstance.coreReactor && window._bgManagerInstance.camera) {
                 const camera = window._bgManagerInstance.camera;
                 const cw = canvas.width / dpr;
                 const ch = canvas.height / dpr;
 
-                // 2Dのピクセル座標を正規化デバイス座標(-1 〜 +1)に変換
                 const ndcX = (e.x / cw) * 2 - 1;
                 const ndcY = -(e.y / ch) * 2 + 1;
 
-                // カメラ位置から画面上の座標に向かって線を伸ばす計算
                 let vec = new THREE.Vector3(ndcX, ndcY, 0.5);
                 vec.unproject(camera);
                 let dir = vec.sub(camera.position).normalize();
                 
-                // コアを浮かせる高さ（Y座標）。背景の赤い床が Y=-140 なので、その少し上の Y=-80 を基準にする
                 let targetY = -80; 
                 let distance = (targetY - camera.position.y) / dir.y;
                 let pos = camera.position.clone().add(dir.multiplyScalar(distance));
