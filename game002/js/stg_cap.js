@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.8.8"; // バージョン更新（Three.jsのunprojectを用いたピクセル座標の完全同期）
+const VER_STG_CAP = "0.8.9"; // バージョン更新（Three.jsのunprojectを用いたピクセル座標の完全同期）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -131,7 +131,7 @@ window.StageConfigs['final'] = {
                 e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
             }
 
-            // ★修正：Three.jsのunproject機能を使って、ピクセル座標から正確な3D空間座標を割り出す
+            // Three.jsのunproject機能を使って、ピクセル座標から正確な3D空間座標を割り出す
             if (window._bgManagerInstance && window._bgManagerInstance.coreReactor && window._bgManagerInstance.camera) {
                 const camera = window._bgManagerInstance.camera;
                 const cw = canvas.width / dpr;
@@ -189,14 +189,14 @@ window.StageConfigs['final'] = {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
                     const offset = i * Math.PI / 2;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
                 }
             }
             if (stg.frame % 120 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
                 for(let i=-2; i<=2; i++) {
-                    stg.enemyBullets.push(new Bullet(e.x, e.y + 40, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + i*0.15)*4.5, Math.sin(ang + i*0.15)*4.5, '#ffffff'));
                 }
             }
         }
