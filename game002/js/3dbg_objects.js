@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.8"; // バージョン更新（起動エラーの原因だったTHREEの記述漏れを修正）
+const VER_3DBG_OBJ = "0.3.9"; // バージョン更新（右壁の Mesh の THREE. 抜けを修正）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -142,8 +142,6 @@ window.BG3DObjects = {
         const sideMat = m.textures.candle 
             ? new THREE.MeshPhongMaterial({ map: m.textures.candle, emissive: 0x331100 }) 
             : new THREE.MeshPhongMaterial({ color: 0xddccaa, emissive: 0x442211, shininess: 30 });
-            
-        // ★修正：原因の「THREE.」抜けを直しました
         const topMat = new THREE.MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
 
@@ -316,7 +314,8 @@ window.BG3DObjects = {
         m.coreLeftWall.position.set(-redEdgeX, -80, -500);
         m.coreGroup.add(m.coreLeftWall);
 
-        m.coreRightWall = new Mesh(wallGeo, coreWallMatRight);
+        // ★修正：ここが new Mesh のままになっていたのを new THREE.Mesh に直しました
+        m.coreRightWall = new THREE.Mesh(wallGeo, coreWallMatRight);
         m.coreRightWall.rotation.y = -Math.PI / 2;
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
