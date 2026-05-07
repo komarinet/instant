@@ -1,4 +1,4 @@
-const VER_STG_HIRAGI = "0.1.1"; // バージョン更新（将来のADV追加を見据えてボスタグを付与）
+const VER_STG_HIRAGI = "0.1.2"; // バージョン更新（ボスHP2倍、自機パワー4以上で敵数・HPを1.3倍に）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['hiragi'] = {
@@ -16,26 +16,45 @@ window.StageConfigs['hiragi'] = {
         if (type === 'typeb') return { imgSrc: '2typeb.png', size: 25, hp: 10, init: (e)=>e.state = 'enter' };
         if (type === 'typec') return { imgSrc: '2typec.png', size: 15, hp: 2 };
         
-        // ★修正：将来ADVを差し込めるように isBoss: true を追加し、HPゲージ用に maxHp を明記
-        if (type === 'typeboss') return { imgSrc: '2typeboss.png', size: w * 0.3, hp: 250, maxHp: 250, isBoss: true };
+        // ★修正：将来ADVを差し込めるように isBoss: true を追加し、HPを2倍（250→500）に強化
+        if (type === 'typeboss') return { imgSrc: '2typeboss.png', size: w * 0.3, hp: 500, maxHp: 500, isBoss: true };
     },
     transformEnemy: function(e, ctx) {
         if (e.type === 'typea') ctx.rotate(e.angle * 2);
     },
     updateWaves: function(stg, timer, sW, sH) {
-        if (timer > 100 && timer < 500 && timer % 150 === 0) { stg.dragonStartX = sW * 0.2 + Math.random() * sW * 0.6; stg.dragonCount = 8; }
-        if (stg.dragonCount > 0 && timer % 10 === 0) { stg.enemies.push(new Enemy('typec', stg.dragonStartX, -50, stg.player.charData, stg.advManager, stg.stgId)); stg.dragonCount--; }
+        // ★追加：パワーレベル4以上なら難易度アップ（1.3倍）
+        const isHard = stg.player.powerLevel >= 4;
+        const spawn = (type, x, y) => {
+            let e = new Enemy(type, x, y, stg.player.charData, stg.advManager, stg.stgId);
+            if (isHard) {
+                e.hp = Math.ceil(e.hp * 1.3);
+                e.maxHp = Math.ceil(e.maxHp * 1.3);
+            }
+            stg.enemies.push(e);
+            
+            // ★追加：敵の数を増やす処理（約30%の確率で追加スポーン、ボスとドラゴン以外）
+            if (isHard && type !== 'typeboss' && type !== 'typec' && Math.random() < 0.3) {
+                let e2 = new Enemy(type, x + (Math.random()*40-20), y - (Math.random()*20+10), stg.player.charData, stg.advManager, stg.stgId);
+                e2.hp = Math.ceil(e2.hp * 1.3); e2.maxHp = Math.ceil(e2.maxHp * 1.3);
+                stg.enemies.push(e2);
+            }
+            return e;
+        };
+
+        if (timer > 100 && timer < 500 && timer % 150 === 0) { stg.dragonStartX = sW * 0.2 + Math.random() * sW * 0.6; stg.dragonCount = isHard ? 10 : 8; }
+        if (stg.dragonCount > 0 && timer % 10 === 0) { spawn('typec', stg.dragonStartX, -50); stg.dragonCount--; }
         if (timer > 600 && timer < 1500) {
-            if (timer % 80 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 200 === 0) stg.enemies.push(new Enemy('typeb', (timer % 400 === 0) ? sW * 0.2 : sW * 0.8, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 80 === 0) spawn('typea', Math.random() * sW, -50);
+            if (timer % 200 === 0) spawn('typeb', (timer % 400 === 0) ? sW * 0.2 : sW * 0.8, -50);
         }
         if (timer > 1500 && timer < 2500) {
-            if (timer % 50 === 0) stg.enemies.push(new Enemy('typea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 150 === 0) stg.enemies.push(new Enemy('typeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 300 === 0) { stg.dragonStartX = sW * 0.2 + Math.random() * sW * 0.6; stg.dragonCount = 8; }
-            if (stg.dragonCount > 0 && timer % 10 === 0) { stg.enemies.push(new Enemy('typec', stg.dragonStartX, -50, stg.player.charData, stg.advManager, stg.stgId)); stg.dragonCount--; }
+            if (timer % 50 === 0) spawn('typea', Math.random() * sW, -50);
+            if (timer % 150 === 0) spawn('typeb', Math.random() * sW, -50);
+            if (timer % 300 === 0) { stg.dragonStartX = sW * 0.2 + Math.random() * sW * 0.6; stg.dragonCount = isHard ? 10 : 8; }
+            if (stg.dragonCount > 0 && timer % 10 === 0) { spawn('typec', stg.dragonStartX, -50); stg.dragonCount--; }
         }
-        if (timer === 2800 && !stg.bossSpawned) { stg.enemies.push(new Enemy('typeboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId)); stg.bossSpawned = true; }
+        if (timer === 2800 && !stg.bossSpawned) { spawn('typeboss', sW / 2, -150); stg.bossSpawned = true; }
     },
     updateEnemy: function(e, canvas, player) {
         const dpr = window.devicePixelRatio || 1; e.angle += 0.05;
