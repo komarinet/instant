@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.9"; // バージョン更新（開始直後のADV暴発を防ぐため、読み込みキーを event_adv に変更）
+const VER_STG_SHIINA = "0.4.10"; // バージョン更新（スクロール1.3倍、ハード時1.3倍、ボスのフェードアウト追加）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -10,8 +10,10 @@ window.StageConfigs['shiina'] = {
         }
     },
     updateBackground: function(stg, sW, sH) {
-        stg.bgScrollY += 1.5; if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
-        stg.clouds.forEach(c => { c.y += c.speed; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
+        // ★修正：速度を約1.3倍に（1.5 -> 1.95）
+        stg.bgScrollY += 1.95; if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
+        // ★修正：雲の速度も1.3倍
+        stg.clouds.forEach(c => { c.y += c.speed * 1.3; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
     },
     drawBackground: function(stg, ctx, sW, sH) {
         const bgImg = stg.advManager?.assets['mountain.png'];
@@ -62,6 +64,11 @@ window.StageConfigs['shiina'] = {
                 e.draw = function(ctx) {
                     const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiinaboss.png'] : null;
                     ctx.save(); ctx.translate(this.x, this.y);
+
+                    // ★追加：ボス撃破時に透明になりながら消える処理を追加
+                    if (this.isDying && this.deathTimer >= 60) {
+                        ctx.globalAlpha = Math.max(0, 1.0 - (this.deathTimer - 60) / 120); 
+                    }
 
                     if (this.isInvincible) {
                         const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.png'] : null;
@@ -126,28 +133,37 @@ window.StageConfigs['shiina'] = {
     },
 
     updateWaves: function(stg, timer, sW, sH) {
+        // ★追加：パワーレベル4以上なら難易度アップ（1.3倍）
+        const isHard = stg.player.powerLevel >= 4;
+        const spawn = (type, x, y) => {
+            let e = new Enemy(type, x, y, stg.player.charData, stg.advManager, stg.stgId);
+            if (isHard) {
+                e.hp = Math.ceil(e.hp * 1.3);
+                e.maxHp = Math.ceil(e.maxHp * 1.3);
+            }
+            stg.enemies.push(e);
+            return e;
+        };
+
         if (timer === 10 && !stg.bossSpawned) {
-            stg.enemies.push(new Enemy('shiinaboss', sW/2, 90, stg.player.charData, stg.advManager, stg.stgId));
+            spawn('shiinaboss', sW/2, 90);
             stg.bossSpawned = true;
         }
 
         let boss = stg.enemies.find(e => e.type === 'shiinaboss');
 
         if (timer > 100 && timer < 1000) { 
-            // 1-1: 左上or右上から中央へゆっくり直進する編隊
-            if (timer % 120 === 0) {
+            let freq = isHard ? 90 : 120; // 頻度を1.3倍（間隔を短く）
+            if (timer % freq === 0) {
                 let isLeft = Math.random() > 0.5;
                 let startX = isLeft ? -50 : sW + 50;
                 let startY = -50;
                 let targetX = sW / 2;
-                let targetY = sH / 2; // 画面中央付近を目標に
+                let targetY = sH / 2; 
                 let angle = Math.atan2(targetY - startY, targetX - startX);
                 
-                for (let i = 0; i < 3; i++) {
-                    let enemy = new Enemy('shiki_a', startX, startY, stg.player.charData, stg.advManager, stg.stgId);
-                    enemy.angleToCenter = angle;
-                    
-                    // 三角形になるようにオフセットを付与（先頭、左後ろ、右後ろ）
+                let count = isHard ? 4 : 3; // 編隊の数も増やす
+                for (let i = 0; i < count; i++) {
                     let offsetX = 0; let offsetY = 0;
                     if (i === 1) { 
                         offsetX = Math.cos(angle - Math.PI * 0.75) * 35;
@@ -155,36 +171,38 @@ window.StageConfigs['shiina'] = {
                     } else if (i === 2) { 
                         offsetX = Math.cos(angle + Math.PI * 0.75) * 35;
                         offsetY = Math.sin(angle + Math.PI * 0.75) * 35;
+                    } else if (i === 3) {
+                        offsetX = Math.cos(angle) * 70;
+                        offsetY = Math.sin(angle) * 70;
                     }
-                    enemy.x = startX + offsetX;
-                    enemy.y = startY + offsetY;
-                    stg.enemies.push(enemy);
+                    let enemy = spawn('shiki_a', startX + offsetX, startY + offsetY);
+                    enemy.angleToCenter = angle;
                 }
             }
         } 
         else if (timer >= 1000 && timer < 2000) { 
-            // 1-2: 蝶（ランダムスポーン）
-            if (timer % 80 === 0) {
-                stg.enemies.push(new Enemy('shiki_b', Math.random() * sW, -30, stg.player.charData, stg.advManager, stg.stgId));
+            let freq = isHard ? 60 : 80;
+            if (timer % freq === 0) {
+                spawn('shiki_b', Math.random() * sW, -30);
             }
         } 
         else if (timer >= 2000 && timer < 3000) { 
-            // 1-3: 人形（7列の直線）
-            if (timer % 150 === 0) {
+            let freq = isHard ? 115 : 150;
+            if (timer % freq === 0) {
                 let startX = Math.random() * (sW - 100) + 50;
-                for(let i = 0; i < 7; i++) {
-                    stg.enemies.push(new Enemy('shiki_c', startX, -40 - (i * 45), stg.player.charData, stg.advManager, stg.stgId));
+                let count = isHard ? 9 : 7;
+                for(let i = 0; i < count; i++) {
+                    spawn('shiki_c', startX, -40 - (i * 45));
                 }
             }
         } 
         else if (timer >= 3000 && timer < 4200) { 
-            // 1-4: 竿（回転）
-            if (timer % 120 === 0) {
-                stg.enemies.push(new Enemy('shiki_d', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            let freq = isHard ? 90 : 120;
+            if (timer % freq === 0) {
+                spawn('shiki_d', Math.random() * sW, -50);
             }
         } 
         else if (timer === 4200) {
-            // ★修正：シナリオファイルから現在のキャラクターの event_adv データを動的に取得する
             let midAdvData = [];
             try {
                 const charId = (stg.player && stg.player.id) ? stg.player.id : 'igari';
@@ -198,7 +216,6 @@ window.StageConfigs['shiina'] = {
 
                 if (charScenario) {
                     for (let stageKey in charScenario) {
-                        // ★ココを修正：mid_stg を event_adv に変更
                         if (charScenario[stageKey] && charScenario[stageKey].stgId === stg.stgId && charScenario[stageKey].event_adv) {
                             midAdvData = charScenario[stageKey].event_adv;
                             break;
@@ -212,7 +229,6 @@ window.StageConfigs['shiina'] = {
                 if (currentBoss) currentBoss.isInvincible = false;
             };
 
-            // ADVデータがあれば再生、無ければ（猪狩以外の場合など）即座にボスの無敵を解除
             if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
                 window.startMidStgADV(midAdvData, onAdvEnd);
             } else {
@@ -220,36 +236,31 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer > 4300) { 
-            // 全種類ミックス
-            if (timer % 120 === 0) {
+            let freq = isHard ? 90 : 120;
+            if (timer % freq === 0) {
                 const rand = Math.random();
                 if (rand < 0.25) {
                     let isLeft = Math.random() > 0.5;
                     let startX = isLeft ? -50 : sW + 50;
                     let startY = -50;
                     let angle = Math.atan2((sH / 2) - startY, (sW / 2) - startX);
-                    for (let i = 0; i < 3; i++) {
-                        let enemy = new Enemy('shiki_a', startX, startY, stg.player.charData, stg.advManager, stg.stgId);
-                        enemy.angleToCenter = angle;
+                    let count = isHard ? 4 : 3;
+                    for (let i = 0; i < count; i++) {
                         let offsetX = 0; let offsetY = 0;
-                        if (i === 1) { 
-                            offsetX = Math.cos(angle - Math.PI * 0.75) * 35;
-                            offsetY = Math.sin(angle - Math.PI * 0.75) * 35;
-                        } else if (i === 2) { 
-                            offsetX = Math.cos(angle + Math.PI * 0.75) * 35;
-                            offsetY = Math.sin(angle + Math.PI * 0.75) * 35;
-                        }
-                        enemy.x = startX + offsetX;
-                        enemy.y = startY + offsetY;
-                        stg.enemies.push(enemy);
+                        if (i === 1) { offsetX = Math.cos(angle - Math.PI * 0.75) * 35; offsetY = Math.sin(angle - Math.PI * 0.75) * 35; } 
+                        else if (i === 2) { offsetX = Math.cos(angle + Math.PI * 0.75) * 35; offsetY = Math.sin(angle + Math.PI * 0.75) * 35; } 
+                        else if (i === 3) { offsetX = Math.cos(angle) * 70; offsetY = Math.sin(angle) * 70; }
+                        let enemy = spawn('shiki_a', startX + offsetX, startY + offsetY);
+                        enemy.angleToCenter = angle;
                     }
                 } else if (rand < 0.5) {
-                    stg.enemies.push(new Enemy('shiki_b', Math.random() * sW, -30, stg.player.charData, stg.advManager, stg.stgId));
+                    spawn('shiki_b', Math.random() * sW, -30);
                 } else if (rand < 0.75) {
                     let startX = Math.random() * (sW - 100) + 50;
-                    for(let i = 0; i < 7; i++) stg.enemies.push(new Enemy('shiki_c', startX, -40 - (i * 45), stg.player.charData, stg.advManager, stg.stgId));
+                    let count = isHard ? 9 : 7;
+                    for(let i = 0; i < count; i++) spawn('shiki_c', startX, -40 - (i * 45));
                 } else {
-                    stg.enemies.push(new Enemy('shiki_d', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+                    spawn('shiki_d', Math.random() * sW, -50);
                 }
             }
         }
