@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.12"; // バージョン更新（既存コードを一切削除せず、スコア加算と描画を追記）
+const VER_STG_CORE = "0.8.14"; // バージョン更新（既存のコメントやコードを一切削除せず、爆発待機処理のみを追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -256,7 +256,14 @@ class STGManager {
                         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                     }
                 }
-                if (e.deathTimer >= 180) {
+                if (e.deathTimer === 180) {
+                    // 180フレーム目で最後の巨大爆発を発生させる
+                    this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
+                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                }
+                
+                // ★修正：爆発が完全に消え去るまで待機するため、クリア判定を260フレーム目に遅延
+                if (e.deathTimer >= 260) {
                     e.alive = false; 
                     
                     // ★ここだけ変更：中ボスの撃破でステージが終わらないよう、他にボスが残っていないかチェック
@@ -268,9 +275,6 @@ class STGManager {
                     if (this.phase !== undefined && this.phase < 4) {
                         this.isStageClear = false;
                     }
-
-                    this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
-                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
                 continue; 
             }
