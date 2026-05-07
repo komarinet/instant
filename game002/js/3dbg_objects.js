@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.7"; // バージョン更新（コアの待機位置を遥か地底に変更して見切れを防止）
+const VER_3DBG_OBJ = "0.3.8"; // バージョン更新（起動エラーの原因だったTHREEの記述漏れを修正）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -142,7 +142,9 @@ window.BG3DObjects = {
         const sideMat = m.textures.candle 
             ? new THREE.MeshPhongMaterial({ map: m.textures.candle, emissive: 0x331100 }) 
             : new THREE.MeshPhongMaterial({ color: 0xddccaa, emissive: 0x442211, shininess: 30 });
-        const topMat = new MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
+            
+        // ★修正：原因の「THREE.」抜けを直しました
+        const topMat = new THREE.MeshPhongMaterial({ color: 0xffeedd, emissive: 0xaa5522, shininess: 50 }); 
         const wickMat = new THREE.MeshBasicMaterial({ color: 0x111111 }); 
 
         const r = 0.8;  
@@ -314,7 +316,7 @@ window.BG3DObjects = {
         m.coreLeftWall.position.set(-redEdgeX, -80, -500);
         m.coreGroup.add(m.coreLeftWall);
 
-        m.coreRightWall = new THREE.Mesh(wallGeo, coreWallMatRight);
+        m.coreRightWall = new Mesh(wallGeo, coreWallMatRight);
         m.coreRightWall.rotation.y = -Math.PI / 2;
         m.coreRightWall.position.set(redEdgeX, -80, -500);
         m.coreGroup.add(m.coreRightWall);
@@ -322,7 +324,6 @@ window.BG3DObjects = {
         const reactorTex = m.textures.coreReactor;
         let reactorMat = reactorTex ? new THREE.MeshStandardMaterial({ map: reactorTex, emissive: 0xff3300, emissiveMap: reactorTex, emissiveIntensity: 1.5 }) : new THREE.MeshStandardMaterial({ color: 0xff3300, emissive: 0xff0000, wireframe: true });
         
-        // ★修正：初期段階で絶対に画面に見切れないよう、遥か地底に隠しておく
         m.coreReactor = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 32), reactorMat);
         m.coreReactor.position.set(0, -2000, 0); 
         m.coreGroup.add(m.coreReactor);
