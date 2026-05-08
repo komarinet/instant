@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.5.2"; // バージョン更新（ステージ6に mid_stg と mid_stg2 の2段階ADVを実装）
+const VER_SCENARIO_IGARI = "0.6.0"; // バージョン更新（ステージ6のシナリオ刷新およびエンディングの追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -333,7 +333,7 @@ scenarios.igari = {
             { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '知ってて・・・!?', isRight: true },
             { bg: 'univ.png', character: 'godaimo.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '御婦人、この世には', isRight: false },
             { bg: 'univ.png', character: 'godaimo.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '自身でハンドルを握ることが出来ない者がいるのだ', isRight: false },
-            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'つまり、君のボスが諸悪の根源ってことか', isRight: false },
+            { bg: 'univ.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'つまり、君のボスが諸悪の根源ってことか', isRight: true },
             { bg: 'univ.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '退く気がないのなら倒さざるを得ない', isRight: true },
             { bg: 'univ.png', character: 'godaimo.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '承知の上だ。私はGODAI', isRight: false },
             { bg: 'univ.png', character: 'godaimo.png', spriteIndex: 1, speaker: 'G・O・D・A・I', text: '科学文明軍の最高戦力だ', isRight: false, effect: 'shake' }
@@ -357,37 +357,104 @@ scenarios.igari = {
             { bg: 'postuniv.png', character: 'godai.png', spriteIndex: 4, speaker: 'G・O・D・A・I', text: 'あり・・・がとう・・・', isRight: false }
         ]
     },
-    6: { // ★新規追加：ステージ6（科学文明軍リーダー）デモシナリオ
-        stgId: 'final', 
-        adv: [],
+    6: {
+        stgId: 'final',
+        adv: [
+            { bg: 'uramoon.png', character: 'cap.png', spriteIndex: 0, speaker: '？？？', text: 'まさかお前たちの方からここへ来るとはな。柊、椎名', delay: 60, isRight: false, bgm: 'dark' },
+            { bg: 'uramoon.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'お、お前は・・・！', isRight: true },
+            { bg: 'uramoon.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'まさか・・・！', isRight: true },
+            { bg: 'uramoon.png', character: 'shiina.png', character2: 'hiragi01.png', spriteIndex: 1, spriteIndex2: 15, speaker: '椎名・柊', text: '・・・誰？', isRight: true },
+            { bg: 'uramoon.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '知らねぇのかよ！', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '知るはずがないさ', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '君らとは死ぬまで顔を合わせる予定は無かったのだからな', isRight: true },
+            { bg: 'uramoon.png', character: 'cap.png', spriteIndex: 4, speaker: '？？？', text: '我々の計画を!?　まさか貴様、保険組合か！', isRight: false },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'わかってるなら話が早い', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '貴様が犯そうとしてる犯罪、止める気は――', isRight: true },
+            { bg: 'uramoon.png', character: 'cap.png', spriteIndex: 0, speaker: '？？？', text: 'あると思うかね？', isRight: false },
+            { bg: 'uramoon.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: 'ある！', isRight: true },
+            { bg: 'uramoon.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'まあまあある！', isRight: true },
+            { bg: 'uramoon.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'どちらかと言えばある！', isRight: true },
+            { bg: 'uramoon.png', character: 'cap.png', spriteIndex: 4, speaker: '？？？', text: 'ないわ！　ボケどもが！', isRight: false, effect: 'shake' },
+            { bg: 'uramoon.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '怒られたわ・・・', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '君たちね・・・', isRight: true },
+            { bg: 'uramoon.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '叩き潰せばいいんだろ？', isRight: true },
+            { bg: 'uramoon.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '元のクレーターに戻してやんぞゴルァ！', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '頼もしいやら恐ろしいやらだな', isRight: true },
+            { bg: 'uramoon.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '油断するなよ！ 突入する！', isRight: true }
+        ],
         pre_stg: [
-            { bg: 'univ.png', place: 'Enemy Mothership', time: '2025.07', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'ここが科学文明軍の母船か…！', delay: 60, bgm: 'dark' },
-            { bg: 'univ.png', character: 'cap.png', spriteIndex: 1, speaker: '隊長', text: 'ガハハハハ！よくぞ辿り着いたな、猪狩隆盛の息子よ！', isRight: false },
-            { bg: 'univ.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'お前が親玉か！なぜ俺の周りの人間を狙う！', isRight: true, effect: 'shake' },
-            { bg: 'univ.png', character: 'cap.png', spriteIndex: 0, speaker: '隊長', text: '我々は歴史を正しく導く「科学文明軍」。', isRight: false },
-            { bg: 'univ.png', character: 'cap.png', spriteIndex: 3, speaker: '隊長', text: '非科学的な「魔女」や「異能者」は、完璧な未来には不要なのだよ。', isRight: false },
-            { bg: 'univ.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '勝手に人の存在価値を決めないでよね！', isRight: true },
-            { bg: 'univ.png', character: 'cap.png', spriteIndex: 5, speaker: '隊長', text: 'チッ…G・O・D・A・Iの奴め、このエラー因子どもを取り逃がしおって。', isRight: false },
-            { bg: 'univ.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '能書きはもういい。さっさとぶっ飛ばして帰るぞ。', isRight: true },
-            { bg: 'univ.png', character: 'cap.png', spriteIndex: 4, speaker: '隊長', text: 'いいだろう。私が直々に貴様らを歴史から消去してやる！', isRight: false, effect: 'shake' }
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: 'おおっ！　SFの基地じゃねぇか！', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '喜んでる場合じゃないよ', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'そこら中から戦闘機がでてきてるんだよ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '構やしねぇよ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '相手が科学なら俺が負ける理由はない！', isRight: true }
         ],
         mid_stg: [
-            { bg: 'trench_floor.png', character: 'godaimo.png', spriteIndex: 0, speaker: 'G・O・D・A・I', text: '侵入者ヲ検知。排除シマス。', isRight: false },
-            { bg: 'trench_floor.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'こいつ、G・O・D・A・Iか！？いや、量産型のコピーか！', isRight: true },
-            { bg: 'trench_floor.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '何機来ようが、まとめてスクラップにしてやる！', isRight: true }
+            { bg: 'base.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'あの戦艦は、さっきの・・・', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '俊基、やっつけたはずだよね？', isRight: true },
+            { bg: 'base.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'どうやら量産型が同じ戦艦を操ってるようだな', isRight: true },
+            { bg: 'base.png', character: 'godaimo.png', spriteIndex: 0, speaker: '量産型GODAI', text: 'ガガガ・・・敵、殲滅する', isRight: false },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '量産型なら、敵じゃねぇ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'あいつは自分を『最高戦力』って言ったんだ', isRight: true },
+            { bg: 'base.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'じゃあいまここにいる彼らは二番手以下ってことだね', isRight: true },
+            { bg: 'base.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '道開けろザコがぁ！', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'この落差、慣れないわー', isRight: true }
         ],
         mid_stg2: [
-            { bg: 'core_bg.png', character: 'cap.png', spriteIndex: 0, speaker: '隊長', text: '防衛ラインを突破し、ここまで辿り着くとはな。', isRight: false },
-            { bg: 'core_bg.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'お前が諸悪の根源か。ここで終わらせてやる！', isRight: true },
-            { bg: 'core_bg.png', character: 'cap.png', spriteIndex: 4, speaker: '隊長', text: '私が直々に貴様らを歴史から消去してやる！', isRight: false, effect: 'shake' }
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: 'なっ、まさかここまで来たのか!?', isRight: false },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '悪役のテンプレ台詞すぎるだろ', isRight: true },
+            { bg: 'inbase.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: '人間慌てるとあんなものさ', isRight: true },
+            { bg: 'inbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '気を抜くな。あそこに見えているあれは', isRight: true },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 0, speaker: '科学文明軍隊長', text: '貴様の父親が開発に関わった兵器、アームコア3000だ', isRight: false },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '全方位に主砲が付いてんじゃねえか', isRight: true },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'あのクソ親父、デタラメな兵器作りやがって', isRight: true },
+            { bg: 'inbase.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '潰し甲斐がありそうな兵器だな', isRight: true },
+            { bg: 'inbase.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'だが、あんな兵器に近づけるのか？', isRight: true },
+            { bg: 'inbase.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '壊す前に穴だらけになっちゃうよ', isRight: true },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: 'ククク・・・貴様らもここまでだ', isRight: false },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 4, speaker: '科学文明軍隊長', text: '宇宙の藻屑となるがいい', isRight: false },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'うるせぇな！　テンプレな台詞ばっかりいいやがって！', isRight: true },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'お前みたいな奴にやられてたまるかよ！', isRight: true }
         ],
         post_stg: [
-            { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 6, speaker: '隊長', text: 'ば、馬鹿な！我が科学文明軍の誇る究極兵器が…！', delay: 60, isRight: false, bgm: 'stop' },
-            { bg: 'breakufo.png', character: 'cap.png', spriteIndex: 8, speaker: '隊長', text: 'グハァッ…！', isRight: false, effect: 'shake' },
-            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '科学は人を不幸にするためのものじゃない。親父が教えてくれた事だ。', isRight: true, bgm: 'relax' },
-            { bg: 'breakufo.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'これで、歴史の歪みは正された。ご苦労だったな。', isRight: true },
-            { bg: 'breakufo.png', character: 'hiragi01.png', spriteIndex: 6, speaker: '柊', text: '終わった…のね。俊基ぃ〜！', isRight: true },
-            { bg: 'breakufo.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'ああ、帰ろう。俺たちの世界へ！', isRight: true }
+            { bg: 'brokenbase.png', character: 'cap.png', spriteIndex: 6, speaker: '科学文明軍隊長', text: 'ば、馬鹿なぁ！　我が軍の最終兵器がぁーー！', isRight: false, effect: 'shake' },
+            { bg: 'brokenbase.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '最後まで冗談か本気かわかんない奴だな', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '科学文明軍隊長、ジョン・サクラダ', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '異世界条項47条違反の罪で逮捕する', isRight: true },
+            { bg: 'brokenbase.png', character: 'cap.png', spriteIndex: 4, speaker: 'ジョン・サクラダ', text: 'これで終わったと思うなよ！', isRight: false },
+            { bg: 'brokenbase.png', character: 'cap.png', spriteIndex: 5, speaker: 'ジョン・サクラダ', text: '我々が敗れても、いずれ次の刺客がっ・・・', isRight: false },
+            { bg: 'brokenbase.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'ここまでテンプレを極めると逆に尊敬するね', isRight: true },
+            { bg: 'brokenbase.png', character: 'hiragi01.png', spriteIndex: 5, speaker: '柊', text: '１年後の私がこんなのにやられたと思うと腹立つわ', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '私はこいつを連行するのでここで失礼する', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '猪狩くん', isRight: true },
+            { bg: 'brokenbase.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '俺？', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '今更だが、巻き込んで済まなかった', isRight: true },
+            { bg: 'brokenbase.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'まあ、他人事ってわけでもないからな', isRight: true },
+            { bg: 'brokenbase.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'なにそれ！　遠回しなプロポーズ!?', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 1, speaker: '各務', text: '君たちの未来が明るいものであるよう、祈らせてもらうよ', isRight: true },
+            { bg: 'brokenbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'そして、できればもう会わずに済むことを願う', isRight: true },
+            { bg: 'brokenbase.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '親父に伝えとくよ。保険組合に迷惑かけんなって', isRight: true },
+            { bg: 'brokenbase.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'ねえ、どうなの？　ねえ俊基！', isRight: true },
+            { bg: 'brokenbase.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: 'しつこい女は嫌われるよ', isRight: true },
+            { bg: 'brokenbase.png', character: 'hiragi01.png', spriteIndex: 13, speaker: '柊', text: 'うるさいのよアンタは！', isRight: true, effect: 'shake' }
+        ],
+        ending: [
+            { bg: 'airport.png', speaker: '', text: '１年後', isRight: true },
+            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: '本当に本当に大丈夫なんだろうな', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '大丈夫だって。防護結界も３重に張ってるし', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '核爆弾が落ちても無事だよ', isRight: true },
+            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'その場合俺が無事で済まないから困るが', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'それより心配なのはあっちに着いてからかな', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'なんで大魔女様の元で修行なのよ', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: '他にも有能な魔女いるでしょーよ', isRight: true },
+            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: '期待されてんじゃねぇの？', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: 'だといいけどね', isRight: true },
+            { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 10, speaker: '柊', text: 'じゃ、行ってくるー', isRight: true },
+            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 1, speaker: '猪狩', text: 'ああ、行ってらっしゃい', isRight: true },
+            { bg: 'airport02.png', speaker: '', text: '千華を乗せた飛行機はあっけなく離陸した', isRight: true },
+            { bg: 'airport02.png', speaker: '', text: '各務によれば、修正された歴史の記憶は消えていくものらしい', isRight: true },
+            { bg: 'airport02.png', character: 'igari02.png', spriteIndex: 2, speaker: '猪狩', text: 'ちょっと惜しい気もするけどな', isRight: true },
+            { bg: 'airport02.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: 'じゃ、仕事に戻るとしますか', isRight: true }
         ]
     }
 };
