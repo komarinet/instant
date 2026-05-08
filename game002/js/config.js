@@ -5,12 +5,8 @@ export const imagesToPreload = [
     'breakplane.png', 
     'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 
-    'darkcandle.png',
-    'hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
-    'shiina.png', 'urashiina.png',
-    'baku01.png',
-    'igari_jiki.png',
-    'igaribomb.png',
+    'darkcandle.png','hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
+    'shiina.png', 'urashiina.png','baku01.png','igari_jiki.png','igaribomb.png',
     // --- ステージ3追加分 ---
     'shiinaboss.png','shiki.png','sans.png',
     // --- 新規追加分 ---
@@ -23,7 +19,7 @@ export const imagesToPreload = [
     'gtypeboss.png','cap.png',
     // --- 新規追加分 ---
     'trench_floor.png','trench_wall.png','​core_bg.png','core_reactor.png','gtyped.png','gtypee.png'
-    ,'cap01.png.png','uramoon.png','base.png','inbase.png','brokenbase.png'
+    ,'cap01.png.png','uramoon.png','base.png','inbase.png','brokenbase.png', 'airport02.png'
 ];
 
 export const imagesToPreload3D = [
