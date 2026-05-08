@@ -1,9 +1,13 @@
-const VER_STG_SHIINA = "0.4.10"; // バージョン更新（スクロール1.3倍、ハード時1.3倍、ボスのフェードアウト追加）
+const VER_STG_SHIINA = "0.4.11"; // バージョン更新（ADV後のボスBGM切り替え処理を追加）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
     init: function(stg, canvas) { 
         stg.bossSpawned = false; stg.bgScrollY = 0; stg.clouds = [];
+        
+        // ★追加：コア(stg_core.js)によるボス出現時の自動BGM切り替えをブロック
+        stg.bgmChanged = true; 
+        
         const dpr = window.devicePixelRatio || 1;
         for (let i=0; i<20; i++) {
             stg.clouds.push({ x: Math.random()*(canvas.width/dpr), y: Math.random()*(canvas.height/dpr), size: Math.random()*80+40, speed: Math.random()*3+2, opacity: Math.random()*0.15+0.05 });
@@ -227,6 +231,11 @@ window.StageConfigs['shiina'] = {
             const onAdvEnd = () => {
                 let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
                 if (currentBoss) currentBoss.isInvincible = false;
+                
+                // ★追加：ADVの演出が終わった直後にボスBGMを再生
+                if (typeof window.soundManager !== 'undefined') {
+                    window.soundManager.playBGM('boss_shiina');
+                }
             };
 
             if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
