@@ -1,8 +1,9 @@
-export const VER_UI = "0.3.14"; // バージョン更新（デモ画面の高さを左のキャラリストと完全に同期）
+export const VER_UI = "0.3.15"; // バージョン更新（猪狩のデモ画面に敵弾と自機周囲の接近サークルアニメーションを追加）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
+let demoEnemyBullets = []; // ★追加：デモ用の敵弾配列
 
 // キャラIDからふりがな（ルビ）付きのHTML文字列を生成する関数
 function getRubyName(id, defaultName) {
@@ -18,6 +19,7 @@ function getRubyName(id, defaultName) {
 function startDemoLoop(char) {
     if (demoAnimId) cancelAnimationFrame(demoAnimId);
     demoBullets = [];
+    demoEnemyBullets = []; // 初期化
     demoFrame = 0;
     const canvas = document.getElementById('char-demo-canvas');
     if (!canvas) return;
@@ -26,13 +28,13 @@ function startDemoLoop(char) {
     function loop() {
         demoAnimId = requestAnimationFrame(loop);
         
-        // ★追加：左側のリストの高さをリアルタイムに取得し、キャンバスの長さを自動で合わせる
+        // 左側のリストの高さをリアルタイムに取得し、キャンバスの長さを自動で合わせる
         const listWrap = document.getElementById('char-list');
         if (listWrap && listWrap.clientHeight > 0) {
             const targetH = listWrap.clientHeight;
             if (canvas.height !== targetH) {
-                canvas.height = targetH; // 内部解像度を合わせる
-                canvas.style.setProperty('height', targetH + 'px', 'important'); // 見た目の長さを合わせる
+                canvas.height = targetH; 
+                canvas.style.setProperty('height', targetH + 'px', 'important'); 
                 canvas.style.setProperty('max-height', targetH + 'px', 'important');
             }
         }
@@ -49,12 +51,58 @@ function startDemoLoop(char) {
         demoFrame++;
         let fireRate = 8;
         let isClose = false;
+
+        const playerX = canvas.width / 2;
+        const playerY = canvas.height - 35; // 自機のY座標
         
         if (char.id === 'igari') {
-            isClose = (demoFrame % 180) > 90;
+            // ★追加：敵の弾を定期的に降らせる
+            if (demoFrame % 90 === 0) {
+                demoEnemyBullets.push({ x: playerX - 25, y: -10, vy: 3.5, color: '#ff0055', size: 4 });
+            }
+            if ((demoFrame + 45) % 90 === 0) {
+                demoEnemyBullets.push({ x: playerX + 25, y: -10, vy: 4, color: '#ffaa00', size: 4 });
+            }
+
+            // ★追加：敵弾と自機の距離を測って isClose を判定
+            let minDist = Infinity;
+            for (let i = 0; i < demoEnemyBullets.length; i++) {
+                let eb = demoEnemyBullets[i];
+                let d = Math.hypot(eb.x - playerX, eb.y - playerY);
+                if (d < minDist) minDist = d;
+            }
+            // 70px以内に敵弾が来たら接近状態にする
+            isClose = minDist < 70;
             fireRate = isClose ? 3 : 8;
+
+            // ★修正：自機の周囲に接近サークルを描画（弾や自機の下に描く）
+            if (isClose) {
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+                ctx.beginPath(); ctx.arc(playerX, playerY, 35 + Math.sin(demoFrame*0.4)*5, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(playerX, playerY, 35 + Math.sin(demoFrame*0.4)*5, 0, Math.PI*2); ctx.stroke();
+            } else {
+                ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)'; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(playerX, playerY, 30, 0, Math.PI*2); ctx.stroke();
+            }
         }
         
+        // ★追加：敵弾の更新と描画
+        for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
+            let eb = demoEnemyBullets[i];
+            eb.y += eb.vy;
+            
+            ctx.shadowColor = eb.color; ctx.shadowBlur = 10;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(eb.x, eb.y, eb.size, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = eb.color;
+            ctx.beginPath(); ctx.arc(eb.x, eb.y, eb.size * 0.7, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            if (eb.y > canvas.height + 20) demoEnemyBullets.splice(i, 1);
+        }
+
+        // 自機の弾の発射
         if (demoFrame % fireRate === 0) {
             let color = char.color;
             let speed = 8; 
@@ -63,14 +111,14 @@ function startDemoLoop(char) {
                 speed = 16; 
             }
             
-            demoBullets.push({ x: canvas.width/2, y: canvas.height - 40, vx: 0, vy: -speed, color: color, size: 4 });
+            demoBullets.push({ x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4 });
             if (char.id === 'igari') {
-                demoBullets.push({ x: canvas.width/2 - 6, y: canvas.height - 40, vx: -0.5, vy: -speed, color: color, size: 4 });
-                demoBullets.push({ x: canvas.width/2 + 6, y: canvas.height - 40, vx: 0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4 });
             }
         }
         
-        // 弾の更新と描画
+        // 自機の弾の更新と描画
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
             b.x += b.vx || 0;
@@ -102,27 +150,20 @@ function startDemoLoop(char) {
         if (img && img.naturalHeight > 0) {
             const drawWidth = 36;
             const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
-            ctx.drawImage(img, canvas.width/2 - drawWidth/2, canvas.height - 30 - drawHeight/2, drawWidth, drawHeight);
+            ctx.drawImage(img, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
         } else {
             ctx.fillStyle = char.color || '#fff';
             ctx.beginPath();
-            ctx.moveTo(canvas.width/2, canvas.height - 45);
-            ctx.lineTo(canvas.width/2 - 12, canvas.height - 15);
-            ctx.lineTo(canvas.width/2 + 12, canvas.height - 15);
+            ctx.moveTo(playerX, playerY - 10);
+            ctx.lineTo(playerX - 12, playerY + 20);
+            ctx.lineTo(playerX + 12, playerY + 20);
             ctx.fill();
         }
         
-        // 接近シミュレートUIの描画
-        if (char.id === 'igari') {
-            if (isClose) {
-                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
-                ctx.beginPath(); ctx.arc(canvas.width/2, 40, 25 + Math.sin(demoFrame*0.3)*5, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
-                ctx.fillText("TARGET CLOSE", canvas.width/2, 80);
-            } else {
-                ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
-                ctx.beginPath(); ctx.arc(canvas.width/2, 30, 10, 0, Math.PI*2); ctx.fill();
-            }
+        // ★追加：自機の上に TARGET CLOSE の文字を表示
+        if (char.id === 'igari' && isClose) {
+            ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
+            ctx.fillText("TARGET CLOSE", playerX, playerY - 35); 
         }
     }
     loop();
@@ -175,7 +216,6 @@ export function updatePreview(characters, selectedCharId) {
         flexWrap.style.display = 'flex';
         flexWrap.style.flexDirection = 'row';
         flexWrap.style.justifyContent = 'space-between';
-        // ★変更：ボタンリストとデモ画面の上端を合わせる
         flexWrap.style.alignItems = 'stretch'; 
         flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
@@ -204,12 +244,11 @@ export function updatePreview(characters, selectedCharId) {
         demoWrap.style.minWidth = '120px'; 
         demoWrap.style.display = 'flex';
         demoWrap.style.justifyContent = 'center';
-        demoWrap.style.alignItems = 'flex-start'; // キャンバスを上端に固定
+        demoWrap.style.alignItems = 'flex-start'; 
         
         let demoCanvas = document.createElement('canvas');
         demoCanvas.id = 'char-demo-canvas';
         demoCanvas.width = 120;
-        // ★修正：初期値を持たせつつ、ループ内で動的調整されるように高さ指定を緩める
         demoCanvas.style.cssText = 'position: static !important; width: 120px !important; background: #0a0a14 !important; border: 1px solid rgba(0, 243, 255, 0.5) !important; border-radius: 5px !important; box-shadow: 0 0 10px rgba(0,255,255,0.2) !important; display: block !important; flex-shrink: 0 !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;';
         
         demoWrap.appendChild(demoCanvas);
