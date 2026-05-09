@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.13"; // バージョン更新（デモウインドウ増殖バグの修正）
+export const VER_UI = "0.3.14"; // バージョン更新（デモ画面の高さを左のキャラリストと完全に同期）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -25,6 +25,18 @@ function startDemoLoop(char) {
     
     function loop() {
         demoAnimId = requestAnimationFrame(loop);
+        
+        // ★追加：左側のリストの高さをリアルタイムに取得し、キャンバスの長さを自動で合わせる
+        const listWrap = document.getElementById('char-list');
+        if (listWrap && listWrap.clientHeight > 0) {
+            const targetH = listWrap.clientHeight;
+            if (canvas.height !== targetH) {
+                canvas.height = targetH; // 内部解像度を合わせる
+                canvas.style.setProperty('height', targetH + 'px', 'important'); // 見た目の長さを合わせる
+                canvas.style.setProperty('max-height', targetH + 'px', 'important');
+            }
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // サイバーな背景グリッド
@@ -152,7 +164,6 @@ export function updatePreview(characters, selectedCharId) {
     document.getElementById('preview-desc').innerText = char.desc;
     document.getElementById('preview-weapon').innerText = char.weapon;
 
-    // ★修正：親要素のIDではなく、追加する要素そのものが既に存在するかどうかで判定する
     let flexWrap = document.getElementById('char-select-flex');
     
     if (!flexWrap) {
@@ -164,7 +175,8 @@ export function updatePreview(characters, selectedCharId) {
         flexWrap.style.display = 'flex';
         flexWrap.style.flexDirection = 'row';
         flexWrap.style.justifyContent = 'space-between';
-        flexWrap.style.alignItems = 'flex-start'; 
+        // ★変更：ボタンリストとデモ画面の上端を合わせる
+        flexWrap.style.alignItems = 'stretch'; 
         flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
         flexWrap.style.maxWidth = '600px';
@@ -192,13 +204,13 @@ export function updatePreview(characters, selectedCharId) {
         demoWrap.style.minWidth = '120px'; 
         demoWrap.style.display = 'flex';
         demoWrap.style.justifyContent = 'center';
-        demoWrap.style.alignItems = 'flex-start';
+        demoWrap.style.alignItems = 'flex-start'; // キャンバスを上端に固定
         
         let demoCanvas = document.createElement('canvas');
         demoCanvas.id = 'char-demo-canvas';
         demoCanvas.width = 120;
-        demoCanvas.height = 240;
-        demoCanvas.style.cssText = 'position: static !important; width: 120px !important; height: 240px !important; max-width: 120px !important; max-height: 240px !important; background: #0a0a14 !important; border: 1px solid rgba(0, 243, 255, 0.5) !important; border-radius: 5px !important; box-shadow: 0 0 10px rgba(0,255,255,0.2) !important; display: block !important; flex-shrink: 0 !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;';
+        // ★修正：初期値を持たせつつ、ループ内で動的調整されるように高さ指定を緩める
+        demoCanvas.style.cssText = 'position: static !important; width: 120px !important; background: #0a0a14 !important; border: 1px solid rgba(0, 243, 255, 0.5) !important; border-radius: 5px !important; box-shadow: 0 0 10px rgba(0,255,255,0.2) !important; display: block !important; flex-shrink: 0 !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;';
         
         demoWrap.appendChild(demoCanvas);
         flexWrap.appendChild(demoWrap);
