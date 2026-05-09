@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.3.2"; // バージョン更新（ステージ4、ステージ5のBGM追加）
+export const VER_AUDIO = "0.4.0"; // バージョン更新（ステージ6のBGM追加）
 
 export const soundManager = {
     bgm: {},
@@ -73,6 +73,16 @@ export const soundManager = {
         this.bgm['boss_godai'] = new Audio('bgm/boss_godai.mp3');
         this.bgm['boss_godai'].loop = true;
         this.bgm['boss_godai'].volume = 0.4;
+
+        // --- STAGE 6: FINAL ---
+        // ★追加：stage_cap と boss_cap を登録
+        this.bgm['stage_final'] = new Audio('bgm/stage_cap.mp3');
+        this.bgm['stage_final'].loop = true;
+        this.bgm['stage_final'].volume = 0.4;
+
+        this.bgm['boss_final'] = new Audio('bgm/boss_cap.mp3');
+        this.bgm['boss_final'].loop = true;
+        this.bgm['boss_final'].volume = 0.4;
 
 
         // --- SE（効果音） ---
