@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.3"; // バージョン更新（エンディングのADVを黒背景＋ラインの通常モードに変更）
+const VER_MAIN = "0.9.2"; // バージョン更新（ステージ間の引き継ぎリセットと、コンティニューボタンの動的生成を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -97,7 +97,7 @@ window.skipADV = function() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
-    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { 
+    } else if (gameState === 'POST_STG_DIALOGUE') {
         gameState = 'STAGE_CLEAR_TEXT';
         transitionTimer = 90;
     } else {
@@ -267,7 +267,7 @@ function executeStart(stageNum) {
 let touchX = 0, touchY = 0, isTouching = false;
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE' || gameState === 'MID_STG_ADV') {
+    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'MID_STG_ADV') {
         advManager.next();
         return;
     }
@@ -312,16 +312,40 @@ function handleStgPlay() {
     
     if (status === 'GAMEOVER') {
         gameState = 'UI';
+        
+        // ★修正：死亡時の状態を退避
+        const savedPower = stgManager.player.powerLevel;
+        const savedBombs = stgManager.player.bombs;
+        const savedScore = stgManager.player.score;
+
         stgManager = null; 
         soundManager.stopBGM(); 
         soundManager.playBGM('gameover');
-        document.getElementById('result-title').innerText = "GAME OVER";
         
-        if (typeof window.globalPlayerState !== 'undefined') {
-            window.globalPlayerState.score = 0;
-            window.globalPlayerState.powerLevel = 0;
-            window.globalPlayerState.bombs = 3;
+        const resTitle = document.getElementById('result-title');
+        if(resTitle) {
+            resTitle.innerText = "GAME OVER";
+            resTitle.style.color = "#ff3366";
         }
+        
+        // ★追加：3つの選択肢ボタンを表示する
+        ui.setupGameOverButtons(
+            () => { 
+                // 引き継いでリトライ（スコア・パワー・ボムを復元）
+                window.globalPlayerState = { powerLevel: savedPower, bombs: savedBombs, score: savedScore };
+                window.startGame(currentStage);
+            },
+            () => { 
+                // 引き継がないでリトライ（すべて初期化）
+                window.globalPlayerState = { powerLevel: 0, bombs: 3, score: 0 };
+                window.startGame(currentStage);
+            },
+            () => { 
+                // タイトルへ（すべて初期化）
+                window.globalPlayerState = { powerLevel: 0, bombs: 3, score: 0 };
+                window.changeScreen('title-screen');
+            }
+        );
 
         window.changeScreen('result-screen');
     } else if (status === 'STAGE_CLEAR') {
@@ -337,19 +361,9 @@ function handleStgPlay() {
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
-            const endingData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].ending || []) : [];
-            if (endingData.length > 0) {
-                gameState = 'ENDING_DIALOGUE';
-                advManager.start(endingData, () => {
-                    gameState = 'STAGE_CLEAR_TEXT';
-                    transitionTimer = 90; 
-                    if (skipBtn) skipBtn.classList.add('hidden');
-                });
-            } else {
-                gameState = 'STAGE_CLEAR_TEXT';
-                transitionTimer = 90; 
-                if (skipBtn) skipBtn.classList.add('hidden');
-            }
+            gameState = 'STAGE_CLEAR_TEXT';
+            transitionTimer = 90; 
+            if (skipBtn) skipBtn.classList.add('hidden');
         });
     }
 }
@@ -368,6 +382,11 @@ function handleTransitionFade() {
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
     transitionTimer--;
     if (transitionTimer <= 0) {
+        
+        // ★追加：通常クリア時はパワーとボムを引き継がない（スコアのみ維持する）
+        const currentScore = stgManager && stgManager.player ? stgManager.player.score : 0;
+        window.globalPlayerState = { powerLevel: 0, bombs: 3, score: currentScore };
+
         currentStage++;
         window.currentStage = currentStage; 
 
@@ -397,11 +416,14 @@ function handleTransitionFade() {
             gameState = 'UI';
             stgManager = null; 
             soundManager.playBGM('clear');
+            
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
-                resTitle.innerHTML = "ALL CLEAR!<br><br><span style='font-size:0.5em;color:#fff;'>制作 komarinet<br>thank you for playing</span>";
+                resTitle.innerText = "ALL CLEAR!";
                 resTitle.style.color = "#00ffff";
             }
+            ui.resetResultButtons(); // ★追加：既存の戻るボタンを復活させる
+            
             window.changeScreen('result-screen');
         }
     }
@@ -453,11 +475,6 @@ function loop(timestamp) {
         case 'POST_STG_DIALOGUE':
             stgManager.draw(ctx); 
             advManager.draw(ctx, canvas, true); 
-            break;
-            
-        case 'ENDING_DIALOGUE':
-            // ★変更：シューティングの背景を描画せず、通常のADV（黒背景＋ライン）として描画する
-            advManager.draw(ctx, canvas, false); 
             break;
             
         case 'STAGE_CLEAR_TEXT':
