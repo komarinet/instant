@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.2"; // バージョン更新（エンディングADV再生とクリア後のクレジット表示を追加）
+const VER_MAIN = "0.9.3"; // バージョン更新（エンディングのADVを黒背景＋ラインの通常モードに変更）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -97,7 +97,7 @@ window.skipADV = function() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
-    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { // ★追加
+    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { 
         gameState = 'STAGE_CLEAR_TEXT';
         transitionTimer = 90;
     } else {
@@ -337,7 +337,6 @@ function handleStgPlay() {
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
-            // ★変更：post_stg のあとに ending データがあれば続けて流す
             const endingData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].ending || []) : [];
             if (endingData.length > 0) {
                 gameState = 'ENDING_DIALOGUE';
@@ -398,7 +397,6 @@ function handleTransitionFade() {
             gameState = 'UI';
             stgManager = null; 
             soundManager.playBGM('clear');
-            // ★変更：全クリア時にクレジット表示を追加（改行タグで装飾）
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
                 resTitle.innerHTML = "ALL CLEAR!<br><br><span style='font-size:0.5em;color:#fff;'>制作 komarinet<br>thank you for playing</span>";
@@ -453,9 +451,13 @@ function loop(timestamp) {
             break;
             
         case 'POST_STG_DIALOGUE':
-        case 'ENDING_DIALOGUE': // ★追加：エンディング中も背景を維持して描画
             stgManager.draw(ctx); 
             advManager.draw(ctx, canvas, true); 
+            break;
+            
+        case 'ENDING_DIALOGUE':
+            // ★変更：シューティングの背景を描画せず、通常のADV（黒背景＋ライン）として描画する
+            advManager.draw(ctx, canvas, false); 
             break;
             
         case 'STAGE_CLEAR_TEXT':
