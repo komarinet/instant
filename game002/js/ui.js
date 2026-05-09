@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.9"; // バージョン更新（キャラクター選択画面にデモキャンバスを実装）
+export const VER_UI = "0.3.10"; // バージョン更新（スマホ対応：デモキャンバスの全画面化バグ修正とレイアウト調整）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -35,17 +35,16 @@ function startDemoLoop(char) {
         
         if (demoFrame % fireRate === 0) {
             let color = char.color;
-            let speed = 10;
+            let speed = 8; // 画面が小さいので弾速を少し調整
             if (char.id === 'igari' && isClose) {
                 color = '#00ffff'; // 水色
-                speed = 20; // 弾速アップ
+                speed = 16; 
             }
             
-            // レベル2相当の3wayでデモを描画
             demoBullets.push({ x: canvas.width/2, y: canvas.height - 40, vx: 0, vy: -speed, color: color, size: 4 });
             if (char.id === 'igari') {
-                demoBullets.push({ x: canvas.width/2 - 5, y: canvas.height - 40, vx: -0.5, vy: -speed, color: color, size: 4 });
-                demoBullets.push({ x: canvas.width/2 + 5, y: canvas.height - 40, vx: 0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: canvas.width/2 - 6, y: canvas.height - 40, vx: -0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: canvas.width/2 + 6, y: canvas.height - 40, vx: 0.5, vy: -speed, color: color, size: 4 });
             }
         }
         
@@ -79,15 +78,15 @@ function startDemoLoop(char) {
         if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
         
         if (img && img.naturalHeight > 0) {
-            const drawWidth = 40;
+            const drawWidth = 36;
             const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
             ctx.drawImage(img, canvas.width/2 - drawWidth/2, canvas.height - 30 - drawHeight/2, drawWidth, drawHeight);
         } else {
             ctx.fillStyle = char.color || '#fff';
             ctx.beginPath();
             ctx.moveTo(canvas.width/2, canvas.height - 45);
-            ctx.lineTo(canvas.width/2 - 15, canvas.height - 15);
-            ctx.lineTo(canvas.width/2 + 15, canvas.height - 15);
+            ctx.lineTo(canvas.width/2 - 12, canvas.height - 15);
+            ctx.lineTo(canvas.width/2 + 12, canvas.height - 15);
             ctx.fill();
         }
         
@@ -96,7 +95,7 @@ function startDemoLoop(char) {
             if (isClose) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
                 ctx.beginPath(); ctx.arc(canvas.width/2, 40, 25 + Math.sin(demoFrame*0.3)*5, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#00ffff'; ctx.font = 'bold 10px "Courier New"'; ctx.textAlign='center';
+                ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
                 ctx.fillText("TARGET CLOSE", canvas.width/2, 80);
             } else {
                 ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
@@ -131,50 +130,59 @@ export function updatePreview(characters, selectedCharId) {
     document.getElementById('preview-desc').innerText = char.desc;
     document.getElementById('preview-weapon').innerText = char.weapon;
 
-    // ★追加：既存のリストをフレックスボックス化し、右側にデモキャンバスを差し込む
     let list = document.getElementById('char-list');
     let parent = list.parentElement;
     
     if (parent.id !== 'char-select-flex') {
         let flexWrap = document.createElement('div');
         flexWrap.id = 'char-select-flex';
+        // スマホでも確実に入るようにFlex設定を調整
         flexWrap.style.display = 'flex';
+        flexWrap.style.flexDirection = 'row';
         flexWrap.style.justifyContent = 'space-between';
-        flexWrap.style.alignItems = 'center';
-        flexWrap.style.gap = '15px';
+        flexWrap.style.alignItems = 'stretch';
+        flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
         flexWrap.style.maxWidth = '600px';
-        flexWrap.style.margin = '0 auto';
+        flexWrap.style.margin = '0 auto 15px auto';
+        flexWrap.style.padding = '0 5px';
+        flexWrap.style.boxSizing = 'border-box';
 
         parent.insertBefore(flexWrap, list);
-        flexWrap.appendChild(list);
         
-        list.style.flex = '1';
-        list.style.display = 'flex';
-        list.style.flexDirection = 'column';
+        // 左側：リストコンテナ
+        let listWrap = document.createElement('div');
+        listWrap.id = 'char-list-wrap';
+        listWrap.style.flex = '1';
+        listWrap.style.display = 'flex';
+        listWrap.style.flexDirection = 'column';
+        listWrap.style.justifyContent = 'center';
+        listWrap.appendChild(list);
         
+        flexWrap.appendChild(listWrap);
+        
+        // 右側：デモキャンバスコンテナ
         let demoWrap = document.createElement('div');
         demoWrap.id = 'demo-wrap';
-        demoWrap.style.flex = '1';
-        demoWrap.style.height = '320px';
+        demoWrap.style.width = '120px';
+        demoWrap.style.minWidth = '120px'; // 縮まないように固定
         demoWrap.style.display = 'flex';
         demoWrap.style.justifyContent = 'center';
         demoWrap.style.alignItems = 'center';
         
         let demoCanvas = document.createElement('canvas');
         demoCanvas.id = 'char-demo-canvas';
-        demoCanvas.width = 160;
-        demoCanvas.height = 320;
-        demoCanvas.style.background = '#0a0a14';
-        demoCanvas.style.border = '1px solid rgba(0, 243, 255, 0.5)';
-        demoCanvas.style.borderRadius = '5px';
-        demoCanvas.style.boxShadow = '0 0 10px rgba(0,255,255,0.2)';
+        demoCanvas.width = 120;
+        demoCanvas.height = 240;
+        
+        // ★最重要修正：グローバルの canvas CSS（100vw/100vh等）を強制上書きする
+        demoCanvas.style.cssText = 'position: static !important; width: 120px !important; height: 240px !important; max-width: 120px !important; max-height: 240px !important; background: #0a0a14 !important; border: 1px solid rgba(0, 243, 255, 0.5) !important; border-radius: 5px !important; box-shadow: 0 0 10px rgba(0,255,255,0.2) !important; display: block !important; flex-shrink: 0 !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;';
         
         demoWrap.appendChild(demoCanvas);
         flexWrap.appendChild(demoWrap);
     }
 
-    startDemoLoop(char); // デモアニメーションの起動
+    startDemoLoop(char); 
 }
 
 export function updateGameUI(gameState, selectedCharId, stgManager) {
@@ -233,7 +241,7 @@ export function showVersions(moduleVersions) {
     const dVer = getV('VER_DATA');
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
-    const b3ObjVer = getV('VER_3DBG_OBJ');
+    const b3ObjVer = getV('VER_3DBG_OBJ'); 
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
