@@ -1,4 +1,4 @@
-const VER_PLAYER_IGARI = "0.2.3"; // バージョン更新（ボムの多重ヒットバグ修正、ボス名対応）
+const VER_PLAYER_IGARI = "0.2.4"; // バージョン更新（接近時に弾速と色がシアンに変化する仕様を追加）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -58,32 +58,36 @@ window.PlayerControllers['igari'] = {
     },
 
     shoot: function(player) {
-        const bS = 10;
+        // ★修正：接近判定に応じて弾速と色を動的に変更
+        const isClose = player.isCloseToDanger;
+        const bS = isClose ? 20 : 10; 
+        const bColor = isClose ? '#00ffff' : player.color; 
         const pL = player.powerLevel;
-        if (pL === 0) { player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, player.color)); }
-        else if (pL === 1) { player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, 0, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0, -bS, player.color)); }
+        
+        if (pL === 0) { player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, bColor)); }
+        else if (pL === 1) { player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, 0, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0, -bS, bColor)); }
         else if (pL === 2) {
-            player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1, -bS, player.color));
+            player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1, -bS, bColor));
         }
         else if (pL === 3) {
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -0.5, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0.5, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1.5, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1.5, -bS, player.color));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -0.5, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0.5, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1.5, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1.5, -bS, bColor));
         }
         else if (pL === 4) {
-            player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -2, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 2, -bS, player.color));
+            player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -2, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 2, -bS, bColor));
         }
         else if (pL === 5) {
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -0.5, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0.5, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1.5, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1.5, -bS, player.color));
-            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -2.5, -bS, player.color)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 2.5, -bS, player.color));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -0.5, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0.5, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -1.5, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 1.5, -bS, bColor));
+            player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, -2.5, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 2.5, -bS, bColor));
         }
-        else if (pL === 6) { for (let i = -3; i <= 3; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, player.color)); }
-        else if (pL === 7) { for (let i = -3; i <= 4; i++) player.bullets.push(this.createLaser(player.x - 2.5, player.y - player.size, (i - 0.5) * 1.0, -bS, player.color)); }
-        else if (pL >= 8) { for (let i = -4; i <= 4; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, player.color)); }
+        else if (pL === 6) { for (let i = -3; i <= 3; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, bColor)); }
+        else if (pL === 7) { for (let i = -3; i <= 4; i++) player.bullets.push(this.createLaser(player.x - 2.5, player.y - player.size, (i - 0.5) * 1.0, -bS, bColor)); }
+        else if (pL >= 8) { for (let i = -4; i <= 4; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, bColor)); }
     },
     
     createLaser: function(x, y, vx, vy, color) {
