@@ -1,4 +1,4 @@
-const VER_STG_CAP = "0.9.0"; // バージョン更新（ボスの登場位置を上部からに変更し、撃破時の3Dフェードアウト演出を追加）
+const VER_STG_CAP = "0.9.1"; // バージョン更新（BGM制御とADV後のBGM切り替えを追加）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
@@ -6,6 +6,8 @@ window.StageConfigs['final'] = {
         stg.phase = 1; // 1:トレンチ, 2:中ボス待ち, 3:コア展開＆ザコ, 4:最終ボス
         stg.phaseTimer = 0;
         stg.coreTransitioned = false; 
+        
+        stg.bgmChanged = true; // ★追加：コアロジックによるBGMの自動切り替えをブロック
         
         if (window._bgManagerInstance && typeof window._bgManagerInstance.setStage === 'function') {
             window._bgManagerInstance.setStage(6);
@@ -80,7 +82,7 @@ window.StageConfigs['final'] = {
             }
             
             if (stg.phaseTimer === 1300) {
-                // ★修正：初期位置を Y = -100 (上部) に変更し、上から現れるようにしました
+                // 初期位置を Y = -100 に
                 let boss = new Enemy('capboss', sW/2, -100, stg.player.charData, stg.advManager, stg.stgId);
                 
                 if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
@@ -97,7 +99,7 @@ window.StageConfigs['final'] = {
                         ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
                     }
                     
-                    // ★追加：撃破時の3Dコアのフェードアウト処理
+                    // 撃破時の3Dコアのフェードアウト処理
                     if (this.isDying && window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
                         let opacity = 1.0;
                         if (this.deathTimer > 60) {
@@ -111,6 +113,20 @@ window.StageConfigs['final'] = {
                 };
                 stg.enemies.push(boss);
                 stg.phase = 4; 
+                stg.capBossAdvPlayed = false; // ★追加：ADVが流れたかどうかを判定するフラグ
+            }
+        }
+        
+        else if (stg.phase === 4) {
+            // ★追加：コアのmid_stg2（ADVパート）終了を検知して、ボスBGMを流す
+            if (stg.isTimeStopped) {
+                stg.capBossAdvPlayed = true; 
+            } else if (stg.capBossAdvPlayed) {
+                // ADVが終わった瞬間
+                if (!stg.bossBgmPlayed) {
+                    stg.bossBgmPlayed = true;
+                    if (typeof window.soundManager !== 'undefined') window.soundManager.playBGM('boss_final');
+                }
             }
         }
     },
@@ -143,7 +159,6 @@ window.StageConfigs['final'] = {
         else if (e.type === 'capboss') {
             const tY = canvas.height/dpr * 0.25;
             
-            // ★修正：上部から定位置 (tY) へ降りてくるように変更
             if (e.y < tY) {
                 e.y += (tY - e.y) * 0.02; 
             } else {
