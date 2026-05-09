@@ -1,11 +1,10 @@
-export const VER_UI = "0.3.15"; // バージョン更新（猪狩のデモ画面に敵弾と自機周囲の接近サークルアニメーションを追加）
+export const VER_UI = "0.3.16"; // バージョン更新（ゲームオーバー時のリトライボタン生成処理を追加）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
-let demoEnemyBullets = []; // ★追加：デモ用の敵弾配列
+let demoEnemyBullets = []; 
 
-// キャラIDからふりがな（ルビ）付きのHTML文字列を生成する関数
 function getRubyName(id, defaultName) {
     const rtStyle = 'font-size:0.65em; opacity:0.8; letter-spacing: 0px;';
     if (id === 'igari') return `<ruby>猪狩 俊基<rt style="${rtStyle}">いがり としき</rt></ruby>`;
@@ -19,7 +18,7 @@ function getRubyName(id, defaultName) {
 function startDemoLoop(char) {
     if (demoAnimId) cancelAnimationFrame(demoAnimId);
     demoBullets = [];
-    demoEnemyBullets = []; // 初期化
+    demoEnemyBullets = []; 
     demoFrame = 0;
     const canvas = document.getElementById('char-demo-canvas');
     if (!canvas) return;
@@ -28,7 +27,6 @@ function startDemoLoop(char) {
     function loop() {
         demoAnimId = requestAnimationFrame(loop);
         
-        // 左側のリストの高さをリアルタイムに取得し、キャンバスの長さを自動で合わせる
         const listWrap = document.getElementById('char-list');
         if (listWrap && listWrap.clientHeight > 0) {
             const targetH = listWrap.clientHeight;
@@ -41,7 +39,6 @@ function startDemoLoop(char) {
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // サイバーな背景グリッド
         ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)'; ctx.lineWidth = 1;
         ctx.beginPath();
         for(let i=0; i<canvas.width; i+=20) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
@@ -53,10 +50,9 @@ function startDemoLoop(char) {
         let isClose = false;
 
         const playerX = canvas.width / 2;
-        const playerY = canvas.height - 35; // 自機のY座標
+        const playerY = canvas.height - 35; 
         
         if (char.id === 'igari') {
-            // ★追加：敵の弾を定期的に降らせる
             if (demoFrame % 90 === 0) {
                 demoEnemyBullets.push({ x: playerX - 25, y: -10, vy: 3.5, color: '#ff0055', size: 4 });
             }
@@ -64,18 +60,15 @@ function startDemoLoop(char) {
                 demoEnemyBullets.push({ x: playerX + 25, y: -10, vy: 4, color: '#ffaa00', size: 4 });
             }
 
-            // ★追加：敵弾と自機の距離を測って isClose を判定
             let minDist = Infinity;
             for (let i = 0; i < demoEnemyBullets.length; i++) {
                 let eb = demoEnemyBullets[i];
                 let d = Math.hypot(eb.x - playerX, eb.y - playerY);
                 if (d < minDist) minDist = d;
             }
-            // 70px以内に敵弾が来たら接近状態にする
             isClose = minDist < 70;
             fireRate = isClose ? 3 : 8;
 
-            // ★修正：自機の周囲に接近サークルを描画（弾や自機の下に描く）
             if (isClose) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
                 ctx.beginPath(); ctx.arc(playerX, playerY, 35 + Math.sin(demoFrame*0.4)*5, 0, Math.PI*2); ctx.fill();
@@ -87,7 +80,6 @@ function startDemoLoop(char) {
             }
         }
         
-        // ★追加：敵弾の更新と描画
         for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
             let eb = demoEnemyBullets[i];
             eb.y += eb.vy;
@@ -102,7 +94,6 @@ function startDemoLoop(char) {
             if (eb.y > canvas.height + 20) demoEnemyBullets.splice(i, 1);
         }
 
-        // 自機の弾の発射
         if (demoFrame % fireRate === 0) {
             let color = char.color;
             let speed = 8; 
@@ -118,7 +109,6 @@ function startDemoLoop(char) {
             }
         }
         
-        // 自機の弾の更新と描画
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
             b.x += b.vx || 0;
@@ -142,7 +132,6 @@ function startDemoLoop(char) {
             if (b.y < -10) demoBullets.splice(i, 1);
         }
         
-        // 自機の描画
         let imgName = char.id === 'igari' ? 'igari_jiki.png' : null;
         let img = null;
         if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
@@ -160,7 +149,6 @@ function startDemoLoop(char) {
             ctx.fill();
         }
         
-        // ★追加：自機の上に TARGET CLOSE の文字を表示
         if (char.id === 'igari' && isClose) {
             ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
             ctx.fillText("TARGET CLOSE", playerX, playerY - 35); 
@@ -432,5 +420,55 @@ export function setStageListLoading() {
             btn.style.color = "#00ffff";
             btn.style.borderColor = "#00ffff";
         });
+    }
+}
+
+// ★追加：ゲームオーバー時に動的に選択肢ボタンを生成する
+export function setupGameOverButtons(onRetryWithData, onRetryWithoutData, onGoTitle) {
+    const resultScreen = document.getElementById('result-screen');
+    if (!resultScreen) return;
+
+    resetResultButtons();
+
+    const existingButtons = resultScreen.querySelectorAll('button');
+    existingButtons.forEach(btn => btn.style.display = 'none');
+
+    const container = document.createElement('div');
+    container.id = 'gameover-btn-container';
+    container.style.cssText = 'display: flex; flex-direction: column; gap: 15px; margin-top: 30px; align-items: center; width: 100%;';
+
+    const btnStyle = 'padding: 15px 20px; font-size: clamp(14px, 4vw, 18px); font-weight: bold; color: #fff; background: rgba(0, 243, 255, 0.1); border: 2px solid #00ffff; border-radius: 5px; cursor: pointer; width: 80%; max-width: 300px; text-align: center; white-space: nowrap;';
+
+    const btn1 = document.createElement('button');
+    btn1.innerText = '引き継いでリトライ';
+    btn1.style.cssText = btnStyle;
+    btn1.onclick = () => { resetResultButtons(); onRetryWithData(); };
+
+    const btn2 = document.createElement('button');
+    btn2.innerText = '引き継がずにリトライ';
+    btn2.style.cssText = btnStyle;
+    btn2.onclick = () => { resetResultButtons(); onRetryWithoutData(); };
+
+    const btn3 = document.createElement('button');
+    btn3.innerText = 'タイトルへ戻る';
+    btn3.style.cssText = btnStyle.replace('#00ffff', '#ffaa00').replace('rgba(0, 243, 255, 0.1)', 'rgba(255, 170, 0, 0.1)');
+    btn3.onclick = () => { resetResultButtons(); onGoTitle(); };
+
+    container.appendChild(btn1);
+    container.appendChild(btn2);
+    container.appendChild(btn3);
+
+    resultScreen.appendChild(container);
+}
+
+// ★追加：生成したボタンを削除して元の状態に戻す
+export function resetResultButtons() {
+    const oldContainer = document.getElementById('gameover-btn-container');
+    if (oldContainer) oldContainer.remove();
+    
+    const resultScreen = document.getElementById('result-screen');
+    if(resultScreen) {
+        const existingButtons = resultScreen.querySelectorAll('button');
+        existingButtons.forEach(btn => btn.style.display = ''); 
     }
 }
