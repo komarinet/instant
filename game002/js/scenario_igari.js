@@ -401,20 +401,20 @@ scenarios.igari = {
             { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'この落差、慣れないわー', isRight: true }
         ],
         mid_stg2: [
-            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: 'なっ、まさかここまで来たのか!?', isRight: false },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 6, speaker: '科学文明軍隊長', text: 'なっ、まさかここまで来たのか!?', isRight: false },
             { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '悪役のテンプレ台詞すぎるだろ', isRight: true },
             { bg: 'inbase.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: '人間慌てるとあんなものさ', isRight: true },
             { bg: 'inbase.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '気を抜くな。あそこに見えているあれは', isRight: true },
-            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 0, speaker: '科学文明軍隊長', text: '貴様の父親が開発に関わった兵器、アームコア3000だ', isRight: false },
-            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '全方位に主砲が付いてんじゃねえか', isRight: true },
-            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'あのクソ親父、デタラメな兵器作りやがって', isRight: true },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 3, speaker: '科学文明軍隊長', text: '貴様の父親が開発に関わった兵器、アームコア3000だ', isRight: false },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 13, speaker: '猪狩', text: '全方位に主砲が付いてんじゃねえか', isRight: true },
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'あのクソ親父、デタラメな兵器作りやがって', isRight: true },
             { bg: 'inbase.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '潰し甲斐がありそうな兵器だな', isRight: true },
-            { bg: 'inbase.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'だが、あんな兵器に近づけるのか？', isRight: true },
-            { bg: 'inbase.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '壊す前に穴だらけになっちゃうよ', isRight: true },
-            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: 'ククク・・・貴様らもここまでだ', isRight: false },
-            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 4, speaker: '科学文明軍隊長', text: '宇宙の藻屑となるがいい', isRight: false },
+            { bg: 'inbase.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'だが、あんな兵器に近づけるのか？', isRight: true },
+            { bg: 'inbase.png', character: 'hiragi01.png', spriteIndex: 2, speaker: '柊', text: '壊す前に穴だらけになっちゃうよ', isRight: true },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 3, speaker: '科学文明軍隊長', text: 'ククク・・・貴様らもここまでだ', isRight: false },
+            { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: '宇宙の藻屑となるがいい', isRight: false },
             { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: 'うるせぇな！　テンプレな台詞ばっかりいいやがって！', isRight: true },
-            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'お前みたいな奴にやられてたまるかよ！', isRight: true }
+            { bg: 'inbase.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: 'お前みたいな奴にやられてたまるかよ！', isRight: true }
         ],
         post_stg: [
             { bg: 'brokenbase.png', character: 'cap.png', spriteIndex: 6, speaker: '科学文明軍隊長', text: 'ば、馬鹿なぁ！　我が軍の最終兵器がぁーー！', isRight: false, effect: 'shake' },
