@@ -1,8 +1,19 @@
-export const VER_UI = "0.3.11"; // バージョン更新（スマホ対応：音ボタン被り＆キャラ名改行の修正）
+export const VER_UI = "0.3.12"; // バージョン更新（キャラ名にふりがなを追加し、クリック判定を修正）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
+
+// ★追加：キャラIDからふりがな（ルビ）付きのHTML文字列を生成する関数
+function getRubyName(id, defaultName) {
+    const rtStyle = 'font-size:0.65em; opacity:0.8; letter-spacing: 0px;';
+    if (id === 'igari') return `<ruby>猪狩 俊基<rt style="${rtStyle}">いがり としき</rt></ruby>`;
+    if (id === 'shiina' || id === 'mamoru') return `<ruby>椎名 護<rt style="${rtStyle}">しいな まもる</rt></ruby>`;
+    if (id === 'chika' || id === 'hiragi') return `<ruby>柊 千華<rt style="${rtStyle}">ひいらぎ ちか</rt></ruby>`;
+    if (id === 'kagami') return `<ruby>各務 栞<rt style="${rtStyle}">かがみ しおり</rt></ruby>`;
+    if (id === 'jinguji' || id === 'jingu') return `<ruby>神宮寺 恒成<rt style="${rtStyle}">じんぐうじ つねなり</rt></ruby>`;
+    return defaultName; // G.O.D.A.I などはそのまま
+}
 
 function startDemoLoop(char) {
     if (demoAnimId) cancelAnimationFrame(demoAnimId);
@@ -111,21 +122,25 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
     characters.forEach(char => {
         const btn = document.createElement('button');
         btn.className = `char-btn ${char.id === selectedCharId ? 'selected' : ''}`;
-        btn.innerText = char.name;
         
-        // ★追加：キャラ名が改行されないように強制1行表示＋文字サイズ可変設定
+        // ★修正：innerTextではなくinnerHTMLを使い、ふりがな付きのHTMLを流し込む
+        btn.innerHTML = getRubyName(char.id, char.name);
+        
         btn.style.whiteSpace = 'nowrap';
         btn.style.overflow = 'hidden';
         btn.style.textOverflow = 'ellipsis';
         btn.style.width = '100%';
         btn.style.boxSizing = 'border-box';
-        btn.style.fontSize = 'clamp(14px, 4vw, 18px)'; // スマホに合わせて文字を少し縮小
-        btn.style.padding = '12px 5px';
+        btn.style.fontSize = 'clamp(14px, 4vw, 18px)'; 
+        // ★修正：ふりがなの分だけボタンが狭くならないように、上下余ビングと行間を調整
+        btn.style.padding = '8px 5px';
+        btn.style.lineHeight = '1.4';
         
         btn.onclick = (e) => {
             onSelect(char.id);
             document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-            e.target.classList.add('selected');
+            // ★修正：ルビの部分をクリックしてもボタン本体に反応するように currentTarget を使用
+            e.currentTarget.classList.add('selected');
         };
         list.appendChild(btn);
     });
@@ -134,7 +149,9 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
 export function updatePreview(characters, selectedCharId) {
     const char = characters.find(c => c.id === selectedCharId);
     if (!char) return; 
-    document.getElementById('preview-name').innerText = char.name;
+    
+    // ★修正：プレビュー名も innerHTML に変更し、ふりがな付きにする
+    document.getElementById('preview-name').innerHTML = getRubyName(char.id, char.name);
     document.getElementById('preview-name').style.color = char.color;
     document.getElementById('preview-desc').innerText = char.desc;
     document.getElementById('preview-weapon').innerText = char.weapon;
@@ -148,31 +165,28 @@ export function updatePreview(characters, selectedCharId) {
         flexWrap.style.display = 'flex';
         flexWrap.style.flexDirection = 'row';
         flexWrap.style.justifyContent = 'space-between';
-        flexWrap.style.alignItems = 'flex-start'; // ボタンが縦に伸びるのを防ぐ
+        flexWrap.style.alignItems = 'flex-start'; 
         flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
         flexWrap.style.maxWidth = '600px';
-        // ★修正：音ボタンと被らないよう、上部に大きなマージン（55px）を確保
         flexWrap.style.margin = '55px auto 15px auto'; 
         flexWrap.style.padding = '0 10px';
         flexWrap.style.boxSizing = 'border-box';
 
         parent.insertBefore(flexWrap, list);
         
-        // 左側：リストコンテナ
         let listWrap = document.createElement('div');
         listWrap.id = 'char-list-wrap';
         listWrap.style.flex = '1';
         listWrap.style.display = 'flex';
         listWrap.style.flexDirection = 'column';
         listWrap.style.justifyContent = 'flex-start';
-        listWrap.style.gap = '8px'; // ボタン間の隙間を明示
-        listWrap.style.minWidth = '0'; // フレックス子要素のはみ出しを防ぐ重要プロパティ
+        listWrap.style.gap = '8px'; 
+        listWrap.style.minWidth = '0'; 
         listWrap.appendChild(list);
         
         flexWrap.appendChild(listWrap);
         
-        // 右側：デモキャンバスコンテナ
         let demoWrap = document.createElement('div');
         demoWrap.id = 'demo-wrap';
         demoWrap.style.width = '120px';
@@ -322,7 +336,6 @@ export function createMuteButton(onToggleCallback) {
     
     const btn = document.createElement('button');
     btn.id = 'mute-btn';
-    // ★修正：音ボタンを少し小さくし、画面の端（10px）に寄せてスペースを確保
     btn.style.cssText = 'position:absolute; top:10px; left:10px; z-index:1000; padding:6px 10px; background:rgba(0,0,0,0.6); border:1px solid #fff; color:#fff; font-size:0.8rem; cursor:pointer; width:auto; border-radius:5px; transition: all 0.2s;';
     btn.innerText = '🔊 ON'; 
     
