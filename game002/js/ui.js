@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.10"; // バージョン更新（スマホ対応：デモキャンバスの全画面化バグ修正とレイアウト調整）
+export const VER_UI = "0.3.11"; // バージョン更新（スマホ対応：音ボタン被り＆キャラ名改行の修正）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -28,16 +28,15 @@ function startDemoLoop(char) {
         let isClose = false;
         
         if (char.id === 'igari') {
-            // デモ用に3秒周期で「敵接近状態」をシミュレート (180フレーム中後半が接近状態)
             isClose = (demoFrame % 180) > 90;
             fireRate = isClose ? 3 : 8;
         }
         
         if (demoFrame % fireRate === 0) {
             let color = char.color;
-            let speed = 8; // 画面が小さいので弾速を少し調整
+            let speed = 8; 
             if (char.id === 'igari' && isClose) {
-                color = '#00ffff'; // 水色
+                color = '#00ffff'; 
                 speed = 16; 
             }
             
@@ -113,6 +112,16 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
         const btn = document.createElement('button');
         btn.className = `char-btn ${char.id === selectedCharId ? 'selected' : ''}`;
         btn.innerText = char.name;
+        
+        // ★追加：キャラ名が改行されないように強制1行表示＋文字サイズ可変設定
+        btn.style.whiteSpace = 'nowrap';
+        btn.style.overflow = 'hidden';
+        btn.style.textOverflow = 'ellipsis';
+        btn.style.width = '100%';
+        btn.style.boxSizing = 'border-box';
+        btn.style.fontSize = 'clamp(14px, 4vw, 18px)'; // スマホに合わせて文字を少し縮小
+        btn.style.padding = '12px 5px';
+        
         btn.onclick = (e) => {
             onSelect(char.id);
             document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
@@ -136,16 +145,16 @@ export function updatePreview(characters, selectedCharId) {
     if (parent.id !== 'char-select-flex') {
         let flexWrap = document.createElement('div');
         flexWrap.id = 'char-select-flex';
-        // スマホでも確実に入るようにFlex設定を調整
         flexWrap.style.display = 'flex';
         flexWrap.style.flexDirection = 'row';
         flexWrap.style.justifyContent = 'space-between';
-        flexWrap.style.alignItems = 'stretch';
+        flexWrap.style.alignItems = 'flex-start'; // ボタンが縦に伸びるのを防ぐ
         flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
         flexWrap.style.maxWidth = '600px';
-        flexWrap.style.margin = '0 auto 15px auto';
-        flexWrap.style.padding = '0 5px';
+        // ★修正：音ボタンと被らないよう、上部に大きなマージン（55px）を確保
+        flexWrap.style.margin = '55px auto 15px auto'; 
+        flexWrap.style.padding = '0 10px';
         flexWrap.style.boxSizing = 'border-box';
 
         parent.insertBefore(flexWrap, list);
@@ -156,7 +165,9 @@ export function updatePreview(characters, selectedCharId) {
         listWrap.style.flex = '1';
         listWrap.style.display = 'flex';
         listWrap.style.flexDirection = 'column';
-        listWrap.style.justifyContent = 'center';
+        listWrap.style.justifyContent = 'flex-start';
+        listWrap.style.gap = '8px'; // ボタン間の隙間を明示
+        listWrap.style.minWidth = '0'; // フレックス子要素のはみ出しを防ぐ重要プロパティ
         listWrap.appendChild(list);
         
         flexWrap.appendChild(listWrap);
@@ -165,17 +176,15 @@ export function updatePreview(characters, selectedCharId) {
         let demoWrap = document.createElement('div');
         demoWrap.id = 'demo-wrap';
         demoWrap.style.width = '120px';
-        demoWrap.style.minWidth = '120px'; // 縮まないように固定
+        demoWrap.style.minWidth = '120px'; 
         demoWrap.style.display = 'flex';
         demoWrap.style.justifyContent = 'center';
-        demoWrap.style.alignItems = 'center';
+        demoWrap.style.alignItems = 'flex-start';
         
         let demoCanvas = document.createElement('canvas');
         demoCanvas.id = 'char-demo-canvas';
         demoCanvas.width = 120;
         demoCanvas.height = 240;
-        
-        // ★最重要修正：グローバルの canvas CSS（100vw/100vh等）を強制上書きする
         demoCanvas.style.cssText = 'position: static !important; width: 120px !important; height: 240px !important; max-width: 120px !important; max-height: 240px !important; background: #0a0a14 !important; border: 1px solid rgba(0, 243, 255, 0.5) !important; border-radius: 5px !important; box-shadow: 0 0 10px rgba(0,255,255,0.2) !important; display: block !important; flex-shrink: 0 !important; z-index: 10 !important; margin: 0 !important; padding: 0 !important;';
         
         demoWrap.appendChild(demoCanvas);
@@ -241,7 +250,7 @@ export function showVersions(moduleVersions) {
     const dVer = getV('VER_DATA');
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
-    const b3ObjVer = getV('VER_3DBG_OBJ'); 
+    const b3ObjVer = getV('VER_3DBG_OBJ');
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
@@ -313,7 +322,8 @@ export function createMuteButton(onToggleCallback) {
     
     const btn = document.createElement('button');
     btn.id = 'mute-btn';
-    btn.style.cssText = 'position:absolute; top:20px; left:20px; z-index:1000; padding:8px 12px; background:rgba(0,0,0,0.5); border:1px solid #fff; color:#fff; font-size:1rem; cursor:pointer; width:auto; border-radius:5px; transition: all 0.2s;';
+    // ★修正：音ボタンを少し小さくし、画面の端（10px）に寄せてスペースを確保
+    btn.style.cssText = 'position:absolute; top:10px; left:10px; z-index:1000; padding:6px 10px; background:rgba(0,0,0,0.6); border:1px solid #fff; color:#fff; font-size:0.8rem; cursor:pointer; width:auto; border-radius:5px; transition: all 0.2s;';
     btn.innerText = '🔊 ON'; 
     
     btn.onclick = (e) => {
