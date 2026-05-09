@@ -384,21 +384,21 @@ scenarios.igari = {
         ],
         pre_stg: [
             { bg: 'base.png', character: 'igari02.png', spriteIndex: 10, speaker: '猪狩', text: 'おおっ！　SFの基地じゃねぇか！', isRight: true },
-            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '喜んでる場合じゃないよ', isRight: true },
-            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'そこら中から戦闘機がでてきてるんだよ', isRight: true },
-            { bg: 'base.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '構やしねぇよ', isRight: true },
-            { bg: 'base.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '相手が科学なら俺が負ける理由はない！', isRight: true }
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '喜んでる場合じゃないよ', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 15, speaker: '柊', text: 'そこら中から戦闘機がでてきてるんだよ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: '構やしねぇよ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 7, speaker: '猪狩', text: '相手が科学なら俺が負ける理由はない！', isRight: true }
         ],
         mid_stg: [
-            { bg: 'base.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'あの戦艦は、さっきの・・・', isRight: true },
+            { bg: 'base.png', character: 'shiina.png', spriteIndex: 9, speaker: '椎名', text: 'あの戦艦は、さっきの・・・', isRight: true },
             { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: '俊基、やっつけたはずだよね？', isRight: true },
             { bg: 'base.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'どうやら量産型が同じ戦艦を操ってるようだな', isRight: true },
             { bg: 'base.png', character: 'godaimo.png', spriteIndex: 0, speaker: '量産型GODAI', text: 'ガガガ・・・敵、殲滅する', isRight: false },
-            { bg: 'base.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: '量産型なら、敵じゃねぇ', isRight: true },
-            { bg: 'base.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'あいつは自分を『最高戦力』って言ったんだ', isRight: true },
-            { bg: 'base.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: 'じゃあいまここにいる彼らは二番手以下ってことだね', isRight: true },
-            { bg: 'base.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '道開けろザコがぁ！', isRight: true },
-            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 14, speaker: '柊', text: 'この落差、慣れないわー', isRight: true }
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 3, speaker: '猪狩', text: '量産型なら、敵じゃねぇ', isRight: true },
+            { bg: 'base.png', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'あいつは自分を『最高戦力』って言ったんだからな', isRight: true },
+            { bg: 'base.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'じゃあいまここにいる彼らは二番手以下ってことだね', isRight: true },
+            { bg: 'base.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '道開けろザコがぁ！', isRight: true },
+            { bg: 'base.png', character: 'hiragi01.png', spriteIndex: 9, speaker: '柊', text: 'この落差、慣れないわー', isRight: true }
         ],
         mid_stg2: [
             { bg: 'inbase.png', character: 'cap.png', spriteIndex: 1, speaker: '科学文明軍隊長', text: 'なっ、まさかここまで来たのか!?', isRight: false },
