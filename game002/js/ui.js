@@ -1,4 +1,111 @@
-export const VER_UI = "0.3.8"; // バージョン更新（3dbg_objects.js のバージョン表示を追加）
+export const VER_UI = "0.3.9"; // バージョン更新（キャラクター選択画面にデモキャンバスを実装）
+
+let demoAnimId = null;
+let demoFrame = 0;
+let demoBullets = [];
+
+function startDemoLoop(char) {
+    if (demoAnimId) cancelAnimationFrame(demoAnimId);
+    demoBullets = [];
+    demoFrame = 0;
+    const canvas = document.getElementById('char-demo-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    function loop() {
+        demoAnimId = requestAnimationFrame(loop);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // サイバーな背景グリッド
+        ctx.strokeStyle = 'rgba(0, 243, 255, 0.1)'; ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(let i=0; i<canvas.width; i+=20) { ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); }
+        for(let j=0; j<canvas.height; j+=20) { ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); }
+        ctx.stroke();
+
+        demoFrame++;
+        let fireRate = 8;
+        let isClose = false;
+        
+        if (char.id === 'igari') {
+            // デモ用に3秒周期で「敵接近状態」をシミュレート (180フレーム中後半が接近状態)
+            isClose = (demoFrame % 180) > 90;
+            fireRate = isClose ? 3 : 8;
+        }
+        
+        if (demoFrame % fireRate === 0) {
+            let color = char.color;
+            let speed = 10;
+            if (char.id === 'igari' && isClose) {
+                color = '#00ffff'; // 水色
+                speed = 20; // 弾速アップ
+            }
+            
+            // レベル2相当の3wayでデモを描画
+            demoBullets.push({ x: canvas.width/2, y: canvas.height - 40, vx: 0, vy: -speed, color: color, size: 4 });
+            if (char.id === 'igari') {
+                demoBullets.push({ x: canvas.width/2 - 5, y: canvas.height - 40, vx: -0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: canvas.width/2 + 5, y: canvas.height - 40, vx: 0.5, vy: -speed, color: color, size: 4 });
+            }
+        }
+        
+        // 弾の更新と描画
+        for (let i = demoBullets.length - 1; i >= 0; i--) {
+            let b = demoBullets[i];
+            b.x += b.vx || 0;
+            b.y += b.vy;
+            
+            if (char.id === 'igari') {
+                ctx.save(); ctx.translate(b.x, b.y);
+                ctx.rotate(Math.atan2(b.vy, b.vx || 0));
+                const length = b.size * 2.5; 
+                ctx.shadowColor = b.color; ctx.shadowBlur = b.size * 2.5; 
+                ctx.strokeStyle = b.color; ctx.lineWidth = b.size; ctx.lineCap = 'round'; 
+                ctx.beginPath(); ctx.moveTo(-length, 0); ctx.lineTo(length, 0); ctx.stroke();
+                ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = b.size * 0.4;
+                ctx.beginPath(); ctx.moveTo(-length * 0.8, 0); ctx.lineTo(length * 0.8, 0); ctx.stroke();
+                ctx.restore();
+            } else {
+                ctx.fillStyle = b.color;
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
+            }
+            
+            if (b.y < -10) demoBullets.splice(i, 1);
+        }
+        
+        // 自機の描画
+        let imgName = char.id === 'igari' ? 'igari_jiki.png' : null;
+        let img = null;
+        if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
+        
+        if (img && img.naturalHeight > 0) {
+            const drawWidth = 40;
+            const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
+            ctx.drawImage(img, canvas.width/2 - drawWidth/2, canvas.height - 30 - drawHeight/2, drawWidth, drawHeight);
+        } else {
+            ctx.fillStyle = char.color || '#fff';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2, canvas.height - 45);
+            ctx.lineTo(canvas.width/2 - 15, canvas.height - 15);
+            ctx.lineTo(canvas.width/2 + 15, canvas.height - 15);
+            ctx.fill();
+        }
+        
+        // 接近シミュレートUIの描画
+        if (char.id === 'igari') {
+            if (isClose) {
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.beginPath(); ctx.arc(canvas.width/2, 40, 25 + Math.sin(demoFrame*0.3)*5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#00ffff'; ctx.font = 'bold 10px "Courier New"'; ctx.textAlign='center';
+                ctx.fillText("TARGET CLOSE", canvas.width/2, 80);
+            } else {
+                ctx.fillStyle = 'rgba(100, 100, 100, 0.3)';
+                ctx.beginPath(); ctx.arc(canvas.width/2, 30, 10, 0, Math.PI*2); ctx.fill();
+            }
+        }
+    }
+    loop();
+}
 
 export function initCharSelect(characters, selectedCharId, onSelect) {
     const list = document.getElementById('char-list');
@@ -18,11 +125,56 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
 
 export function updatePreview(characters, selectedCharId) {
     const char = characters.find(c => c.id === selectedCharId);
-    if (!char) return; // 安全対策
+    if (!char) return; 
     document.getElementById('preview-name').innerText = char.name;
     document.getElementById('preview-name').style.color = char.color;
     document.getElementById('preview-desc').innerText = char.desc;
     document.getElementById('preview-weapon').innerText = char.weapon;
+
+    // ★追加：既存のリストをフレックスボックス化し、右側にデモキャンバスを差し込む
+    let list = document.getElementById('char-list');
+    let parent = list.parentElement;
+    
+    if (parent.id !== 'char-select-flex') {
+        let flexWrap = document.createElement('div');
+        flexWrap.id = 'char-select-flex';
+        flexWrap.style.display = 'flex';
+        flexWrap.style.justifyContent = 'space-between';
+        flexWrap.style.alignItems = 'center';
+        flexWrap.style.gap = '15px';
+        flexWrap.style.width = '100%';
+        flexWrap.style.maxWidth = '600px';
+        flexWrap.style.margin = '0 auto';
+
+        parent.insertBefore(flexWrap, list);
+        flexWrap.appendChild(list);
+        
+        list.style.flex = '1';
+        list.style.display = 'flex';
+        list.style.flexDirection = 'column';
+        
+        let demoWrap = document.createElement('div');
+        demoWrap.id = 'demo-wrap';
+        demoWrap.style.flex = '1';
+        demoWrap.style.height = '320px';
+        demoWrap.style.display = 'flex';
+        demoWrap.style.justifyContent = 'center';
+        demoWrap.style.alignItems = 'center';
+        
+        let demoCanvas = document.createElement('canvas');
+        demoCanvas.id = 'char-demo-canvas';
+        demoCanvas.width = 160;
+        demoCanvas.height = 320;
+        demoCanvas.style.background = '#0a0a14';
+        demoCanvas.style.border = '1px solid rgba(0, 243, 255, 0.5)';
+        demoCanvas.style.borderRadius = '5px';
+        demoCanvas.style.boxShadow = '0 0 10px rgba(0,255,255,0.2)';
+        
+        demoWrap.appendChild(demoCanvas);
+        flexWrap.appendChild(demoWrap);
+    }
+
+    startDemoLoop(char); // デモアニメーションの起動
 }
 
 export function updateGameUI(gameState, selectedCharId, stgManager) {
@@ -73,7 +225,6 @@ export function showVersions(moduleVersions) {
     verDiv.className = 'version-info-panel'; 
     verDiv.style.cssText = 'position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:20px;font-size:0.65rem;color:rgba(255,255,255,0.5);pointer-events:none;line-height:1.3;font-family:monospace;z-index:100;';
     
-    // ★モジュール環境下でもエラーにならず、確実にバージョン定数を取得する関数
     const getV = (name) => {
         try { return new Function(`return typeof ${name} !== 'undefined' ? ${name} : '---';`)(); }
         catch(e) { return '---'; }
@@ -82,7 +233,7 @@ export function showVersions(moduleVersions) {
     const dVer = getV('VER_DATA');
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
-    const b3ObjVer = getV('VER_3DBG_OBJ'); // ★追加：3dbg_objects.jsのバージョンを取得
+    const b3ObjVer = getV('VER_3DBG_OBJ');
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
@@ -91,7 +242,7 @@ export function showVersions(moduleVersions) {
     const stgShiina = getV('VER_STG_SHIINA');
     const stgJingu = getV('VER_STG_JINGU');
     const stgGodai = getV('VER_STG_GODAI');
-    const stgCap = getV('VER_STG_CAP'); // ★追加：最終ボスのステージロジック
+    const stgCap = getV('VER_STG_CAP'); 
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
