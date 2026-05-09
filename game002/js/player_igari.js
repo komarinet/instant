@@ -1,4 +1,4 @@
-const VER_PLAYER_IGARI = "0.2.4"; // バージョン更新（接近時に弾速と色がシアンに変化する仕様を追加）
+const VER_PLAYER_IGARI = "0.2.5"; // バージョン更新（ボスに対するボムのダメージを割合＋固定値で大幅強化）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -138,18 +138,21 @@ window.PlayerControllers['igari'] = {
                     bd.laser.hasHit = true; // 2回目以降はスキップ
                     
                     stg.enemies.forEach(e => {
-                        // ★修正：ボス名が「typeboss」以外（shiinaboss等）でも正しく判定するように変更
-                        if (!e.isDying && !e.type.includes('boss')) {
+                        // ★修正：ボス判定をより正確に行うよう分岐を変更
+                        if (!e.isDying && !(e.isBoss || e.type.includes('boss'))) {
+                            // ザコ敵の場合：一撃で倒す
                             e.alive = false; 
                             stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             
-                            // アイテムドロップ（1体の敵から適正にドロップさせる）
+                            // アイテムドロップ
                             if (Math.random() < 0.2) stg.items.push(new Item('power', e.x, e.y)); 
                             else if (Math.random() < 0.3) stg.items.push(new Item('recover', e.x, e.y));
                             
-                        } else if (e.type.includes('boss')) {
-                            e.hp -= 20; 
+                        } else if (e.isBoss || e.type.includes('boss')) {
+                            // ボス敵の場合：最大HPの25%か、最低150の大ダメージを与える
+                            const bombDamage = Math.max(150, Math.floor(e.maxHp * 0.25));
+                            e.hp -= bombDamage; 
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; }
                         }
                     });
