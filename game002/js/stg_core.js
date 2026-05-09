@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.14"; // バージョン更新（既存のコメントやコードを一切削除せず、爆発待機処理のみを追加）
+const VER_STG_CORE = "0.8.15"; // バージョン更新（既存のコメントやコードを一切削除せず、猪狩の接近強化ロジックを追加）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -171,7 +171,40 @@ class STGManager {
 
         this.frame++; this.stageTimer++;
         
-        this.player.update(canvas); if (!this.player.isEntering && this.frame % 8 === 0) this.player.shoot(); 
+        this.player.update(canvas); 
+        
+        // ★修正：連射を「敵または敵弾への接近」で変化させる処理を追加
+        if (!this.player.isEntering) {
+            if (this.player.fireTimer === undefined) this.player.fireTimer = 0;
+            
+            let fireRate = 8;
+            if (this.player.id === 'igari') {
+                let minDist = Infinity;
+                // 敵との距離をチェック
+                for (let e of this.enemies) {
+                    let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+                    if (d < minDist) minDist = d;
+                }
+                // 敵弾との距離もチェック
+                for (let eb of this.enemyBullets) {
+                    let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
+                    if (d < minDist) minDist = d;
+                }
+                // 150px以内に敵や弾がいればパワーアップ判定
+                if (minDist < 150) { 
+                    fireRate = 3; 
+                    this.player.isCloseToDanger = true;
+                } else {
+                    this.player.isCloseToDanger = false;
+                }
+            }
+            
+            this.player.fireTimer++;
+            if (this.player.fireTimer >= fireRate) {
+                this.player.shoot();
+                this.player.fireTimer = 0;
+            }
+        }
         
         if(this.config.updateBackground) this.config.updateBackground(this, sW, sH);
         if(this.config.updateWaves) this.config.updateWaves(this, this.stageTimer, sW, sH);
