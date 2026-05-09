@@ -1,10 +1,10 @@
-export const VER_UI = "0.3.12"; // バージョン更新（キャラ名にふりがなを追加し、クリック判定を修正）
+export const VER_UI = "0.3.13"; // バージョン更新（デモウインドウ増殖バグの修正）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
 
-// ★追加：キャラIDからふりがな（ルビ）付きのHTML文字列を生成する関数
+// キャラIDからふりがな（ルビ）付きのHTML文字列を生成する関数
 function getRubyName(id, defaultName) {
     const rtStyle = 'font-size:0.65em; opacity:0.8; letter-spacing: 0px;';
     if (id === 'igari') return `<ruby>猪狩 俊基<rt style="${rtStyle}">いがり としき</rt></ruby>`;
@@ -12,7 +12,7 @@ function getRubyName(id, defaultName) {
     if (id === 'chika' || id === 'hiragi') return `<ruby>柊 千華<rt style="${rtStyle}">ひいらぎ ちか</rt></ruby>`;
     if (id === 'kagami') return `<ruby>各務 栞<rt style="${rtStyle}">かがみ しおり</rt></ruby>`;
     if (id === 'jinguji' || id === 'jingu') return `<ruby>神宮寺 恒成<rt style="${rtStyle}">じんぐうじ つねなり</rt></ruby>`;
-    return defaultName; // G.O.D.A.I などはそのまま
+    return defaultName; 
 }
 
 function startDemoLoop(char) {
@@ -123,7 +123,6 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
         const btn = document.createElement('button');
         btn.className = `char-btn ${char.id === selectedCharId ? 'selected' : ''}`;
         
-        // ★修正：innerTextではなくinnerHTMLを使い、ふりがな付きのHTMLを流し込む
         btn.innerHTML = getRubyName(char.id, char.name);
         
         btn.style.whiteSpace = 'nowrap';
@@ -132,14 +131,12 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
         btn.style.width = '100%';
         btn.style.boxSizing = 'border-box';
         btn.style.fontSize = 'clamp(14px, 4vw, 18px)'; 
-        // ★修正：ふりがなの分だけボタンが狭くならないように、上下余ビングと行間を調整
         btn.style.padding = '8px 5px';
         btn.style.lineHeight = '1.4';
         
         btn.onclick = (e) => {
             onSelect(char.id);
             document.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-            // ★修正：ルビの部分をクリックしてもボタン本体に反応するように currentTarget を使用
             e.currentTarget.classList.add('selected');
         };
         list.appendChild(btn);
@@ -150,17 +147,19 @@ export function updatePreview(characters, selectedCharId) {
     const char = characters.find(c => c.id === selectedCharId);
     if (!char) return; 
     
-    // ★修正：プレビュー名も innerHTML に変更し、ふりがな付きにする
     document.getElementById('preview-name').innerHTML = getRubyName(char.id, char.name);
     document.getElementById('preview-name').style.color = char.color;
     document.getElementById('preview-desc').innerText = char.desc;
     document.getElementById('preview-weapon').innerText = char.weapon;
 
-    let list = document.getElementById('char-list');
-    let parent = list.parentElement;
+    // ★修正：親要素のIDではなく、追加する要素そのものが既に存在するかどうかで判定する
+    let flexWrap = document.getElementById('char-select-flex');
     
-    if (parent.id !== 'char-select-flex') {
-        let flexWrap = document.createElement('div');
+    if (!flexWrap) {
+        let list = document.getElementById('char-list');
+        let parent = list.parentElement;
+        
+        flexWrap = document.createElement('div');
         flexWrap.id = 'char-select-flex';
         flexWrap.style.display = 'flex';
         flexWrap.style.flexDirection = 'row';
