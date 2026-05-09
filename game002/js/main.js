@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.1"; // バージョン更新（ゲームオーバー時にスコアとアイテムをリセットする処理を追記）
+const VER_MAIN = "0.9.2"; // バージョン更新（エンディングADV再生とクリア後のクレジット表示を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -97,7 +97,7 @@ window.skipADV = function() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
-    } else if (gameState === 'POST_STG_DIALOGUE') {
+    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { // ★追加
         gameState = 'STAGE_CLEAR_TEXT';
         transitionTimer = 90;
     } else {
@@ -267,7 +267,7 @@ function executeStart(stageNum) {
 let touchX = 0, touchY = 0, isTouching = false;
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'MID_STG_ADV') {
+    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE' || gameState === 'MID_STG_ADV') {
         advManager.next();
         return;
     }
@@ -317,7 +317,6 @@ function handleStgPlay() {
         soundManager.playBGM('gameover');
         document.getElementById('result-title').innerText = "GAME OVER";
         
-        // ★完全追記：ゲームオーバー時にスコアとアイテム状態をリセット
         if (typeof window.globalPlayerState !== 'undefined') {
             window.globalPlayerState.score = 0;
             window.globalPlayerState.powerLevel = 0;
@@ -338,9 +337,20 @@ function handleStgPlay() {
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
-            gameState = 'STAGE_CLEAR_TEXT';
-            transitionTimer = 90; 
-            if (skipBtn) skipBtn.classList.add('hidden');
+            // ★変更：post_stg のあとに ending データがあれば続けて流す
+            const endingData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].ending || []) : [];
+            if (endingData.length > 0) {
+                gameState = 'ENDING_DIALOGUE';
+                advManager.start(endingData, () => {
+                    gameState = 'STAGE_CLEAR_TEXT';
+                    transitionTimer = 90; 
+                    if (skipBtn) skipBtn.classList.add('hidden');
+                });
+            } else {
+                gameState = 'STAGE_CLEAR_TEXT';
+                transitionTimer = 90; 
+                if (skipBtn) skipBtn.classList.add('hidden');
+            }
         });
     }
 }
@@ -388,8 +398,12 @@ function handleTransitionFade() {
             gameState = 'UI';
             stgManager = null; 
             soundManager.playBGM('clear');
-            document.getElementById('result-title').innerText = "ALL CLEAR!";
-            document.getElementById('result-title').style.color = "#00ffff";
+            // ★変更：全クリア時にクレジット表示を追加（改行タグで装飾）
+            const resTitle = document.getElementById('result-title');
+            if (resTitle) {
+                resTitle.innerHTML = "ALL CLEAR!<br><br><span style='font-size:0.5em;color:#fff;'>制作 komarinet<br>thank you for playing</span>";
+                resTitle.style.color = "#00ffff";
+            }
             window.changeScreen('result-screen');
         }
     }
@@ -439,6 +453,7 @@ function loop(timestamp) {
             break;
             
         case 'POST_STG_DIALOGUE':
+        case 'ENDING_DIALOGUE': // ★追加：エンディング中も背景を維持して描画
             stgManager.draw(ctx); 
             advManager.draw(ctx, canvas, true); 
             break;
