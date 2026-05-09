@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.16"; // バージョン更新（科学文明軍リーダー cap.png のスケールと表示設定を追加）
+const VER_ADV = "0.4.17"; // バージョン更新（神宮寺のふりがなを「つねなり」に修正）
 
 class ADVManager {
     constructor() {
@@ -277,7 +277,7 @@ class ADVManager {
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
             if (key === 'godai.png' || key === 'godaimo.png') return 3; 
-            if (key === 'cap.png') return 4; // ★新規追加：cap.png は4行
+            if (key === 'cap.png') return 4; 
             return 4; 
         };
 
@@ -317,7 +317,6 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                // ★修正：cap.png のスケールを1.0倍にする
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
@@ -375,6 +374,7 @@ class ADVManager {
                 let speakerRuby = "";
                 let nameColor = '#00ffff'; 
 
+                // ★修正：神宮寺のふりがなをご指定通り「つねなり」に変更
                 if (currentMsg.speaker === '猪狩') {
                     speakerName = '猪狩 俊基'; speakerRuby = 'いがり としき'; nameColor = '#ff3366';
                 } else if (currentMsg.speaker === '柊') {
@@ -384,12 +384,12 @@ class ADVManager {
                 } else if (currentMsg.speaker === '椎名') {
                     speakerName = '椎名 護'; speakerRuby = 'しいな まもる'; nameColor = '#33ccff';
                 } else if (currentMsg.speaker === '神宮寺') {
-                    speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ こうせい'; nameColor = '#ffcc00';
+                    speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ つねなり'; nameColor = '#ffcc00';
                 } else if (currentMsg.speaker === 'G・O・D・A・I') {
                     speakerName = 'G・O・D・A・I'; speakerRuby = ''; nameColor = '#aaaaaa';
                 } else if (currentMsg.speaker === 'AI') {
                     speakerName = 'AI'; speakerRuby = ''; nameColor = '#dddddd';
-                } else if (currentMsg.speaker === '隊長') { // ★新規追加
+                } else if (currentMsg.speaker === '隊長') { 
                     speakerName = '科学文明軍 隊長'; speakerRuby = 'たいちょう'; nameColor = '#ff6600';
                 }
 
