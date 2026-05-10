@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.2"; // バージョン更新（ステージ間の引き継ぎリセットと、コンティニューボタンの動的生成を追加）
+const VER_MAIN = "0.9.4"; // バージョン更新（エンディング＆クレジットの復活、自機タッチ移動のワープ防止機能を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -97,7 +97,7 @@ window.skipADV = function() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
-    } else if (gameState === 'POST_STG_DIALOGUE') {
+    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { // ★修正：エンディングスキップ対応
         gameState = 'STAGE_CLEAR_TEXT';
         transitionTimer = 90;
     } else {
@@ -264,27 +264,67 @@ function executeStart(stageNum) {
 }
 
 // --- 入力制御 ---
+let activeTouchId = null; // ★追加：現在操作中の指のIDを記録
 let touchX = 0, touchY = 0, isTouching = false;
+
 canvas.addEventListener('touchstart', e => {
     e.preventDefault();
-    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'MID_STG_ADV') {
+    if (gameState === 'ADV' || gameState === 'PRE_STG_DIALOGUE' || gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE' || gameState === 'MID_STG_ADV') {
         advManager.next();
         return;
     }
-    if (gameState === 'STG_PLAY') {
-        isTouching = true; touchX = e.touches[0].clientX; touchY = e.touches[0].clientY;
+    // ★修正：最初の1本目の指だけを認識する
+    if (gameState === 'STG_PLAY' && !isTouching) {
+        const touch = e.changedTouches[0];
+        activeTouchId = touch.identifier;
+        isTouching = true;
+        touchX = touch.clientX;
+        touchY = touch.clientY;
     }
 }, { passive: false });
+
 canvas.addEventListener('touchmove', e => {
     e.preventDefault();
     if (gameState === 'STG_PLAY' && isTouching) {
-        const currentX = e.touches[0].clientX, currentY = e.touches[0].clientY;
-        stgManager.player.x += (currentX - touchX) * 1.2;
-        stgManager.player.y += (currentY - touchY) * 1.2;
-        touchX = currentX; touchY = currentY;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            const touch = e.changedTouches[i];
+            // ★修正：操作中の指IDと一致する場合のみ移動処理を行う
+            if (touch.identifier === activeTouchId) {
+                let dx = touch.clientX - touchX;
+                let dy = touch.clientY - touchY;
+                
+                // ★追加：ブラウザの処理遅延などで距離が飛びすぎた場合にリミットをかける
+                if (dx > 40) dx = 40; if (dx < -40) dx = -40;
+                if (dy > 40) dy = 40; if (dy < -40) dy = -40;
+
+                stgManager.player.x += dx * 1.2;
+                stgManager.player.y += dy * 1.2;
+                touchX = touch.clientX;
+                touchY = touch.clientY;
+                break;
+            }
+        }
     }
 }, { passive: false });
-canvas.addEventListener('touchend', () => isTouching = false);
+
+canvas.addEventListener('touchend', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === activeTouchId) {
+            isTouching = false;
+            activeTouchId = null;
+            break;
+        }
+    }
+});
+canvas.addEventListener('touchcancel', e => {
+    for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === activeTouchId) {
+            isTouching = false;
+            activeTouchId = null;
+            break;
+        }
+    }
+});
 
 // ==========================================
 // メインループから呼び出す各状態の関数群
@@ -313,7 +353,6 @@ function handleStgPlay() {
     if (status === 'GAMEOVER') {
         gameState = 'UI';
         
-        // ★修正：死亡時の状態を退避
         const savedPower = stgManager.player.powerLevel;
         const savedBombs = stgManager.player.bombs;
         const savedScore = stgManager.player.score;
@@ -328,20 +367,16 @@ function handleStgPlay() {
             resTitle.style.color = "#ff3366";
         }
         
-        // ★追加：3つの選択肢ボタンを表示する
         ui.setupGameOverButtons(
             () => { 
-                // 引き継いでリトライ（スコア・パワー・ボムを復元）
                 window.globalPlayerState = { powerLevel: savedPower, bombs: savedBombs, score: savedScore };
                 window.startGame(currentStage);
             },
             () => { 
-                // 引き継がないでリトライ（すべて初期化）
                 window.globalPlayerState = { powerLevel: 0, bombs: 3, score: 0 };
                 window.startGame(currentStage);
             },
             () => { 
-                // タイトルへ（すべて初期化）
                 window.globalPlayerState = { powerLevel: 0, bombs: 3, score: 0 };
                 window.changeScreen('title-screen');
             }
@@ -361,9 +396,20 @@ function handleStgPlay() {
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
-            gameState = 'STAGE_CLEAR_TEXT';
-            transitionTimer = 90; 
-            if (skipBtn) skipBtn.classList.add('hidden');
+            // ★復活：エンディングがある場合は続けて再生
+            const endingData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].ending || []) : [];
+            if (endingData.length > 0) {
+                gameState = 'ENDING_DIALOGUE';
+                advManager.start(endingData, () => {
+                    gameState = 'STAGE_CLEAR_TEXT';
+                    transitionTimer = 90; 
+                    if (skipBtn) skipBtn.classList.add('hidden');
+                });
+            } else {
+                gameState = 'STAGE_CLEAR_TEXT';
+                transitionTimer = 90; 
+                if (skipBtn) skipBtn.classList.add('hidden');
+            }
         });
     }
 }
@@ -383,7 +429,6 @@ function handleTransitionFade() {
     transitionTimer--;
     if (transitionTimer <= 0) {
         
-        // ★追加：通常クリア時はパワーとボムを引き継がない（スコアのみ維持する）
         const currentScore = stgManager && stgManager.player ? stgManager.player.score : 0;
         window.globalPlayerState = { powerLevel: 0, bombs: 3, score: currentScore };
 
@@ -417,12 +462,13 @@ function handleTransitionFade() {
             stgManager = null; 
             soundManager.playBGM('clear');
             
+            // ★復活：クリア時にクレジット表示
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
-                resTitle.innerText = "ALL CLEAR!";
+                resTitle.innerHTML = "ALL CLEAR!<br><br><span style='font-size:0.5em;color:#fff;'>制作 komarinet<br>thank you for playing</span>";
                 resTitle.style.color = "#00ffff";
             }
-            ui.resetResultButtons(); // ★追加：既存の戻るボタンを復活させる
+            if (ui.resetResultButtons) ui.resetResultButtons(); 
             
             window.changeScreen('result-screen');
         }
@@ -475,6 +521,10 @@ function loop(timestamp) {
         case 'POST_STG_DIALOGUE':
             stgManager.draw(ctx); 
             advManager.draw(ctx, canvas, true); 
+            break;
+
+        case 'ENDING_DIALOGUE': // ★復活：エンディング中はシューティング背景を描画せずADVのみ
+            advManager.draw(ctx, canvas, false); 
             break;
             
         case 'STAGE_CLEAR_TEXT':
