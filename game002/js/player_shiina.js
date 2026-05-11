@@ -1,51 +1,42 @@
-const VER_PLAYER_SHIINA = "0.1.2"; // 椎名護の自機コントロール（不要な削除をせず、画像指定のみ jikishi.png に修正）
+const VER_PLAYER_SHIINA = "0.2.0"; // 椎名護：ホーミング文字ショット＆年輪バリアボム実装
 
 window.PlayerControllers = window.PlayerControllers || {};
 
 const ShiinaController = {
     draw: function(player, ctx, advManager) {
-        // タイマーの初期化と加算
-        player.animTimer = (player.animTimer || 0) + 1;
-        player.ringAngle = (player.ringAngle || 0) + 0.05; // sans.pngの回転速度
+        player.globalTimer = (player.globalTimer || 0) + 1; // ショットの間隔制御用
+        player._advManager = advManager; // ショット生成時に画像を参照するため保存
+        player.ringAngle = (player.ringAngle || 0) + 0.05; 
 
         ctx.save();
         ctx.translate(player.x, player.y);
 
-        // ==========================================
-        // 1. 周囲を舞うエフェクト (sans.png) の描画
-        // ==========================================
+        // 1. 周囲を舞うエフェクト (sans.png)
         const sansImg = (advManager && advManager.assets) ? advManager.assets['sans.png'] : null;
         if (sansImg && sansImg.naturalWidth > 0) {
-            const sw = sansImg.width / 5;  // 5列
-            const sh = sansImg.height / 2; // 2行
-            const radius = 45; // 自機からの回転半径
+            const sw = sansImg.width / 5;
+            const sh = sansImg.height / 2;
+            const radius = 45;
 
             for (let i = 0; i < 10; i++) {
-                // 10個のパーツを均等な角度で配置し、全体を回転させる
                 const ang = player.ringAngle + (i * Math.PI * 2 / 10);
                 const col = i % 5;
                 const row = Math.floor(i / 5);
                 
                 ctx.save();
                 ctx.translate(Math.cos(ang) * radius, Math.sin(ang) * radius);
-                // 各エフェクトパーツの描画（サイズは 24x24 に調整）
+                ctx.globalAlpha = 0.8;
                 ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -12, -12, 24, 24);
                 ctx.restore();
             }
         }
 
-        // ==========================================
         // 2. 自機の往復アニメーション (jikishi.png)
-        // ==========================================
-        // config.jsでの登録名と合わせます
         const jikiImg = (advManager && advManager.assets) ? advManager.assets['jikishi.png'] : null;
         if (jikiImg && jikiImg.naturalWidth > 0) {
-            const animSpeed = 4; // アニメーションの速度（小さいほど速い）
-            // 10コマの往復は 0〜9(行き) + 8〜1(帰り) の合計18周期
+            const animSpeed = 4; 
             const cycle = 18; 
-            const t = Math.floor(player.animTimer / animSpeed) % cycle;
-            
-            // tが10未満ならそのまま(0〜9)、10以上なら折り返し(8〜1)
+            const t = Math.floor(player.globalTimer / animSpeed) % cycle;
             const frame = t < 10 ? t : cycle - t; 
 
             const col = frame % 5;
@@ -53,127 +44,252 @@ const ShiinaController = {
             const sw = jikiImg.width / 5;
             const sh = jikiImg.height / 2;
             
-            const drawWidth = 55; // 自機の描画サイズ
+            const drawWidth = 55;
             const drawHeight = drawWidth * (sh / sw);
 
-            // 自機画像の描画
             ctx.shadowColor = 'rgba(51, 204, 255, 0.8)';
             ctx.shadowBlur = 10;
             ctx.drawImage(jikiImg, col * sw, row * sh, sw, sh, -drawWidth/2, -drawHeight/2, drawWidth, drawHeight);
             
-            // 当たり判定のコアを描画
             ctx.shadowBlur = 0;
             ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
             ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
         } else {
-            // 画像読み込み失敗時のフォールバック
             ctx.fillStyle = player.color; ctx.beginPath();
             ctx.arc(0, 0, player.size, 0, Math.PI*2); ctx.fill();
         }
-        
         ctx.restore();
     },
 
     shoot: function(player) {
-        // 椎名独自のショットロジック（例：青色の高速レーザー弾）
-        const bS = 22; // 弾速（猪狩より少し速め）
-        const bColor = '#33ccff'; 
-        const pL = player.powerLevel;
-        
-        // パワーアップに応じた弾幕パターンの分岐
-        if (pL === 0) { 
-            player.bullets.push(this.createShot(player.x, player.y - player.size, 0, -bS, bColor)); 
+        // パワーレベルの解析（最大8段階）
+        const pL = Math.min(8, player.powerLevel);
+        const reloadUp = Math.floor((pL + 1) / 2); // リロード強化段階 (0〜4)
+        const countUp = Math.floor(pL / 2);        // 発射数強化段階 (0〜4)
+
+        // 猪狩の基本間隔を仮に5Fとした場合、椎名は15F（1/3の頻度）。
+        // リロードが上がるごとに間隔を短くする
+        const reloadLimit = Math.max(7, 20 - reloadUp * 3); 
+
+        if (!player.lastShootFrame) player.lastShootFrame = 0;
+        if (player.globalTimer - player.lastShootFrame < reloadLimit) {
+            return; // リロード中なら発射しない
         }
-        else if (pL === 1) { 
-            player.bullets.push(this.createShot(player.x - 8, player.y - player.size, 0, -bS, bColor)); 
-            player.bullets.push(this.createShot(player.x + 8, player.y - player.size, 0, -bS, bColor)); 
-        }
-        else if (pL >= 2 && pL <= 4) {
-            player.bullets.push(this.createShot(player.x - 12, player.y - player.size, 0, -bS, bColor));
-            player.bullets.push(this.createShot(player.x, player.y - player.size - 10, 0, -bS, '#ffffff'));
-            player.bullets.push(this.createShot(player.x + 12, player.y - player.size, 0, -bS, bColor));
-        }
-        else {
-            // パワー最大級：V字の広範囲ショット
-            for (let i = -2; i <= 2; i++) {
-                player.bullets.push(this.createShot(player.x + i * 10, player.y - player.size - Math.abs(i)*5, i * 1.5, -bS, bColor));
-            }
+        player.lastShootFrame = player.globalTimer;
+
+        // ゆっくりとした初速
+        const baseSpeed = 5; 
+        const baseAng = -Math.PI / 2; 
+        const shotCount = 1 + countUp; // 1発〜最大5発
+        const isClose = player.isCloseToDanger; // 近接判定
+
+        for (let i = 0; i < shotCount; i++) {
+            // 扇状に散らして発射
+            let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 0.3;
+            let vx = Math.cos(baseAng + offset) * baseSpeed;
+            let vy = Math.sin(baseAng + offset) * baseSpeed;
+            
+            let b = this.createShot(player.x, player.y - player.size, vx, vy, '#33ccff', player, isClose);
+            player.bullets.push(b);
         }
     },
     
-    createShot: function(x, y, vx, vy, color) {
+    createShot: function(x, y, vx, vy, color, player, isClose) {
         let b = new Bullet(x, y, vx, vy, color, null, 'shiina');
+        
+        // 猪狩の3倍の威力。近接時はさらに2倍（計6倍）
+        b.power = isClose ? 6 : 3; 
+        b.size = isClose ? 24 : 12; // 近接時は文字サイズも2倍
+        b.charIndex = Math.floor(Math.random() * 10);
+        b.advManager = player._advManager; 
+        b.timer = 0;
+
+        // ホーミングと軌道制御のカスタムアップデート
+        b.update = function(stg) {
+            this.timer++;
+            let target = null;
+            let minDist = 9999;
+            
+            // 一番近い敵を探す
+            stg.enemies.forEach(e => {
+                if (e.alive && !e.isDying) {
+                    let d = Math.hypot(e.x - this.x, e.y - this.y);
+                    if (d < minDist) { minDist = d; target = e; }
+                }
+            });
+
+            // 発射後少し経ってから追尾を開始
+            if (target && this.timer > 10) {
+                let angToTarget = Math.atan2(target.y - this.y, target.x - this.x);
+                let currentAng = Math.atan2(this.vy, this.vx);
+                let diff = angToTarget - currentAng;
+                
+                // 角度の正規化
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                
+                // 徐々にターゲットの方向へ曲がる
+                let turnSpeed = 0.06; 
+                currentAng += Math.sign(diff) * Math.min(Math.abs(diff), turnSpeed);
+                
+                let speed = Math.hypot(this.vx, this.vy);
+                // 追尾中は少しだけ加速する
+                if (speed < 12) speed += 0.2; 
+                
+                this.vx = Math.cos(currentAng) * speed;
+                this.vy = Math.sin(currentAng) * speed;
+            }
+
+            this.x += this.vx;
+            this.y += this.vy;
+        };
+
+        // sans.png 文字の描画
         b.draw = function(ctx) {
-            ctx.save(); ctx.translate(this.x, this.y);
-            ctx.rotate(Math.atan2(this.vy, this.vx) + Math.PI/2);
-            
-            ctx.shadowColor = this.color; ctx.shadowBlur = 10; 
-            ctx.fillStyle = '#ffffff'; 
-            
-            // 鋭い楔形のレーザー
-            ctx.beginPath();
-            ctx.moveTo(0, -this.size * 2);
-            ctx.lineTo(this.size, this.size * 2);
-            ctx.lineTo(-this.size, this.size * 2);
-            ctx.closePath();
-            ctx.fill();
-            
-            ctx.restore();
+            const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.png'] : null;
+            if (sansImg && sansImg.naturalWidth > 0) {
+                const sw = sansImg.width / 5;
+                const sh = sansImg.height / 2;
+                const col = this.charIndex % 5;
+                const row = Math.floor(this.charIndex / 5);
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                // 弾の進行方向に向かって文字も回転
+                ctx.rotate(Math.atan2(this.vy, this.vx) + Math.PI/2); 
+                
+                let ds = this.size; 
+                ctx.shadowColor = this.color; ctx.shadowBlur = 10;
+                // isClose時は ds が24になるためデカく描画される
+                ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -ds, -ds, ds*2, ds*2);
+                ctx.restore();
+            } else {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            }
         };
         return b;
     },
 
     triggerBomb: function(player, stg) {
-        // クロノス・レーザー / 時間操作ボムのスタブ実装
-        if (player.bombs <= 0 || stg.bombState !== 'READY') return;
+        // 重複発動の防止
+        if (player.bombs <= 0 || stg.bombState === 'BARRIER') return;
         player.bombs--; 
-        stg.bombState = 'ANIM_IN';
+        stg.bombState = 'BARRIER';
         stg.bombTimer = 0;
-        stg.isTimeStopped = true; // 時間停止発動
         
-        // 画面上の敵弾をすべて消去してスコアアイテム化などの処理を追加可能
-        stg.enemyBullets = [];
+        // 年輪のような3重の文字バリアを生成
+        stg.bombData = { rings: [] };
+        const ringRadii = [60, 100, 140]; // 3重の半径
+        const charsPerRing = [6, 10, 14]; // 外側ほど文字を多く
+        const speeds = [0.05, -0.04, 0.03]; // 互い違いに回転
+        
+        for (let r = 0; r < 3; r++) {
+            let chars = [];
+            for (let i = 0; i < charsPerRing[r]; i++) {
+                chars.push({
+                    angleOffset: (i * Math.PI * 2) / charsPerRing[r],
+                    hp: 3, // 1文字あたり3回分の耐久
+                    charIndex: Math.floor(Math.random() * 10),
+                    hitCoolDown: 0
+                });
+            }
+            stg.bombData.rings.push({
+                radius: ringRadii[r],
+                speed: speeds[r],
+                baseAngle: 0,
+                chars: chars
+            });
+        }
         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb');
     },
 
     updateBomb: function(player, stg, sW, sH) {
+        if (stg.bombState !== 'BARRIER' || !stg.bombData) return;
         stg.bombTimer++;
-        if (stg.bombState === 'ANIM_IN') {
-            if (stg.bombTimer >= 60) {
-                // ダメージ処理
-                stg.enemies.forEach(e => {
-                    if (!e.isDying && !(e.isBoss || e.type.includes('boss'))) {
-                        e.alive = false; 
-                        stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
-                    } else if (e.isBoss || e.type.includes('boss')) {
-                        e.hp -= 150; 
-                        if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; }
+        
+        let totalCharsActive = 0;
+        
+        stg.bombData.rings.forEach(ring => {
+            ring.baseAngle += ring.speed;
+            
+            ring.chars.forEach(c => {
+                if (c.hp <= 0) return; // 壊れた文字はスキップ
+                totalCharsActive++;
+                if (c.hitCoolDown > 0) c.hitCoolDown--;
+                
+                let cx = player.x + Math.cos(ring.baseAngle + c.angleOffset) * ring.radius;
+                let cy = player.y + Math.sin(ring.baseAngle + c.angleOffset) * ring.radius;
+                
+                // 敵弾との判定
+                for (let i = stg.enemyBullets.length - 1; i >= 0; i--) {
+                    let eb = stg.enemyBullets[i];
+                    if (Math.hypot(eb.x - cx, eb.y - cy) < 25) { 
+                        stg.enemyBullets.splice(i, 1); // 敵弾を消滅
+                        c.hp--; // バリアの耐久を減らす
+                        if (c.hp <= 0) break; // バリアが壊れたらこれ以上の弾判定はしない
                     }
-                });
-                stg.flashTimer = 20; stg.shakeTimer = 30; stg.bombState = 'BEAM'; 
-            }
-        }
-        else if (stg.bombState === 'BEAM') {
-            if (stg.bombTimer > 100) {
-                stg.isTimeStopped = false; 
-                stg.bombState = 'READY'; 
-            }
+                }
+                
+                // 敵本体との判定
+                if (c.hp > 0 && c.hitCoolDown <= 0) {
+                    stg.enemies.forEach(e => {
+                        if (e.alive && !e.isDying && Math.hypot(e.x - cx, e.y - cy) < e.size + 25) {
+                            e.hp -= 15; // 敵に大ダメージ
+                            if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; }
+                            c.hp--;
+                            c.hitCoolDown = 10; // 連続ヒットによる即死を防ぐ
+                        }
+                    });
+                }
+            });
+        });
+        
+        // 全ての文字が壊れたらバリア解除
+        if (totalCharsActive === 0) {
+            stg.bombState = 'READY';
+            stg.bombData = null;
         }
     },
 
     drawBomb: function(player, stg, ctx, sW, sH, shakeX, shakeY) {
-        if (stg.bombState === 'ANIM_IN') {
-            ctx.save();
-            ctx.fillStyle = `rgba(0, 50, 100, ${Math.min(0.7, stg.bombTimer / 15)})`;
-            ctx.fillRect(-shakeX, -shakeY, sW + Math.abs(shakeX)*2, sH + Math.abs(shakeY)*2);
+        if (stg.bombState === 'BARRIER' && stg.bombData) {
+            const sansImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.png'] : null;
+            if (!sansImg) return;
             
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 28px sans-serif'; ctx.textAlign = 'center';
-            ctx.fillText('CHRONOS FIELD', sW/2, sH/2);
+            const sw = sansImg.width / 5;
+            const sh = sansImg.height / 2;
+            
+            ctx.save();
+            ctx.translate(-shakeX, -shakeY); 
+            
+            stg.bombData.rings.forEach(ring => {
+                ring.chars.forEach(c => {
+                    if (c.hp <= 0) return;
+                    
+                    let cx = player.x + Math.cos(ring.baseAngle + c.angleOffset) * ring.radius;
+                    let cy = player.y + Math.sin(ring.baseAngle + c.angleOffset) * ring.radius;
+                    
+                    const col = c.charIndex % 5;
+                    const row = Math.floor(c.charIndex / 5);
+                    
+                    ctx.save();
+                    ctx.translate(cx, cy);
+                    
+                    // 耐久値が減るにつれて透明に、赤っぽくなる演出
+                    ctx.globalAlpha = c.hp / 3;
+                    ctx.shadowColor = c.hp === 3 ? '#00ffff' : (c.hp === 2 ? '#ffaa00' : '#ff0000');
+                    ctx.shadowBlur = 15;
+                    
+                    ctx.rotate(stg.bombTimer * 0.1); 
+                    ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -16, -16, 32, 32);
+                    ctx.restore();
+                });
+            });
             ctx.restore();
         }
     }
 };
 
-// data.js / data_core.js のID設定ブレを吸収するため、両方の名前で登録
 window.PlayerControllers['shiina'] = ShiinaController;
 window.PlayerControllers['mamoru'] = ShiinaController;
