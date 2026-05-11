@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.1.0"; // 椎名護の自機コントロール
+const VER_PLAYER_SHIINA = "0.1.2"; // 椎名護の自機コントロール（不要な削除をせず、画像指定のみ jikishi.png に修正）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -35,10 +35,10 @@ const ShiinaController = {
         }
 
         // ==========================================
-        // 2. 自機の往復アニメーション (1000037784.png)
+        // 2. 自機の往復アニメーション (jikishi.png)
         // ==========================================
-        // アップロードされた画像名を指定します（config.jsでの登録名と合わせます）
-        const jikiImg = (advManager && advManager.assets) ? advManager.assets['1000037784.png'] : null;
+        // config.jsでの登録名と合わせます
+        const jikiImg = (advManager && advManager.assets) ? advManager.assets['jikishi.png'] : null;
         if (jikiImg && jikiImg.naturalWidth > 0) {
             const animSpeed = 4; // アニメーションの速度（小さいほど速い）
             // 10コマの往復は 0〜9(行き) + 8〜1(帰り) の合計18周期
