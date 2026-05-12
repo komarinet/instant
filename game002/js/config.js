@@ -20,7 +20,7 @@ export const imagesToPreload = [
     // --- 新規追加分 ---
     'trench_floor.png','trench_wall.png','​core_bg.png','core_reactor.png','gtyped.png','gtypee.png'
     ,'cap01.png','uramoon.png','base.png','inbase.png','brokenbase.png', 'airport02.png', 'jikishi.png'
-    ,'jikishi.png'
+    ,'jikishi.png','chain.png'
 ];
 
 export const imagesToPreload3D = [
