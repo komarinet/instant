@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.18"; // バージョン更新（nurse.png用の5列2行対応など、可変カラム機能を追加）
+const VER_ADV = "0.4.19"; // バージョン更新（nurse.pngの5列2行対応、kagejingu.pngの明記など可変カラム機能を統合）
 
 class ADVManager {
     constructor() {
@@ -271,20 +271,21 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // キャラクター描画
+        // ==========================================
+        // キャラクター描画ロジック（可変カラム・行対応）
+        // ==========================================
         const getRows = (key) => {
-            if (key === 'urashiina.png' || key === 'nurse.png') return 2; // ★追加: nurse.pngは2行
-            if (key === 'shiina.png') return 4; 
-            if (key === 'igari01.png') return 3;
-            if (key === 'godai.png' || key === 'godaimo.png') return 3; 
-            if (key === 'cap.png') return 4; 
+            if (key === 'urashiina.png' || key === 'nurse.png') return 2; 
+            if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png') return 3; 
+            if (key === 'shiina.png' || key === 'cap.png') return 4; 
+            if (key === 'jingu.png' || key === 'kagejingu.png') return 4; // ★神宮寺・影神宮寺は4行
             return 4; 
         };
 
-        // ★新規追加: 画像に応じて列数(カラム数)を動的に判定する関数
         const getCols = (key) => {
-            if (key === 'nurse.png') return 5; // nurse.pngは5列
-            return 4; // デフォルトは4列
+            if (key === 'nurse.png') return 5; // ナースのみ5列
+            if (key === 'jingu.png' || key === 'kagejingu.png') return 4; // ★神宮寺・影神宮寺は4列
+            return 4; 
         };
 
         let mainDrawWidth = 0;
@@ -296,7 +297,7 @@ class ADVManager {
             if (currentMsg.character === 'kagami.png') mScale = 41 / 43; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
 
-            const mCols = getCols(currentMsg.character); // ★変更: ハードコードされていた「4」を動的取得に変更
+            const mCols = getCols(currentMsg.character); 
             mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
@@ -312,7 +313,7 @@ class ADVManager {
             if (!cData.key) return;
             const charImg = this.assets[cData.key];
             if (charImg && charImg.naturalWidth > 0) {
-                const cols = getCols(cData.key); // ★変更: 定数「4」から関数での取得に変更
+                const cols = getCols(cData.key); 
                 let rows = getRows(cData.key);
                 const index = cData.spIndex || 0;
                 
