@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.17"; // バージョン更新（神宮寺のふりがなを「つねなり」に修正）
+const VER_ADV = "0.4.18"; // バージョン更新（nurse.png用の5列2行対応など、可変カラム機能を追加）
 
 class ADVManager {
     constructor() {
@@ -273,12 +273,18 @@ class ADVManager {
 
         // キャラクター描画
         const getRows = (key) => {
-            if (key === 'urashiina.png') return 2; 
+            if (key === 'urashiina.png' || key === 'nurse.png') return 2; // ★追加: nurse.pngは2行
             if (key === 'shiina.png') return 4; 
             if (key === 'igari01.png') return 3;
             if (key === 'godai.png' || key === 'godaimo.png') return 3; 
             if (key === 'cap.png') return 4; 
             return 4; 
+        };
+
+        // ★新規追加: 画像に応じて列数(カラム数)を動的に判定する関数
+        const getCols = (key) => {
+            if (key === 'nurse.png') return 5; // nurse.pngは5列
+            return 4; // デフォルトは4列
         };
 
         let mainDrawWidth = 0;
@@ -289,7 +295,9 @@ class ADVManager {
             let mScale = 1.0;
             if (currentMsg.character === 'kagami.png') mScale = 41 / 43; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
-            mainDrawWidth = (Math.floor(mainImg.width / 4) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
+
+            const mCols = getCols(currentMsg.character); // ★変更: ハードコードされていた「4」を動的取得に変更
+            mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
             alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
@@ -304,7 +312,7 @@ class ADVManager {
             if (!cData.key) return;
             const charImg = this.assets[cData.key];
             if (charImg && charImg.naturalWidth > 0) {
-                const cols = 4;
+                const cols = getCols(cData.key); // ★変更: 定数「4」から関数での取得に変更
                 let rows = getRows(cData.key);
                 const index = cData.spIndex || 0;
                 
@@ -374,7 +382,6 @@ class ADVManager {
                 let speakerRuby = "";
                 let nameColor = '#00ffff'; 
 
-                // ★修正：神宮寺のふりがなをご指定通り「つねなり」に変更
                 if (currentMsg.speaker === '猪狩') {
                     speakerName = '猪狩 俊基'; speakerRuby = 'いがり としき'; nameColor = '#ff3366';
                 } else if (currentMsg.speaker === '柊') {
