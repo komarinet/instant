@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.4"; // バージョン更新（エンディング＆クレジットの復活、自機タッチ移動のワープ防止機能を追加）
+const VER_MAIN = "0.9.5"; // バージョン更新（ステージ選択画面を開く際に、選択中のキャラIDをUIに渡してテキストを切り替える連携を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -73,7 +73,11 @@ window.closeSoundtrack = function() {
     window.changeScreen('title-screen');
 };
 
-window.goToStageSelect = function() { window.changeScreen('stage-select-screen'); };
+// ★修正：ステージ選択画面を開く前に、選択中のキャラIDを渡してテキストを切り替える
+window.goToStageSelect = function() { 
+    ui.initStageListTexts(selectedCharId);
+    window.changeScreen('stage-select-screen'); 
+};
 
 window.skipADV = function() {
     if (gameState === 'MID_STG_ADV') {
@@ -97,7 +101,7 @@ window.skipADV = function() {
             const stgId = (charScenario && charScenario[currentStage] && charScenario[currentStage].stgId) ? charScenario[currentStage].stgId : 'kagami';
             stgManager = new STGManager(canvas, safeChars.find(c => c.id === selectedCharId), stgId);
         }
-    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') { // ★修正：エンディングスキップ対応
+    } else if (gameState === 'POST_STG_DIALOGUE' || gameState === 'ENDING_DIALOGUE') {
         gameState = 'STAGE_CLEAR_TEXT';
         transitionTimer = 90;
     } else {
@@ -160,7 +164,8 @@ async function init() {
     soundManager.init();
     isPreloadCompleted = true;
     
-    ui.initStageListTexts();
+    // ★修正：初期化時にも選択中キャラIDを渡す
+    ui.initStageListTexts(selectedCharId);
 
     soundManager.playBGM('title');
 
@@ -264,7 +269,7 @@ function executeStart(stageNum) {
 }
 
 // --- 入力制御 ---
-let activeTouchId = null; // ★追加：現在操作中の指のIDを記録
+let activeTouchId = null; 
 let touchX = 0, touchY = 0, isTouching = false;
 
 canvas.addEventListener('touchstart', e => {
@@ -273,7 +278,6 @@ canvas.addEventListener('touchstart', e => {
         advManager.next();
         return;
     }
-    // ★修正：最初の1本目の指だけを認識する
     if (gameState === 'STG_PLAY' && !isTouching) {
         const touch = e.changedTouches[0];
         activeTouchId = touch.identifier;
@@ -288,12 +292,10 @@ canvas.addEventListener('touchmove', e => {
     if (gameState === 'STG_PLAY' && isTouching) {
         for (let i = 0; i < e.changedTouches.length; i++) {
             const touch = e.changedTouches[i];
-            // ★修正：操作中の指IDと一致する場合のみ移動処理を行う
             if (touch.identifier === activeTouchId) {
                 let dx = touch.clientX - touchX;
                 let dy = touch.clientY - touchY;
                 
-                // ★追加：ブラウザの処理遅延などで距離が飛びすぎた場合にリミットをかける
                 if (dx > 40) dx = 40; if (dx < -40) dx = -40;
                 if (dy > 40) dy = 40; if (dy < -40) dy = -40;
 
@@ -396,7 +398,6 @@ function handleStgPlay() {
         const postData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].post_stg || []) : [];
         
         advManager.start(postData, () => {
-            // ★復活：エンディングがある場合は続けて再生
             const endingData = (charScenario && charScenario[currentStage]) ? (charScenario[currentStage].ending || []) : [];
             if (endingData.length > 0) {
                 gameState = 'ENDING_DIALOGUE';
@@ -462,7 +463,6 @@ function handleTransitionFade() {
             stgManager = null; 
             soundManager.playBGM('clear');
             
-            // ★復活：クリア時にクレジット表示
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
                 resTitle.innerHTML = "ALL CLEAR!<br><br><span style='font-size:0.5em;color:#fff;'>制作 komarinet<br>thank you for playing</span>";
@@ -523,7 +523,7 @@ function loop(timestamp) {
             advManager.draw(ctx, canvas, true); 
             break;
 
-        case 'ENDING_DIALOGUE': // ★復活：エンディング中はシューティング背景を描画せずADVのみ
+        case 'ENDING_DIALOGUE': 
             advManager.draw(ctx, canvas, false); 
             break;
             
