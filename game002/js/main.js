@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.5"; // バージョン更新（ステージ選択画面を開く際に、選択中のキャラIDをUIに渡してテキストを切り替える連携を追加）
+const VER_MAIN = "0.9.6"; // バージョン更新（選択中キャラIDをグローバルに公開し、ADVの立ち位置判定に利用）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -20,6 +20,7 @@ const getGlobal = (varName, fallback) => {
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
+window.selectedCharId = selectedCharId; // ★追加：初期状態のキャラIDを公開
 
 let currentStage = 1;
 window.currentStage = currentStage; 
@@ -73,7 +74,6 @@ window.closeSoundtrack = function() {
     window.changeScreen('title-screen');
 };
 
-// ★修正：ステージ選択画面を開く前に、選択中のキャラIDを渡してテキストを切り替える
 window.goToStageSelect = function() { 
     ui.initStageListTexts(selectedCharId);
     window.changeScreen('stage-select-screen'); 
@@ -131,6 +131,7 @@ async function init() {
     
     ui.initCharSelect(safeChars, selectedCharId, (id) => {
         selectedCharId = id;
+        window.selectedCharId = id; // ★追加：キャラ変更時にグローバル変数も更新
         ui.updatePreview(safeChars, selectedCharId);
     });
     ui.updatePreview(safeChars, selectedCharId);
@@ -164,7 +165,6 @@ async function init() {
     soundManager.init();
     isPreloadCompleted = true;
     
-    // ★修正：初期化時にも選択中キャラIDを渡す
     ui.initStageListTexts(selectedCharId);
 
     soundManager.playBGM('title');
