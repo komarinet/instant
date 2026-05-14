@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.15"; // バージョン更新（既存のコメントやコードを一切削除せず、猪狩の接近強化ロジックを追加）
+const VER_STG_CORE = "0.8.16"; // バージョン更新（弾の威力計算への対応、近接判定の共通化、弾のupdateにstgを渡す修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -12,7 +12,6 @@ class Enemy {
         this.deathTimer = 0;
         
         if (!stgId) {
-            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
             let charId = (this.charData && this.charData.id) ? this.charData.id : 'igari';
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
@@ -21,10 +20,10 @@ class Enemy {
                     else if (cStage === 2) stgId = 'hiragi';
                     else if (cStage === 3) stgId = 'shiina';
                     else if (cStage === 4) stgId = 'jingu'; 
-                    else if (cStage === 5) stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else if (cStage === 5) stgId = 'godai'; 
                     else stgId = 'kagami';
                 } else {
-                    stgId = 'kagami'; // igari以外はとりあえずkagami
+                    stgId = 'kagami'; 
                 }
             } else {
                 stgId = 'kagami';
@@ -41,10 +40,8 @@ class Enemy {
         this.hp = data.hp || 1; 
         this.maxHp = data.maxHp || data.hp || 1;
 
-        // 動的なボス判定。「data.isBoss」指定があるか、「タイプ名」「画像名」に'boss'が含まれるか、または「HPが100以上」ならボスと認識する
         this.isBoss = data.isBoss === true || type.includes('boss') || (this.imgSrc && this.imgSrc.includes('boss')) || this.maxHp >= 100;
 
-        // ADV制御用のステータス
         this.advTriggered = false;
         this.isHidden = false;
 
@@ -92,12 +89,10 @@ class Enemy {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10; ctx.drawImage(img, -dW/2, -dH/2, dW, dH);
             }
         } else { 
-            // ボス描画のフォールバック色判定
             ctx.fillStyle = this.isBoss ? '#ff00ff' : '#00ffff'; 
             ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill(); 
         }
 
-        // ボスのHPゲージ描画
         if (this.isBoss && this.hp > 0 && !this.isDying) {
             const bW = this.size * 1.5, bH = 10;
             ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(-bW/2, -this.size-20, bW, bH);
@@ -124,7 +119,6 @@ class STGManager {
         
         this.stgId = stgId;
         if (!this.stgId) {
-            // ★修正：igariシナリオ以外は、今は個別に指定するまでステージ1(kagami)を設定する
             let charId = (charData && charData.id) ? charData.id : 'igari';
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
@@ -133,20 +127,16 @@ class STGManager {
                     else if (cStage === 2) this.stgId = 'hiragi';
                     else if (cStage === 3) this.stgId = 'shiina';
                     else if (cStage === 4) this.stgId = 'jingu'; 
-                    else if (cStage === 5) this.stgId = 'godai'; // igariの時のみステージ5をgodaiへ
+                    else if (cStage === 5) this.stgId = 'godai'; 
                     else this.stgId = 'kagami'; 
                 } else {
-                    this.stgId = 'kagami'; // igari以外はとりあえずkagami
+                    this.stgId = 'kagami'; 
                 }
             } else { this.stgId = 'kagami'; }
         }
         
-        // BGM切り替え管理フラグ
         this.bgmChanged = false;
-        // 全体で1回だけADVを呼ぶためのフラグ
         this.bossAdvTriggered = false;
-        
-        // ★追加：ADVが呼ばれた回数を管理する変数
         this.bossAdvCount = 0;
 
         this.config = window.StageConfigs[this.stgId] || {};
@@ -173,30 +163,26 @@ class STGManager {
         
         this.player.update(canvas); 
         
-        // ★修正：連射を「敵または敵弾への接近」で変化させる処理を追加
+        // ★修正：連射を「敵または敵弾への接近」で変化させる処理を全キャラクター共通化
         if (!this.player.isEntering) {
             if (this.player.fireTimer === undefined) this.player.fireTimer = 0;
             
+            let minDist = Infinity;
+            for (let e of this.enemies) {
+                let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+                if (d < minDist) minDist = d;
+            }
+            for (let eb of this.enemyBullets) {
+                let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
+                if (d < minDist) minDist = d;
+            }
+            
+            // 全キャラ共通で150px以内に危険があれば接近フラグをON
+            this.player.isCloseToDanger = (minDist < 150);
+
             let fireRate = 8;
             if (this.player.id === 'igari') {
-                let minDist = Infinity;
-                // 敵との距離をチェック
-                for (let e of this.enemies) {
-                    let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-                    if (d < minDist) minDist = d;
-                }
-                // 敵弾との距離もチェック
-                for (let eb of this.enemyBullets) {
-                    let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
-                    if (d < minDist) minDist = d;
-                }
-                // 150px以内に敵や弾がいればパワーアップ判定
-                if (minDist < 150) { 
-                    fireRate = 3; 
-                    this.player.isCloseToDanger = true;
-                } else {
-                    this.player.isCloseToDanger = false;
-                }
+                if (this.player.isCloseToDanger) fireRate = 3; 
             }
             
             this.player.fireTimer++;
@@ -222,10 +208,9 @@ class STGManager {
             }
         }
 
-        // ★変更：1回だけのロック(!this.bossAdvTriggered)を外し、新しいボスが出るたびに実行できるようにした
         if (hasNewBoss) {
             this.bossAdvTriggered = true;
-            this.bossAdvCount++; // ★追加：何回目のADVかをカウント
+            this.bossAdvCount++; 
             
             let midAdvData = [];
             try {
@@ -240,7 +225,6 @@ class STGManager {
                 if (charScenario) {
                     for (let stageKey in charScenario) {
                         if (charScenario[stageKey] && charScenario[stageKey].stgId === this.stgId) {
-                            // ★追加：回数に応じて、mid_stg または mid_stg2 以降を取得する
                             let advKey = (this.bossAdvCount === 1) ? 'mid_stg' : 'mid_stg' + this.bossAdvCount;
                             if (charScenario[stageKey][advKey]) {
                                 midAdvData = charScenario[stageKey][advKey];
@@ -268,7 +252,10 @@ class STGManager {
             }
         }
 
-        this.player.bullets.forEach(b => b.update(canvas)); this.enemyBullets.forEach(b => b.update(canvas));
+        // ★修正：弾のupdateにcanvasだけでなく、this（stgManager自身）を渡すことで、護のホーミング文字がステージ情報を取得できるようにする
+        this.player.bullets.forEach(b => b.update(canvas, this)); 
+        this.enemyBullets.forEach(b => b.update(canvas, this));
+        
         this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
         this.items.forEach(it => it.update(canvas)); this.items = this.items.filter(it => it.alive);
         
@@ -290,21 +277,15 @@ class STGManager {
                     }
                 }
                 if (e.deathTimer === 180) {
-                    // 180フレーム目で最後の巨大爆発を発生させる
                     this.explosions.push(new Explosion(e.x, e.y, e.size * 4, this.advManager));
                     if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                 }
                 
-                // ★修正：爆発が完全に消え去るまで待機するため、クリア判定を260フレーム目に遅延
                 if (e.deathTimer >= 260) {
                     e.alive = false; 
-                    
-                    // ★ここだけ変更：中ボスの撃破でステージが終わらないよう、他にボスが残っていないかチェック
                     if (!this.enemies.some(enemy => enemy.isBoss && enemy.alive && enemy !== e)) {
                         this.isStageClear = true;
                     }
-
-                    // ★追記：フェーズ管理がある場合、最終フェーズ（4）に到達していなければクリアを取り消す
                     if (this.phase !== undefined && this.phase < 4) {
                         this.isStageClear = false;
                     }
@@ -317,10 +298,11 @@ class STGManager {
 
             this.player.bullets.forEach(b => {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
-                    b.alive = false; e.hp--;
+                    b.alive = false; 
+                    // ★修正：b.power が設定されていればその値分だけHPを減らす（護の文字や高威力の弾に対応）
+                    e.hp -= (b.power || 1);
                     if (e.hp <= 0) {
                         
-                        // ★完全追記：敵撃破時のスコア加算（ボス10000点、ザコ100点）
                         this.player.score += e.isBoss ? 10000 : 100;
 
                         if (e.isBoss) {
@@ -329,14 +311,14 @@ class STGManager {
                             e.alive = false; this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                             if(Math.random()<0.1) this.items.push(new Item('power', e.x, e.y)); else if(Math.random()<0.15) this.items.push(new Item('recover', e.x, e.y));
-                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); // ★追加：既存の行を一切触らずにボムを追記
+                            else if(Math.random()<0.03) this.items.push(new Item('bomb', e.x, e.y)); 
                         }
                     }
                 }
             });
             
             if (e.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((e.x-this.player.x)**2 + (e.y-this.player.y)**2) < (e.size+this.player.size)/2) {
-                this.player.hp--; this.player.invincibleTimer = 180; // ★変更（90から180）
+                this.player.hp--; this.player.invincibleTimer = 180;
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
@@ -344,7 +326,7 @@ class STGManager {
         
         for (let eb of this.enemyBullets) {
             if (eb.alive && !this.player.isEntering && this.player.invincibleTimer === 0 && Math.sqrt((eb.x-this.player.x)**2 + (eb.y-this.player.y)**2) < (eb.size+this.player.size)/2) {
-                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 180; // ★変更（90から180）
+                eb.alive = false; this.player.hp--; this.player.invincibleTimer = 180;
                 if (this.player.hp <= 0) return 'GAMEOVER';
             }
         }
@@ -353,15 +335,13 @@ class STGManager {
             if (it.alive && !this.player.isEntering && Math.sqrt((it.x-this.player.x)**2 + (it.y-this.player.y)**2) < it.size + this.player.size) {
                 it.alive = false;
                 
-                // ★完全追記：アイテム取得スコア（カンスト時は1000点ボーナス、それ以外は100点）
                 if (it.type === 'power') this.player.score += (this.player.powerLevel >= 8) ? 1000 : 100;
                 if (it.type === 'recover') this.player.score += (this.player.hp >= this.player.maxHp) ? 1000 : 100;
                 if (it.type === 'bomb') this.player.score += (this.player.bombs >= 5) ? 1000 : 100;
 
-                // ▼以下の既存の行は一切変更・削除していません
                 if (it.type === 'power') this.player.powerLevel = Math.min(8, this.player.powerLevel + 1);
                 else if (it.type === 'recover') this.player.hp = Math.min(this.player.maxHp, this.player.hp + 1);
-                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1); // ★追加：既存の分岐をそのまま残して追記
+                else if (it.type === 'bomb') this.player.bombs = Math.min(5, this.player.bombs + 1);
             }
         });
 
@@ -415,7 +395,6 @@ class STGManager {
         
         ctx.fillStyle = '#fff'; ctx.fillText(`POWER: ${this.player.powerLevel}/8`, 205, sH - 25);
 
-        // ★完全追記：スコアの描画（画面右上に配置）
         ctx.font = 'bold 20px "Segoe UI", sans-serif'; 
         ctx.textAlign = 'right';
         ctx.fillText(`SCORE: ${this.player.score}`, sW - 20, 35);
