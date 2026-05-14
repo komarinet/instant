@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.23";
+const VER_ADV = "0.4.24"; // バージョン更新（bg: 'red' 指定による赤一色塗りつぶし機能を追加）
 
 class ADVManager {
     constructor() {
@@ -240,20 +240,26 @@ class ADVManager {
                 }
             }
         } else if (currentMsg.bg) {
-            const bgImg = this.assets[currentMsg.bg];
-            if (bgImg && bgImg.naturalWidth > 0) {
-                const bgRatio = bgImg.width / bgImg.height;
-                const visualRatio = gameWidth / visualAreaHeight; 
-                let drawW, drawH, drawX, drawY;
+            // ★追加: 'red' 指定時は画像を探さずに赤く塗りつぶす
+            if (currentMsg.bg === 'red') {
+                ctx.fillStyle = '#aa0000';
+                ctx.fillRect(gameX + shakeX, gameY + shakeY, gameWidth, visualAreaHeight);
+            } else {
+                const bgImg = this.assets[currentMsg.bg];
+                if (bgImg && bgImg.naturalWidth > 0) {
+                    const bgRatio = bgImg.width / bgImg.height;
+                    const visualRatio = gameWidth / visualAreaHeight; 
+                    let drawW, drawH, drawX, drawY;
 
-                if (visualRatio > bgRatio) {
-                    drawW = gameWidth; drawH = gameWidth / bgRatio;
-                    drawX = gameX; drawY = gameY + (visualAreaHeight - drawH) / 2; 
-                } else {
-                    drawW = visualAreaHeight * bgRatio; drawH = visualAreaHeight;
-                    drawX = gameX + (gameWidth - drawW) / 2; drawY = gameY;
+                    if (visualRatio > bgRatio) {
+                        drawW = gameWidth; drawH = gameWidth / bgRatio;
+                        drawX = gameX; drawY = gameY + (visualAreaHeight - drawH) / 2; 
+                    } else {
+                        drawW = visualAreaHeight * bgRatio; drawH = visualAreaHeight;
+                        drawX = gameX + (gameWidth - drawW) / 2; drawY = gameY;
+                    }
+                    ctx.drawImage(bgImg, drawX + shakeX, drawY + shakeY, drawW, drawH);
                 }
-                ctx.drawImage(bgImg, drawX + shakeX, drawY + shakeY, drawW, drawH);
             }
         }
 
@@ -383,7 +389,7 @@ class ADVManager {
                     speakerName = '柊 千華'; speakerRuby = 'ひいらぎ ちか'; nameColor = '#cc33ff';
                 } else if (currentMsg.speaker === '各務') {
                     speakerName = '各務 栞'; speakerRuby = 'かがみ しおり'; nameColor = '#33ff33';
-                } else if (currentMsg.speaker === '椎名') {
+                } else if (currentMsg.speaker === '護' || currentMsg.speaker === '護(裏)' || currentMsg.speaker === '椎名') {
                     speakerName = '椎名 護'; speakerRuby = 'しいな まもる'; nameColor = '#33ccff';
                 } else if (currentMsg.speaker === '神宮寺') {
                     speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ つねなり'; nameColor = '#ffcc00';
@@ -391,13 +397,13 @@ class ADVManager {
                     speakerName = '椎名 衛二'; speakerRuby = 'しいな えいじ'; nameColor = '#00aaff';
                 } else if (currentMsg.speaker === '忠重') {
                     speakerName = '椎名 忠重'; speakerRuby = 'しいな ただしげ'; nameColor = '#0055ff';
-                } else if (currentMsg.speaker === 'ひより' || currentMsg.speaker === '桧山') {
+                } else if (currentMsg.speaker === '桧山' || currentMsg.speaker === '看護師') {
                     speakerName = '桧山 ひより'; speakerRuby = 'ひやま ひより'; nameColor = '#ff99cc';
                 } else if (currentMsg.speaker === 'G・O・D・A・I') {
                     speakerName = 'G・O・D・A・I'; speakerRuby = ''; nameColor = '#aaaaaa';
                 } else if (currentMsg.speaker === 'AI') {
                     speakerName = 'AI'; speakerRuby = ''; nameColor = '#dddddd';
-                } else if (currentMsg.speaker === '隊長') { 
+                } else if (currentMsg.speaker === '科学文明軍隊長' || currentMsg.speaker === 'ジョン・サクラダ') { 
                     speakerName = '科学文明軍 隊長'; speakerRuby = 'たいちょう'; nameColor = '#ff6600';
                 }
 
