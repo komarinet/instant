@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.16"; // バージョン更新（ゲームオーバー時のリトライボタン生成処理を追加）
+export const VER_UI = "0.3.17"; // バージョン更新（stg_eiji, player_shiinaバージョン表示追加と椎名のボム対応）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -256,7 +256,8 @@ export function updateGameUI(gameState, selectedCharId, stgManager) {
 
     const bombBtn = document.getElementById('bomb-btn');
     if (bombBtn) {
-        if (gameState === 'STG_PLAY' && selectedCharId === 'igari') {
+        // ★変更：猪狩だけでなく、椎名護（shiina, mamoru）選択時もボムボタンを表示
+        if (gameState === 'STG_PLAY' && (selectedCharId === 'igari' || selectedCharId === 'shiina' || selectedCharId === 'mamoru')) {
             bombBtn.classList.remove('hidden');
             const bVal = document.getElementById('bomb-count-val');
             if (bVal && stgManager) {
@@ -265,8 +266,14 @@ export function updateGameUI(gameState, selectedCharId, stgManager) {
                     bombBtn.style.background = 'rgba(100, 100, 100, 0.8)';
                     bombBtn.style.boxShadow = 'none';
                 } else {
-                    bombBtn.style.background = 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(100,0,0,0.8) 100%)';
-                    bombBtn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
+                    // ★追加：キャラによってボムの色を少し変更する（猪狩は赤、椎名はシアンブルー）
+                    if (selectedCharId === 'igari') {
+                        bombBtn.style.background = 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(100,0,0,0.8) 100%)';
+                        bombBtn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
+                    } else {
+                        bombBtn.style.background = 'radial-gradient(circle, rgba(0,204,255,0.8) 0%, rgba(0,100,150,0.8) 100%)';
+                        bombBtn.style.boxShadow = '0 0 15px rgba(0, 204, 255, 0.5)';
+                    }
                 }
             }
         } else {
@@ -306,12 +313,14 @@ export function showVersions(moduleVersions) {
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
+    const plShiina = getV('VER_PLAYER_SHIINA'); // ★追加: player_shiina
     const stgKagami = getV('VER_STG_KAGAMI');
     const stgHiragi = getV('VER_STG_HIRAGI');
     const stgShiina = getV('VER_STG_SHIINA');
     const stgJingu = getV('VER_STG_JINGU');
     const stgGodai = getV('VER_STG_GODAI');
     const stgCap = getV('VER_STG_CAP'); 
+    const stgEiji = getV('VER_STG_EIJI'); // ★追加: stg_eiji
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -319,6 +328,7 @@ export function showVersions(moduleVersions) {
     const scGodai = getV('VER_SCENARIO_GODAI');
     const scJingu = getV('VER_SCENARIO_JINGU');
 
+    // ★追加: 描画されるリストに p_shii と s_eiji を追加
     verDiv.innerHTML = `
         <div style="text-align: left;">
             <span style="color:#00ffff">[SYS]</span><br>
@@ -335,12 +345,16 @@ export function showVersions(moduleVersions) {
             <span style="color:#ffaa00">[STG]</span><br>
             core:v${stgCore}<br>
             com:v${stgCom}<br>
+            p_iga:v${plIgari}<br>
+            p_shi:v${plShiina}<br>
             s_kaga:v${stgKagami}<br>
             s_hira:v${stgHiragi}<br>
             s_shii:v${stgShiina}<br>
             s_jin:v${stgJingu}<br>
             s_god:v${stgGodai}<br>
-            s_cap:v${stgCap}    </div>
+            s_cap:v${stgCap}<br>
+            s_eiji:v${stgEiji}
+        </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
             iga:v${scIgari}<br>
@@ -423,7 +437,6 @@ export function setStageListLoading() {
     }
 }
 
-// ★追加：ゲームオーバー時に動的に選択肢ボタンを生成する
 export function setupGameOverButtons(onRetryWithData, onRetryWithoutData, onGoTitle) {
     const resultScreen = document.getElementById('result-screen');
     if (!resultScreen) return;
@@ -461,7 +474,6 @@ export function setupGameOverButtons(onRetryWithData, onRetryWithoutData, onGoTi
     resultScreen.appendChild(container);
 }
 
-// ★追加：生成したボタンを削除して元の状態に戻す
 export function resetResultButtons() {
     const oldContainer = document.getElementById('gameover-btn-container');
     if (oldContainer) oldContainer.remove();
