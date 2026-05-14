@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.21"; // バージョン更新（uraeiji.png の4列2行対応を追加）
+const VER_ADV = "0.4.23";
 
 class ADVManager {
     constructor() {
@@ -196,7 +196,6 @@ class ADVManager {
             slideX = -this.slideTimer;
         }
 
-        // 背景描画 / マスク侵食エフェクト
         if (currentMsg.maskBg && currentMsg.bg) {
             const topBg = this.assets[currentMsg.bg]; 
             const bottomBg = this.assets[currentMsg.maskBg]; 
@@ -271,11 +270,7 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
-        // ==========================================
-        // キャラクター描画ロジック（可変カラム・行対応）
-        // ==========================================
         const getRows = (key) => {
-            // ★追加: uraeiji.png を 2行 に登録
             if (key === 'urashiina.png' || key === 'nurse.png' || key === 'uraeiji.png') return 2; 
             if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png' || key === 'eiji.png' || key === 'tadashige.png') return 3; 
             if (key === 'shiina.png' || key === 'cap.png' || key === 'jingu.png' || key === 'kagejingu.png') return 4; 
@@ -283,8 +278,7 @@ class ADVManager {
         };
 
         const getCols = (key) => {
-            if (key === 'nurse.png') return 5; // ナースのみ5列
-            // ★追加: uraeiji.png を明示的に 4列 に登録
+            if (key === 'nurse.png') return 5; 
             if (key === 'jingu.png' || key === 'kagejingu.png' || key === 'eiji.png' || key === 'tadashige.png' || key === 'uraeiji.png') return 4; 
             return 4; 
         };
@@ -363,7 +357,6 @@ class ADVManager {
         
         ctx.globalAlpha = 1.0; 
 
-        // ウインドウ描画判定
         const isMasking = currentMsg.maskBg && this.bgEffectTimer > 0;
         const isWhiteouting = currentMsg.effect === 'whiteout' && this.whiteoutAlpha > 0;
         const showTextWindow = !isWhiteouting && !isMasking; 
@@ -394,6 +387,12 @@ class ADVManager {
                     speakerName = '椎名 護'; speakerRuby = 'しいな まもる'; nameColor = '#33ccff';
                 } else if (currentMsg.speaker === '神宮寺') {
                     speakerName = '神宮寺 恒成'; speakerRuby = 'じんぐうじ つねなり'; nameColor = '#ffcc00';
+                } else if (currentMsg.speaker === '衛二' || currentMsg.speaker === '衛二(裏)') {
+                    speakerName = '椎名 衛二'; speakerRuby = 'しいな えいじ'; nameColor = '#00aaff';
+                } else if (currentMsg.speaker === '忠重') {
+                    speakerName = '椎名 忠重'; speakerRuby = 'しいな ただしげ'; nameColor = '#0055ff';
+                } else if (currentMsg.speaker === 'ひより' || currentMsg.speaker === '桧山') {
+                    speakerName = '桧山 ひより'; speakerRuby = 'ひやま ひより'; nameColor = '#ff99cc';
                 } else if (currentMsg.speaker === 'G・O・D・A・I') {
                     speakerName = 'G・O・D・A・I'; speakerRuby = ''; nameColor = '#aaaaaa';
                 } else if (currentMsg.speaker === 'AI') {
@@ -432,7 +431,6 @@ class ADVManager {
             ctx.fillText('▼', gameX + gameWidth - 40, gameY + gameHeight - 30);
         }
 
-        // アイテム描画処理
         if (currentMsg.item && this.assets[currentMsg.item]) {
             const itemImg = this.assets[currentMsg.item];
             const boxSize = Math.min(gameWidth, visualAreaHeight) * 0.6; 
