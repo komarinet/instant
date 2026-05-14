@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.19"; // バージョン更新（キャラクターに応じてステージ選択画面のテキストを出し分ける機能を追加）
+export const VER_UI = "0.3.20"; // バージョン更新（猪狩の特異反応を連射・弾速アップに修正し、巨大化は椎名専用とする）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -46,29 +46,41 @@ function startDemoLoop(char) {
         ctx.stroke();
 
         demoFrame++;
-        let fireRate = 8;
-        let isClose = false;
-
+        
         const playerX = canvas.width / 2;
         const playerY = canvas.height - 35; 
         
-        if (char.id === 'igari') {
+        // 敵弾の生成ロジック（斜め軌道）
+        if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
             if (demoFrame % 90 === 0) {
-                demoEnemyBullets.push({ x: playerX - 25, y: -10, vy: 3.5, color: '#ff0055', size: 4 });
+                let startX = playerX - (Math.random() * 50 + 20); 
+                demoEnemyBullets.push({ 
+                    x: startX, y: -10, 
+                    vx: 0.5 + Math.random(), vy: 3 + Math.random() * 0.5, 
+                    color: '#ff0055', size: 4 
+                });
             }
             if ((demoFrame + 45) % 90 === 0) {
-                demoEnemyBullets.push({ x: playerX + 25, y: -10, vy: 4, color: '#ffaa00', size: 4 });
+                let startX = playerX + (Math.random() * 50 + 20); 
+                demoEnemyBullets.push({ 
+                    x: startX, y: -10, 
+                    vx: -(0.5 + Math.random()), vy: 3 + Math.random() * 0.5, 
+                    color: '#ffaa00', size: 4 
+                });
             }
+        }
 
-            let minDist = Infinity;
-            for (let i = 0; i < demoEnemyBullets.length; i++) {
-                let eb = demoEnemyBullets[i];
-                let d = Math.hypot(eb.x - playerX, eb.y - playerY);
-                if (d < minDist) minDist = d;
-            }
-            isClose = minDist < 70;
-            fireRate = isClose ? 3 : 8;
+        // 接近判定（isClose）を共通化
+        let minDist = Infinity;
+        for (let i = 0; i < demoEnemyBullets.length; i++) {
+            let eb = demoEnemyBullets[i];
+            let d = Math.hypot(eb.x - playerX, eb.y - playerY);
+            if (d < minDist) minDist = d;
+        }
+        let isClose = minDist < 150; 
 
+        // 接近時の自機の当たり判定枠の描画
+        if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
             if (isClose) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
                 ctx.beginPath(); ctx.arc(playerX, playerY, 35 + Math.sin(demoFrame*0.4)*5, 0, Math.PI*2); ctx.fill();
@@ -78,12 +90,11 @@ function startDemoLoop(char) {
                 ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)'; ctx.lineWidth = 1;
                 ctx.beginPath(); ctx.arc(playerX, playerY, 30, 0, Math.PI*2); ctx.stroke();
             }
-        } else if (char.id === 'shiina' || char.id === 'mamoru') {
-            fireRate = 24;
         }
         
         for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
             let eb = demoEnemyBullets[i];
+            eb.x += eb.vx; 
             eb.y += eb.vy;
             
             ctx.shadowColor = eb.color; ctx.shadowBlur = 10;
@@ -93,43 +104,92 @@ function startDemoLoop(char) {
             ctx.beginPath(); ctx.arc(eb.x, eb.y, eb.size * 0.7, 0, Math.PI*2); ctx.fill();
             ctx.shadowBlur = 0;
 
-            if (eb.y > canvas.height + 20) demoEnemyBullets.splice(i, 1);
+            if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) demoEnemyBullets.splice(i, 1);
+        }
+
+        // ★修正：連射レートの決定。猪狩は接近時に連射アップ（元の仕様）
+        let fireRate = (char.id === 'shiina' || char.id === 'mamoru') ? 24 : 8;
+        if (char.id === 'igari' && isClose) {
+            fireRate = 3;
         }
 
         if (demoFrame % fireRate === 0) {
             let color = char.color;
             let speed = 8; 
+            
+            // ★修正：猪狩は接近時に弾速も上がり、色も変わる（元の仕様）
             if (char.id === 'igari' && isClose) {
                 color = '#00ffff'; 
                 speed = 16; 
             }
             
-            let b = { x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4 };
+            let b = { x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id }; 
+            
             if (char.id === 'shiina' || char.id === 'mamoru') {
                 b.charIndex = Math.floor(Math.random() * 10);
                 b.size = 8;
+                b.timer = 0; 
+            } else if (char.id === 'igari') {
+                b.size = 4;
             }
             demoBullets.push(b);
             
             if (char.id === 'igari') {
-                demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4 });
-                demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4 });
+                demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
+                demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
             }
         }
         
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
+            
+            let target = null;
+            let mDist = Infinity;
+            for (let j = 0; j < demoEnemyBullets.length; j++) {
+                let eb = demoEnemyBullets[j];
+                let d = Math.hypot(eb.x - b.x, eb.y - b.y);
+                if (d < mDist) { mDist = d; target = eb; }
+            }
+
+            if (target && (char.id === 'shiina' || char.id === 'mamoru' || char.id === 'igari')) {
+                if ((char.id === 'shiina' || char.id === 'mamoru') && b.timer !== undefined) b.timer++;
+                let shouldHoming = (char.id === 'igari') || (b.timer !== undefined && b.timer > 10);
+
+                if (shouldHoming) {
+                    let angToTarget = Math.atan2(target.y - b.y, target.x - b.x);
+                    let currentAng = Math.atan2(b.vy, b.vx);
+                    let diff = angToTarget - currentAng;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    
+                    let turnSpeed = (char.id === 'shiina' || char.id === 'mamoru') ? 0.08 : 0.04; 
+                    currentAng += Math.sign(diff) * Math.min(Math.abs(diff), turnSpeed);
+                    
+                    let speed = Math.hypot(b.vx, b.vy);
+                    if ((char.id === 'shiina' || char.id === 'mamoru') && speed < 12) speed += 0.2; 
+                    
+                    b.vx = Math.cos(currentAng) * speed;
+                    b.vy = Math.sin(currentAng) * speed;
+                }
+            }
+            
             b.x += b.vx || 0;
             b.y += b.vy;
             
+            // ★修正：特異反応の巨大化は「椎名護（shiina/mamoru）」の時だけ適用する
+            let ds = b.size; 
+            if ((char.id === 'shiina' || char.id === 'mamoru') && b.isClose) {
+                ds = b.size * 2;
+            }
+            
             if (char.id === 'igari') {
                 ctx.save(); ctx.translate(b.x, b.y);
-                ctx.rotate(Math.atan2(b.vy, b.vx || 0));
-                const length = b.size * 2.5; 
-                ctx.shadowColor = b.color; ctx.shadowBlur = b.size * 2.5; 
-                ctx.strokeStyle = b.color; ctx.lineWidth = b.size; ctx.lineCap = 'round'; 
+                ctx.rotate(Math.atan2(b.vy, b.vx || 0)); 
+                const length = ds * 2.5; 
+                ctx.shadowColor = b.color; ctx.shadowBlur = ds * 2.5; 
+                ctx.strokeStyle = b.color; ctx.lineWidth = ds; ctx.lineCap = 'round'; 
                 ctx.beginPath(); ctx.moveTo(-length, 0); ctx.lineTo(length, 0); ctx.stroke();
-                ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = b.size * 0.4;
+                ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = ds * 0.4; 
                 ctx.beginPath(); ctx.moveTo(-length * 0.8, 0); ctx.lineTo(length * 0.8, 0); ctx.stroke();
                 ctx.restore();
             } else if (char.id === 'shiina' || char.id === 'mamoru') {
@@ -141,18 +201,18 @@ function startDemoLoop(char) {
                     const sh = sansImg.height / 2;
                     ctx.save(); ctx.translate(b.x, b.y);
                     ctx.shadowColor = b.color; ctx.shadowBlur = 10;
-                    ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -b.size, -b.size, b.size*2, b.size*2);
+                    ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -ds, -ds, ds*2, ds*2);
                     ctx.restore();
                 } else {
                     ctx.fillStyle = b.color;
-                    ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
                 }
             } else {
                 ctx.fillStyle = b.color;
-                ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
             }
             
-            if (b.y < -10) demoBullets.splice(i, 1);
+            if (b.y < -30 || b.y > canvas.height + 30 || b.x < -30 || b.x > canvas.width + 30) demoBullets.splice(i, 1);
         }
         
         let imgName = null;
@@ -193,6 +253,7 @@ function startDemoLoop(char) {
             ctx.fill();
         }
         
+        // 猪狩の接近表示を復帰
         if (char.id === 'igari' && isClose) {
             ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
             ctx.fillText("TARGET CLOSE", playerX, playerY - 35); 
@@ -450,20 +511,16 @@ export function createMuteButton(onToggleCallback) {
     document.getElementById('game-container').appendChild(btn);
 }
 
-// ★修正：選択されたキャラクターIDを受け取り、テキストを切り替えるように変更
 export function initStageListTexts(selectedCharId) {
     const stageList = document.getElementById('stage-list');
     if (stageList) {
         let stageTexts = [];
-        
-        // 椎名 護 が選ばれた場合のステージ構成
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
-                "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: ？？？", 
+                "Stage 1: 兄弟のサドンデス", "Stage 2: ？？？", "Stage 3: ？？？", 
                 "Stage 4: ？？？", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
-            // デフォルト（猪狩など）のステージ構成
             stageTexts = [
                 "Stage 1: リブート", "Stage 2: 魔女の嫉妬", "Stage 3: マスクの男", 
                 "Stage 4: AIと資産家", "Stage 5: 暗殺ロボ", "Final Stage: 科学文明軍"
