@@ -1,0 +1,241 @@
+const VER_STG_EIJI = "0.1.0"; // サドンデス形式の兄弟対決ステージ
+
+window.StageConfigs = window.StageConfigs || {};
+window.StageConfigs['eiji'] = {
+    init: function(stg, canvas) { 
+        const dpr = window.devicePixelRatio || 1;
+        
+        // 制限時間（120秒 = 7200フレーム）
+        stg.timeLimit = 7200; 
+        
+        // 衛二（CPU）のステータス
+        stg.cpuScore = 0;
+        stg.cpuX = (canvas.width/dpr) * 0.7; // 右側に配置
+        stg.cpuY = (canvas.height/dpr) * 0.8;
+        stg.cpuBullets = [];
+        stg.cpuTimer = 0;
+
+        // 背景スクロール用
+        stg.bgScrollY = 0; 
+        stg.clouds = [];
+        for (let i=0; i<15; i++) {
+            stg.clouds.push({ x: Math.random()*(canvas.width/dpr), y: Math.random()*(canvas.height/dpr), size: Math.random()*80+40, speed: Math.random()*3+2, opacity: Math.random()*0.15+0.05 });
+        }
+
+        // STGManager の描画メソッドをモンキーパッチして、UIとCPUを最前面に描画
+        stg.origDraw = stg.draw.bind(stg);
+        stg.draw = function(ctx) {
+            this.origDraw(ctx); // 元の描画（背景、敵、自機など）
+            
+            const sW = canvas.width/dpr;
+            const sH = canvas.height/dpr;
+
+            ctx.save();
+            // --- CPU（衛二）の描画 ---
+            if (!this.isTimeStopped && this.timeLimit > 0) {
+                const eijiImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['playereiji.png'] : null;
+                if (eijiImg && eijiImg.naturalHeight > 0) {
+                    const drawWidth = 55;
+                    const drawHeight = drawWidth * (eijiImg.naturalHeight / eijiImg.naturalWidth);
+                    ctx.drawImage(eijiImg, this.cpuX - drawWidth/2, this.cpuY - drawHeight/2, drawWidth, drawHeight);
+                } else {
+                    // フォールバック
+                    ctx.fillStyle = '#0055ff'; ctx.beginPath();
+                    ctx.moveTo(this.cpuX, this.cpuY - 20); ctx.lineTo(this.cpuX - 20, this.cpuY + 20); ctx.lineTo(this.cpuX + 20, this.cpuY + 20);
+                    ctx.fill();
+                }
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.beginPath(); ctx.arc(this.cpuX, this.cpuY, 4, 0, Math.PI*2); ctx.fill();
+            }
+
+            // --- CPUの弾描画 ---
+            this.cpuBullets.forEach(b => {
+                ctx.fillStyle = b.color;
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
+            });
+
+            // --- UIの描画（タイマーとスコア） ---
+            // 制限時間タイマー
+            ctx.fillStyle = this.timeLimit < 600 ? '#ff3366' : '#fff';
+            ctx.font = 'bold 36px "Segoe UI", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(`TIME: ${Math.ceil(this.timeLimit / 60)}`, sW/2, 50);
+
+            // スコアボード（護 vs 衛二）
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(10, 80, sW - 20, 60);
+            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
+            ctx.strokeRect(10, 80, sW - 20, 60);
+
+            ctx.font = 'bold 20px "Segoe UI", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#33ccff';
+            ctx.fillText(`護 SCORE: ${this.player.score}`, 20, 115);
+
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#0055ff';
+            ctx.fillText(`衛二 SCORE: ${this.cpuScore}`, sW - 20, 115);
+            ctx.restore();
+        };
+    },
+    
+    updateBackground: function(stg, sW, sH) {
+        stg.bgScrollY += 1.5; if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
+        stg.clouds.forEach(c => { c.y += c.speed; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
+    },
+    drawBackground: function(stg, ctx, sW, sH) {
+        const bgImg = stg.advManager?.assets['nightmt.png'];
+        if (bgImg && bgImg.naturalWidth > 0) {
+            ctx.drawImage(bgImg, 0, stg.bgScrollY, sW, sH); ctx.drawImage(bgImg, 0, stg.bgScrollY - sH, sW, sH);
+        } else { ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, sW, sH); }
+        stg.clouds.forEach(c => { ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`; ctx.beginPath(); ctx.arc(c.x, c.y, c.size, 0, Math.PI*2); ctx.fill(); });
+    },
+    getEnemyData: function(type) {
+        const initShiki = (e, colIndex) => {
+            e.draw = function(ctx) {
+                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.png'] : null;
+                ctx.save(); ctx.translate(this.x, this.y);
+                if (this.angle) ctx.rotate(this.angle);
+                if (img && img.naturalWidth > 0) {
+                    const sw = img.width / 4; const sh = img.height / 1;
+                    const drawW = this.size * 2; const drawH = drawW * (sh / sw);
+                    if (this.isDying && this.deathTimer >= 60) ctx.globalAlpha = Math.max(0, 1.0 - (this.deathTimer - 60) / 120); 
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)'; ctx.shadowBlur = 10;
+                    ctx.drawImage(img, colIndex * sw, 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
+                } else {
+                    ctx.fillStyle = '#ff5500'; ctx.beginPath(); ctx.arc(0, 0, this.size, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.restore();
+            };
+        };
+        // 雑魚敵データ (ボスは無し)
+        if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 2, init: (e) => { initShiki(e, 0); } };
+        if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 6, init: (e) => { initShiki(e, 1); } };
+        if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
+    },
+
+    updateWaves: function(stg, timer, sW, sH) {
+        if (stg.isTimeStopped) return;
+
+        // タイマー減少
+        stg.timeLimit--;
+
+        // 雑魚の定期スポーン
+        if (stg.timeLimit > 0) {
+            if (stg.frame % 60 === 0) {
+                let e = new Enemy('shiki_a', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId);
+                e.angleToCenter = Math.atan2((sH / 2) - (-50), (sW / 2) - e.x);
+                stg.enemies.push(e);
+            }
+            if (stg.frame % 100 === 0) {
+                stg.enemies.push(new Enemy('shiki_b', Math.random() * sW, -30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (stg.frame % 150 === 0) {
+                stg.enemies.push(new Enemy('shiki_c', Math.random() * (sW - 100) + 50, -40, stg.player.charData, stg.advManager, stg.stgId));
+            }
+        }
+
+        // --- CPU（衛二）の行動ロジック ---
+        stg.cpuTimer++;
+        // Y座標はふわふわ上下
+        stg.cpuY = sH * 0.8 + Math.sin(stg.cpuTimer * 0.05) * 20;
+        
+        // X座標は一番近い敵を狙う
+        let target = null;
+        let minDist = Infinity;
+        stg.enemies.forEach(e => {
+            if(e.alive && !e.isDying) {
+                let d = Math.hypot(e.x - stg.cpuX, e.y - stg.cpuY);
+                if (d < minDist) { minDist = d; target = e; }
+            }
+        });
+        if (target) {
+            stg.cpuX += Math.sign(target.x - stg.cpuX) * 4; 
+        }
+
+        // 画面外に出ないように
+        if (stg.cpuX < 30) stg.cpuX = 30;
+        if (stg.cpuX > sW - 30) stg.cpuX = sW - 30;
+
+        // CPUの射撃
+        if (stg.cpuTimer % 12 === 0) {
+            stg.cpuBullets.push({ x: stg.cpuX - 10, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
+            stg.cpuBullets.push({ x: stg.cpuX + 10, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
+        }
+
+        // --- CPUの弾の更新と独自の当たり判定 ---
+        stg.cpuBullets.forEach(b => {
+            b.x += b.vx; b.y += b.vy;
+            if (b.y < -50) b.alive = false;
+
+            stg.enemies.forEach(e => {
+                if (b.alive && e.alive && !e.isDying && Math.hypot(b.x - e.x, b.y - e.y) < e.size + b.size) {
+                    b.alive = false; 
+                    e.hp--;
+                    if (e.hp <= 0) {
+                        e.alive = false; 
+                        stg.cpuScore += 100; // 衛二のスコア加算
+                        stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
+                        if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                    }
+                }
+            });
+        });
+        stg.cpuBullets = stg.cpuBullets.filter(b => b.alive);
+
+        // --- タイムアップ時の勝敗判定 ---
+        if (stg.timeLimit <= 0 && !stg.isTimeStopped) {
+            stg.isTimeStopped = true;
+            
+            // 全敵消去
+            stg.enemies = []; stg.enemyBullets = [];
+            
+            if (stg.player.score >= stg.cpuScore) {
+                // 護の勝利 → 通常のクリアへ
+                stg.isStageClear = true; 
+            } else {
+                // 護の敗北 → 負けADVを再生して強制ゲームオーバーへ
+                let charId = stg.player.id;
+                let lossAdv = [];
+                try {
+                    lossAdv = window.scenarios[charId][1].loss_adv || [];
+                } catch(e) {}
+
+                window.startMidStgADV(lossAdv, () => {
+                    stg.player.hp = 0; // 強制的にゲームオーバー条件を満たす
+                    stg.isTimeStopped = false;
+                });
+            }
+        }
+    },
+
+    updateEnemy: function(e, canvas, player) {
+        e.moveTimer = (e.moveTimer || 0) + 1; 
+        if (e.type === 'shiki_a') {
+            e.x += Math.cos(e.angleToCenter) * 1.5;
+            e.y += Math.sin(e.angleToCenter) * 1.5;
+            e.angle = e.angleToCenter - Math.PI / 2;
+        } 
+        else if (e.type === 'shiki_b') {
+            e.x += Math.sin(e.moveTimer * 0.1) * 3;
+            e.y += 2.0 + Math.cos(e.moveTimer * 0.15) * 1.5;
+        } 
+        else if (e.type === 'shiki_c') {
+            e.y += 4.5;
+        } 
+    },
+
+    shootEnemy: function(e, stg) {
+        // 自機とCPU（衛二）のどちらか近い方を狙うロジック
+        const targetX = (Math.abs(stg.player.x - e.x) < Math.abs(stg.cpuX - e.x)) ? stg.player.x : stg.cpuX;
+        const targetY = (Math.abs(stg.player.x - e.x) < Math.abs(stg.cpuX - e.x)) ? stg.player.y : stg.cpuY;
+
+        if (e.type === 'shiki_a' && stg.frame % 80 === 0) {
+            const ang = Math.atan2(targetY - e.y, targetX - e.x);
+            stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500')); 
+        } 
+        else if (e.type === 'shiki_b' && stg.frame % 60 === 0) {
+            const rAng = Math.random() * Math.PI * 2;
+            stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); 
+        } 
+    }
+};
