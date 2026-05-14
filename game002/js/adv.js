@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.20"; // バージョン更新（eiji.png, tadashige.png の4列3行対応を追加）
+const VER_ADV = "0.4.21"; // バージョン更新（uraeiji.png の4列2行対応を追加）
 
 class ADVManager {
     constructor() {
@@ -275,8 +275,8 @@ class ADVManager {
         // キャラクター描画ロジック（可変カラム・行対応）
         // ==========================================
         const getRows = (key) => {
-            if (key === 'urashiina.png' || key === 'nurse.png') return 2; 
-            // ★追加: eiji.png, tadashige.png を 3行 に登録
+            // ★追加: uraeiji.png を 2行 に登録
+            if (key === 'urashiina.png' || key === 'nurse.png' || key === 'uraeiji.png') return 2; 
             if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png' || key === 'eiji.png' || key === 'tadashige.png') return 3; 
             if (key === 'shiina.png' || key === 'cap.png' || key === 'jingu.png' || key === 'kagejingu.png') return 4; 
             return 4; 
@@ -284,8 +284,8 @@ class ADVManager {
 
         const getCols = (key) => {
             if (key === 'nurse.png') return 5; // ナースのみ5列
-            // ★追加: eiji.png, tadashige.png を明示的に 4列 に登録
-            if (key === 'jingu.png' || key === 'kagejingu.png' || key === 'eiji.png' || key === 'tadashige.png') return 4; 
+            // ★追加: uraeiji.png を明示的に 4列 に登録
+            if (key === 'jingu.png' || key === 'kagejingu.png' || key === 'eiji.png' || key === 'tadashige.png' || key === 'uraeiji.png') return 4; 
             return 4; 
         };
 
