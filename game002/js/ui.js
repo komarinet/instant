@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.18"; // バージョン更新（プレビュー画面に椎名護の画像とアニメーション、専用ショットを反映）
+export const VER_UI = "0.3.19"; // バージョン更新（キャラクターに応じてステージ選択画面のテキストを出し分ける機能を追加）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -79,7 +79,6 @@ function startDemoLoop(char) {
                 ctx.beginPath(); ctx.arc(playerX, playerY, 30, 0, Math.PI*2); ctx.stroke();
             }
         } else if (char.id === 'shiina' || char.id === 'mamoru') {
-            // 椎名の発射レートは少し遅めに設定
             fireRate = 24;
         }
         
@@ -165,7 +164,6 @@ function startDemoLoop(char) {
         
         if (img && img.naturalHeight > 0) {
             if (char.id === 'shiina' || char.id === 'mamoru') {
-                // 椎名の往復アニメーション処理
                 const animSpeed = 4;
                 const cycle = 18;
                 const t = Math.floor(demoFrame / animSpeed) % cycle;
@@ -452,13 +450,26 @@ export function createMuteButton(onToggleCallback) {
     document.getElementById('game-container').appendChild(btn);
 }
 
-export function initStageListTexts() {
+// ★修正：選択されたキャラクターIDを受け取り、テキストを切り替えるように変更
+export function initStageListTexts(selectedCharId) {
     const stageList = document.getElementById('stage-list');
     if (stageList) {
-        const stageTexts = [
-            "Stage 1: リブート", "Stage 2: 魔女の嫉妬", "Stage 3: マスクの男", 
-            "Stage 4: AIと資産家", "Stage 5: 暗殺ロボ", "Final Stage: 科学文明軍"
-        ];
+        let stageTexts = [];
+        
+        // 椎名 護 が選ばれた場合のステージ構成
+        if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
+            stageTexts = [
+                "Stage 1: 兄弟のサドンデス", "Stage 2: ？？？", "Stage 3: ？？？", 
+                "Stage 4: ？？？", "Stage 5: ？？？", "Final Stage: ？？？"
+            ];
+        } else {
+            // デフォルト（猪狩など）のステージ構成
+            stageTexts = [
+                "Stage 1: リブート", "Stage 2: 魔女の嫉妬", "Stage 3: マスクの男", 
+                "Stage 4: AIと資産家", "Stage 5: 暗殺ロボ", "Final Stage: 科学文明軍"
+            ];
+        }
+
         stageList.querySelectorAll('button').forEach((btn, index) => {
             if (index < stageTexts.length) {
                 btn.innerText = stageTexts[index];
