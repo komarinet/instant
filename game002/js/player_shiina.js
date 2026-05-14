@@ -1,17 +1,16 @@
-const VER_PLAYER_SHIINA = "0.2.0"; // 椎名護：ホーミング文字ショット＆年輪バリアボム実装
+const VER_PLAYER_SHIINA = "0.2.1"; // 椎名護：ホーミング文字の更新エラーを修正
 
 window.PlayerControllers = window.PlayerControllers || {};
 
 const ShiinaController = {
     draw: function(player, ctx, advManager) {
-        player.globalTimer = (player.globalTimer || 0) + 1; // ショットの間隔制御用
-        player._advManager = advManager; // ショット生成時に画像を参照するため保存
+        player.globalTimer = (player.globalTimer || 0) + 1; 
+        player._advManager = advManager; 
         player.ringAngle = (player.ringAngle || 0) + 0.05; 
 
         ctx.save();
         ctx.translate(player.x, player.y);
 
-        // 1. 周囲を舞うエフェクト (sans.png)
         const sansImg = (advManager && advManager.assets) ? advManager.assets['sans.png'] : null;
         if (sansImg && sansImg.naturalWidth > 0) {
             const sw = sansImg.width / 5;
@@ -31,7 +30,6 @@ const ShiinaController = {
             }
         }
 
-        // 2. 自機の往復アニメーション (jikishi.png)
         const jikiImg = (advManager && advManager.assets) ? advManager.assets['jikishi.png'] : null;
         if (jikiImg && jikiImg.naturalWidth > 0) {
             const animSpeed = 4; 
@@ -62,29 +60,24 @@ const ShiinaController = {
     },
 
     shoot: function(player) {
-        // パワーレベルの解析（最大8段階）
         const pL = Math.min(8, player.powerLevel);
-        const reloadUp = Math.floor((pL + 1) / 2); // リロード強化段階 (0〜4)
-        const countUp = Math.floor(pL / 2);        // 発射数強化段階 (0〜4)
+        const reloadUp = Math.floor((pL + 1) / 2); 
+        const countUp = Math.floor(pL / 2);        
 
-        // 猪狩の基本間隔を仮に5Fとした場合、椎名は15F（1/3の頻度）。
-        // リロードが上がるごとに間隔を短くする
         const reloadLimit = Math.max(7, 20 - reloadUp * 3); 
 
         if (!player.lastShootFrame) player.lastShootFrame = 0;
         if (player.globalTimer - player.lastShootFrame < reloadLimit) {
-            return; // リロード中なら発射しない
+            return; 
         }
         player.lastShootFrame = player.globalTimer;
 
-        // ゆっくりとした初速
         const baseSpeed = 5; 
         const baseAng = -Math.PI / 2; 
-        const shotCount = 1 + countUp; // 1発〜最大5発
-        const isClose = player.isCloseToDanger; // 近接判定
+        const shotCount = 1 + countUp; 
+        const isClose = player.isCloseToDanger; 
 
         for (let i = 0; i < shotCount; i++) {
-            // 扇状に散らして発射
             let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 0.3;
             let vx = Math.cos(baseAng + offset) * baseSpeed;
             let vy = Math.sin(baseAng + offset) * baseSpeed;
@@ -97,20 +90,26 @@ const ShiinaController = {
     createShot: function(x, y, vx, vy, color, player, isClose) {
         let b = new Bullet(x, y, vx, vy, color, null, 'shiina');
         
-        // 猪狩の3倍の威力。近接時はさらに2倍（計6倍）
+        // 猪狩の基本威力の3倍。近接時はさらに2倍（計6倍）
         b.power = isClose ? 6 : 3; 
-        b.size = isClose ? 24 : 12; // 近接時は文字サイズも2倍
+        b.size = isClose ? 24 : 12; 
         b.charIndex = Math.floor(Math.random() * 10);
         b.advManager = player._advManager; 
         b.timer = 0;
 
-        // ホーミングと軌道制御のカスタムアップデート
-        b.update = function(stg) {
+        // ★修正：引数に canvas と stg を受け取るように変更
+        b.update = function(canvas, stg) {
             this.timer++;
             let target = null;
             let minDist = 9999;
             
-            // 一番近い敵を探す
+            // ★修正：コアから stg が正しく渡されなかった場合のフォールバック（フリーズ防止）
+            if (!stg || !stg.enemies) {
+                this.x += this.vx;
+                this.y += this.vy;
+                return;
+            }
+
             stg.enemies.forEach(e => {
                 if (e.alive && !e.isDying) {
                     let d = Math.hypot(e.x - this.x, e.y - this.y);
@@ -118,22 +117,18 @@ const ShiinaController = {
                 }
             });
 
-            // 発射後少し経ってから追尾を開始
             if (target && this.timer > 10) {
                 let angToTarget = Math.atan2(target.y - this.y, target.x - this.x);
                 let currentAng = Math.atan2(this.vy, this.vx);
                 let diff = angToTarget - currentAng;
                 
-                // 角度の正規化
                 while (diff > Math.PI) diff -= Math.PI * 2;
                 while (diff < -Math.PI) diff += Math.PI * 2;
                 
-                // 徐々にターゲットの方向へ曲がる
                 let turnSpeed = 0.06; 
                 currentAng += Math.sign(diff) * Math.min(Math.abs(diff), turnSpeed);
                 
                 let speed = Math.hypot(this.vx, this.vy);
-                // 追尾中は少しだけ加速する
                 if (speed < 12) speed += 0.2; 
                 
                 this.vx = Math.cos(currentAng) * speed;
@@ -144,7 +139,6 @@ const ShiinaController = {
             this.y += this.vy;
         };
 
-        // sans.png 文字の描画
         b.draw = function(ctx) {
             const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.png'] : null;
             if (sansImg && sansImg.naturalWidth > 0) {
@@ -155,12 +149,10 @@ const ShiinaController = {
                 
                 ctx.save();
                 ctx.translate(this.x, this.y);
-                // 弾の進行方向に向かって文字も回転
                 ctx.rotate(Math.atan2(this.vy, this.vx) + Math.PI/2); 
                 
                 let ds = this.size; 
                 ctx.shadowColor = this.color; ctx.shadowBlur = 10;
-                // isClose時は ds が24になるためデカく描画される
                 ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -ds, -ds, ds*2, ds*2);
                 ctx.restore();
             } else {
@@ -172,24 +164,22 @@ const ShiinaController = {
     },
 
     triggerBomb: function(player, stg) {
-        // 重複発動の防止
         if (player.bombs <= 0 || stg.bombState === 'BARRIER') return;
         player.bombs--; 
         stg.bombState = 'BARRIER';
         stg.bombTimer = 0;
         
-        // 年輪のような3重の文字バリアを生成
         stg.bombData = { rings: [] };
-        const ringRadii = [60, 100, 140]; // 3重の半径
-        const charsPerRing = [6, 10, 14]; // 外側ほど文字を多く
-        const speeds = [0.05, -0.04, 0.03]; // 互い違いに回転
+        const ringRadii = [60, 100, 140]; 
+        const charsPerRing = [6, 10, 14]; 
+        const speeds = [0.05, -0.04, 0.03]; 
         
         for (let r = 0; r < 3; r++) {
             let chars = [];
             for (let i = 0; i < charsPerRing[r]; i++) {
                 chars.push({
                     angleOffset: (i * Math.PI * 2) / charsPerRing[r],
-                    hp: 3, // 1文字あたり3回分の耐久
+                    hp: 3, 
                     charIndex: Math.floor(Math.random() * 10),
                     hitCoolDown: 0
                 });
@@ -214,38 +204,35 @@ const ShiinaController = {
             ring.baseAngle += ring.speed;
             
             ring.chars.forEach(c => {
-                if (c.hp <= 0) return; // 壊れた文字はスキップ
+                if (c.hp <= 0) return; 
                 totalCharsActive++;
                 if (c.hitCoolDown > 0) c.hitCoolDown--;
                 
                 let cx = player.x + Math.cos(ring.baseAngle + c.angleOffset) * ring.radius;
                 let cy = player.y + Math.sin(ring.baseAngle + c.angleOffset) * ring.radius;
                 
-                // 敵弾との判定
                 for (let i = stg.enemyBullets.length - 1; i >= 0; i--) {
                     let eb = stg.enemyBullets[i];
                     if (Math.hypot(eb.x - cx, eb.y - cy) < 25) { 
-                        stg.enemyBullets.splice(i, 1); // 敵弾を消滅
-                        c.hp--; // バリアの耐久を減らす
-                        if (c.hp <= 0) break; // バリアが壊れたらこれ以上の弾判定はしない
+                        stg.enemyBullets.splice(i, 1); 
+                        c.hp--; 
+                        if (c.hp <= 0) break; 
                     }
                 }
                 
-                // 敵本体との判定
                 if (c.hp > 0 && c.hitCoolDown <= 0) {
                     stg.enemies.forEach(e => {
                         if (e.alive && !e.isDying && Math.hypot(e.x - cx, e.y - cy) < e.size + 25) {
-                            e.hp -= 15; // 敵に大ダメージ
+                            e.hp -= 15; 
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; }
                             c.hp--;
-                            c.hitCoolDown = 10; // 連続ヒットによる即死を防ぐ
+                            c.hitCoolDown = 10; 
                         }
                     });
                 }
             });
         });
         
-        // 全ての文字が壊れたらバリア解除
         if (totalCharsActive === 0) {
             stg.bombState = 'READY';
             stg.bombData = null;
@@ -276,7 +263,6 @@ const ShiinaController = {
                     ctx.save();
                     ctx.translate(cx, cy);
                     
-                    // 耐久値が減るにつれて透明に、赤っぽくなる演出
                     ctx.globalAlpha = c.hp / 3;
                     ctx.shadowColor = c.hp === 3 ? '#00ffff' : (c.hp === 2 ? '#ffaa00' : '#ff0000');
                     ctx.shadowBlur = 15;
