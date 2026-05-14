@@ -459,7 +459,7 @@ export function initStageListTexts(selectedCharId) {
         // 椎名 護 が選ばれた場合のステージ構成
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
-                "Stage 1: 兄弟のサドンデス", "Stage 2: ？？？", "Stage 3: ？？？", 
+                "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: ？？？", 
                 "Stage 4: ？？？", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
