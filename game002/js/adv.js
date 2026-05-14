@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.24"; // バージョン更新（bg: 'red' 指定による赤一色塗りつぶし機能を追加）
+const VER_ADV = "0.4.25"; // バージョン更新（主人公に応じて自動的に右側配置を切り替える機能を追加）
 
 class ADVManager {
     constructor() {
@@ -240,7 +240,6 @@ class ADVManager {
                 }
             }
         } else if (currentMsg.bg) {
-            // ★追加: 'red' 指定時は画像を探さずに赤く塗りつぶす
             if (currentMsg.bg === 'red') {
                 ctx.fillStyle = '#aa0000';
                 ctx.fillRect(gameX + shakeX, gameY + shakeY, gameWidth, visualAreaHeight);
@@ -291,6 +290,7 @@ class ADVManager {
 
         let mainDrawWidth = 0;
         let alignRight = true;
+        
         if (currentMsg.character && this.assets[currentMsg.character]) {
             const mainImg = this.assets[currentMsg.character];
             const msHeight = Math.floor(mainImg.height / getRows(currentMsg.character)) - 4; 
@@ -301,8 +301,17 @@ class ADVManager {
             const mCols = getCols(currentMsg.character); 
             mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
+            // ★修正：主人公（選ばれているキャラ）に応じてデフォルトの立ち位置を自動判定
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
-            alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : isIgari;
+            const isShiina = currentMsg.character === 'shiina.png' || currentMsg.character === 'urashiina.png';
+            
+            let defaultRight = false;
+            // 現在のルート主人公判定
+            if (window.selectedCharId === 'igari' && isIgari) defaultRight = true;
+            else if ((window.selectedCharId === 'shiina' || window.selectedCharId === 'mamoru') && isShiina) defaultRight = true;
+            else if (!window.selectedCharId && isIgari) defaultRight = true; // フォールバック
+
+            alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : defaultRight;
         }
 
         const charsToDraw = [
