@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.17"; // バージョン更新（stg_eiji, player_shiinaバージョン表示追加と椎名のボム対応）
+export const VER_UI = "0.3.18"; // バージョン更新（プレビュー画面に椎名護の画像とアニメーション、専用ショットを反映）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -78,6 +78,9 @@ function startDemoLoop(char) {
                 ctx.strokeStyle = 'rgba(100, 100, 100, 0.3)'; ctx.lineWidth = 1;
                 ctx.beginPath(); ctx.arc(playerX, playerY, 30, 0, Math.PI*2); ctx.stroke();
             }
+        } else if (char.id === 'shiina' || char.id === 'mamoru') {
+            // 椎名の発射レートは少し遅めに設定
+            fireRate = 24;
         }
         
         for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
@@ -102,7 +105,13 @@ function startDemoLoop(char) {
                 speed = 16; 
             }
             
-            demoBullets.push({ x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4 });
+            let b = { x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4 };
+            if (char.id === 'shiina' || char.id === 'mamoru') {
+                b.charIndex = Math.floor(Math.random() * 10);
+                b.size = 8;
+            }
+            demoBullets.push(b);
+            
             if (char.id === 'igari') {
                 demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4 });
                 demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4 });
@@ -124,6 +133,21 @@ function startDemoLoop(char) {
                 ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = b.size * 0.4;
                 ctx.beginPath(); ctx.moveTo(-length * 0.8, 0); ctx.lineTo(length * 0.8, 0); ctx.stroke();
                 ctx.restore();
+            } else if (char.id === 'shiina' || char.id === 'mamoru') {
+                let sansImg = window.advManager && window.advManager.assets['sans.png'];
+                if (sansImg && sansImg.naturalWidth > 0 && b.charIndex !== undefined) {
+                    const col = b.charIndex % 5;
+                    const row = Math.floor(b.charIndex / 5);
+                    const sw = sansImg.width / 5;
+                    const sh = sansImg.height / 2;
+                    ctx.save(); ctx.translate(b.x, b.y);
+                    ctx.shadowColor = b.color; ctx.shadowBlur = 10;
+                    ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -b.size, -b.size, b.size*2, b.size*2);
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = b.color;
+                    ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
+                }
             } else {
                 ctx.fillStyle = b.color;
                 ctx.beginPath(); ctx.arc(b.x, b.y, b.size, 0, Math.PI*2); ctx.fill();
@@ -132,14 +156,36 @@ function startDemoLoop(char) {
             if (b.y < -10) demoBullets.splice(i, 1);
         }
         
-        let imgName = char.id === 'igari' ? 'igari_jiki.png' : null;
+        let imgName = null;
+        if (char.id === 'igari') imgName = 'igari_jiki.png';
+        else if (char.id === 'shiina' || char.id === 'mamoru') imgName = 'jikishi.png';
+        
         let img = null;
         if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
         
         if (img && img.naturalHeight > 0) {
-            const drawWidth = 36;
-            const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
-            ctx.drawImage(img, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
+            if (char.id === 'shiina' || char.id === 'mamoru') {
+                // 椎名の往復アニメーション処理
+                const animSpeed = 4;
+                const cycle = 18;
+                const t = Math.floor(demoFrame / animSpeed) % cycle;
+                const frame = t < 10 ? t : cycle - t;
+                const col = frame % 5;
+                const row = Math.floor(frame / 5);
+                const sw = img.width / 5;
+                const sh = img.height / 2;
+                const drawWidth = 36;
+                const drawHeight = drawWidth * (sh / sw);
+                
+                ctx.shadowColor = 'rgba(51, 204, 255, 0.8)';
+                ctx.shadowBlur = 10;
+                ctx.drawImage(img, col * sw, row * sh, sw, sh, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
+                ctx.shadowBlur = 0;
+            } else {
+                const drawWidth = 36;
+                const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
+                ctx.drawImage(img, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
+            }
         } else {
             ctx.fillStyle = char.color || '#fff';
             ctx.beginPath();
@@ -256,7 +302,6 @@ export function updateGameUI(gameState, selectedCharId, stgManager) {
 
     const bombBtn = document.getElementById('bomb-btn');
     if (bombBtn) {
-        // ★変更：猪狩だけでなく、椎名護（shiina, mamoru）選択時もボムボタンを表示
         if (gameState === 'STG_PLAY' && (selectedCharId === 'igari' || selectedCharId === 'shiina' || selectedCharId === 'mamoru')) {
             bombBtn.classList.remove('hidden');
             const bVal = document.getElementById('bomb-count-val');
@@ -266,7 +311,6 @@ export function updateGameUI(gameState, selectedCharId, stgManager) {
                     bombBtn.style.background = 'rgba(100, 100, 100, 0.8)';
                     bombBtn.style.boxShadow = 'none';
                 } else {
-                    // ★追加：キャラによってボムの色を少し変更する（猪狩は赤、椎名はシアンブルー）
                     if (selectedCharId === 'igari') {
                         bombBtn.style.background = 'radial-gradient(circle, rgba(255,0,0,0.8) 0%, rgba(100,0,0,0.8) 100%)';
                         bombBtn.style.boxShadow = '0 0 15px rgba(255, 0, 0, 0.5)';
@@ -313,14 +357,14 @@ export function showVersions(moduleVersions) {
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
-    const plShiina = getV('VER_PLAYER_SHIINA'); // ★追加: player_shiina
+    const plShiina = getV('VER_PLAYER_SHIINA');
     const stgKagami = getV('VER_STG_KAGAMI');
     const stgHiragi = getV('VER_STG_HIRAGI');
     const stgShiina = getV('VER_STG_SHIINA');
     const stgJingu = getV('VER_STG_JINGU');
     const stgGodai = getV('VER_STG_GODAI');
     const stgCap = getV('VER_STG_CAP'); 
-    const stgEiji = getV('VER_STG_EIJI'); // ★追加: stg_eiji
+    const stgEiji = getV('VER_STG_EIJI'); 
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -328,7 +372,6 @@ export function showVersions(moduleVersions) {
     const scGodai = getV('VER_SCENARIO_GODAI');
     const scJingu = getV('VER_SCENARIO_JINGU');
 
-    // ★追加: 描画されるリストに p_shii と s_eiji を追加
     verDiv.innerHTML = `
         <div style="text-align: left;">
             <span style="color:#00ffff">[SYS]</span><br>
