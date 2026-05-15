@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.6"; // バージョン更新（選択中キャラIDをグローバルに公開し、ADVの立ち位置判定に利用）
+const VER_MAIN = "0.9.7"; // バージョン更新（タイトル画面へのローディング表示と、ロード完了後のプレビュー開始処理を追加）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -20,7 +20,7 @@ const getGlobal = (varName, fallback) => {
 
 // --- グローバル変数 ---
 let selectedCharId = 'igari';
-window.selectedCharId = selectedCharId; // ★追加：初期状態のキャラIDを公開
+window.selectedCharId = selectedCharId; 
 
 let currentStage = 1;
 window.currentStage = currentStage; 
@@ -131,10 +131,14 @@ async function init() {
     
     ui.initCharSelect(safeChars, selectedCharId, (id) => {
         selectedCharId = id;
-        window.selectedCharId = id; // ★追加：キャラ変更時にグローバル変数も更新
-        ui.updatePreview(safeChars, selectedCharId);
+        window.selectedCharId = id; 
+        // 初期ロード中はプレビューを更新しない
+        if (isPreloadCompleted) {
+            ui.updatePreview(safeChars, selectedCharId);
+        }
     });
-    ui.updatePreview(safeChars, selectedCharId);
+    
+    // ★削除：ここにあった ui.updatePreview(safeChars, selectedCharId); をロード完了後に移動
     
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
@@ -152,6 +156,23 @@ async function init() {
     
     resizeCanvas();
 
+    // ★追加：タイトル画面にローディングUIを表示し、ロードが終わるまでタップ操作をブロックする
+    const titleScreen = document.getElementById('title-screen');
+    let loadingOverlay = null;
+    if (titleScreen) {
+        titleScreen.style.pointerEvents = 'none'; // ロード中のタップを無効化
+        
+        loadingOverlay = document.createElement('div');
+        loadingOverlay.id = 'loading-overlay';
+        loadingOverlay.style.cssText = 'position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 1000;';
+        loadingOverlay.innerHTML = `
+            <div style="color: #00ffff; font-size: 24px; font-weight: bold; text-shadow: 0 0 15px #00ffff; letter-spacing: 2px; animation: pulse 1.5s infinite;">NOW LOADING...</div>
+            <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px; margin-top: 5px;">システムアセットを展開中</div>
+            <style>@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }</style>
+        `;
+        titleScreen.appendChild(loadingOverlay);
+    }
+
     await Promise.all([
         new Promise(res => advManager.preload(imagesToPreload, res)),
         new Promise(res => {
@@ -164,6 +185,15 @@ async function init() {
     bgManager3D.init(); 
     soundManager.init();
     isPreloadCompleted = true;
+    
+    // ★追加：ロード完了後、ローディングUIを削除してタップ操作を解禁
+    if (titleScreen) {
+        titleScreen.style.pointerEvents = 'auto';
+        if (loadingOverlay) loadingOverlay.remove();
+    }
+
+    // ★追加：すべての画像が読み込まれた「このタイミング」で、初めてプレビュー描画を開始する
+    ui.updatePreview(safeChars, selectedCharId);
     
     ui.initStageListTexts(selectedCharId);
 
@@ -523,7 +553,7 @@ function loop(timestamp) {
             advManager.draw(ctx, canvas, true); 
             break;
 
-        case 'ENDING_DIALOGUE': 
+        case 'ENDING_DIALOGUE':
             advManager.draw(ctx, canvas, false); 
             break;
             
