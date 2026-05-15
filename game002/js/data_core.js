@@ -1,12 +1,42 @@
-const VER_DATA = "0.2.1"; // キャラクターIDを新しい指定名（mamoru, hiragi, jingu）に統一
+const VER_DATA = "0.2.2"; // キャラクター説明文の更新、ID（mamoru, hiragi, jingu）対応
 
 const characters = [
-    { id: 'igari', name: '猪狩 俊基', color: '#ff3366', desc: '物質再構築。敵弾に近づくほど連射速度が加速する。', weapon: 'Weapon: リボルバー' },
-    { id: 'mamoru', name: '椎名 護', color: '#33ccff', desc: '時間操作。周囲の時間をスローにする（未実装）。', weapon: 'Weapon: クロノス・レーザー' },
-    { id: 'hiragi', name: '柊 千華', color: '#cc33ff', desc: '因果の残響. 低速移動で弾を透過する（未実装）。', weapon: 'Weapon: 執着の怨炎' },
-    { id: 'kagami', name: '各務 栞', color: '#33ff33', desc: '規約執行. 画面内の弾を資源に変換する（未実装）。', weapon: 'Weapon: 監査ビーム' },
-    { id: 'godai', name: 'G・O・D・A・I', color: '#aaaaaa', desc: '全兵装展開. 理不尽な命令で暴走する（未実装）。', weapon: 'Weapon: アセット・ミサイル' },
-    { id: 'jingu', name: '神宮寺 恒成', color: '#ffcc00', desc: 'ナノマシン. アイテムを強欲に吸い寄せる（未実装）。', weapon: 'Weapon: 札束弾幕' }
+    {
+        id: 'igari',
+        name: '猪狩 俊基',
+        color: '#00ffff',
+        desc: "異世界転生した天才科学者の息子\nWeapon: 周囲の物質を再構築して銃弾として飛ばす。\nPower Up: 射線の増加\nTarget Close: 弾速が上昇する\nBomb: 極大レーザービーム生成"
+    },
+    {
+        id: 'mamoru',
+        name: '椎名 護',
+        color: '#33ccff',
+        desc: "裏社会の治安維持を生業とする椎名家長男\nWeapon: 真言を具現化して敵に向かって放つ(ホーミング)\nPower Up: 射線、速度の増加\nTarget Close: 真言サイズの増加\nBomb: 真言シールド"
+    },
+    {
+        id: 'hiragi',
+        name: '柊 千華',
+        color: '#ff33ff',
+        desc: "時間を操る魔女\nWeapon: 貫通する魔法弾\nPower Up: 弾の巨大化\nTarget Close: 時間の遅延\nBomb: タイムストップ"
+    },
+    {
+        id: 'kagami',
+        name: '各務 栞',
+        color: '#33ff33',
+        desc: "異世界保険組合の凄腕エージェント\nWeapon: 追尾式エネルギーダガー\nPower Up: 発射数の増加\nTarget Close: ダガーの巨大化\nBomb: 全方位ダガー展開"
+    },
+    {
+        id: 'godai',
+        name: 'G・O・D・A・I',
+        color: '#aaaaaa',
+        desc: "超高性能AI搭載の防衛ロボット\nWeapon: ガトリングガン\nPower Up: オプション兵装追加\nTarget Close: 一斉掃射モード\nBomb: サテライトカノン"
+    },
+    {
+        id: 'jingu',
+        name: '神宮寺 恒成',
+        color: '#ffcc00',
+        desc: "謎多き大富豪\nWeapon: 黄金の札束\nPower Up: 札束のばらまき増加\nTarget Close: 敵弾の買収(スコア化)\nBomb: ゴールデンシャワー"
+    }
 ];
 
 // 大元のシナリオ箱
@@ -18,3 +48,10 @@ const scenarios = {
     godai: {},
     jingu: {}
 };
+
+// システム側から読み込めるようにグローバルに登録（念のため）
+if (typeof window !== 'undefined') {
+    window.VER_DATA = VER_DATA;
+    window.characters = characters;
+    window.scenarios = scenarios;
+}
