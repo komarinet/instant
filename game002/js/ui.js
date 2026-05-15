@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.20"; // バージョン更新（猪狩の特異反応を連射・弾速アップに修正し、巨大化は椎名専用とする）
+export const VER_UI = "0.3.21"; // バージョン更新（猪狩のホーミング誤爆を修正し、まっすぐ飛ぶレーザーに完全に戻す）
 
 let demoAnimId = null;
 let demoFrame = 0;
@@ -107,17 +107,17 @@ function startDemoLoop(char) {
             if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) demoEnemyBullets.splice(i, 1);
         }
 
-        // ★修正：連射レートの決定。猪狩は接近時に連射アップ（元の仕様）
+        // 連射レートの決定
         let fireRate = (char.id === 'shiina' || char.id === 'mamoru') ? 24 : 8;
         if (char.id === 'igari' && isClose) {
-            fireRate = 3;
+            fireRate = 3; // 猪狩は接近時に連射アップ
         }
 
         if (demoFrame % fireRate === 0) {
             let color = char.color;
             let speed = 8; 
             
-            // ★修正：猪狩は接近時に弾速も上がり、色も変わる（元の仕様）
+            // 猪狩は接近時に弾速アップ＆色変化
             if (char.id === 'igari' && isClose) {
                 color = '#00ffff'; 
                 speed = 16; 
@@ -135,6 +135,7 @@ function startDemoLoop(char) {
             demoBullets.push(b);
             
             if (char.id === 'igari') {
+                // 猪狩は左右に少し広がるV字ショットを追加（まっすぐ飛ぶ）
                 demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
                 demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
             }
@@ -143,41 +144,44 @@ function startDemoLoop(char) {
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
             
+            // ★修正：ホーミング処理を完全に「椎名護（shiina/mamoru）」専用に限定。猪狩は素通りしてまっすぐ飛ぶ。
             let target = null;
             let mDist = Infinity;
-            for (let j = 0; j < demoEnemyBullets.length; j++) {
-                let eb = demoEnemyBullets[j];
-                let d = Math.hypot(eb.x - b.x, eb.y - b.y);
-                if (d < mDist) { mDist = d; target = eb; }
-            }
+            if (char.id === 'shiina' || char.id === 'mamoru') {
+                for (let j = 0; j < demoEnemyBullets.length; j++) {
+                    let eb = demoEnemyBullets[j];
+                    let d = Math.hypot(eb.x - b.x, eb.y - b.y);
+                    if (d < mDist) { mDist = d; target = eb; }
+                }
 
-            if (target && (char.id === 'shiina' || char.id === 'mamoru' || char.id === 'igari')) {
-                if ((char.id === 'shiina' || char.id === 'mamoru') && b.timer !== undefined) b.timer++;
-                let shouldHoming = (char.id === 'igari') || (b.timer !== undefined && b.timer > 10);
+                if (target) {
+                    if (b.timer !== undefined) b.timer++;
+                    let shouldHoming = (b.timer !== undefined && b.timer > 10);
 
-                if (shouldHoming) {
-                    let angToTarget = Math.atan2(target.y - b.y, target.x - b.x);
-                    let currentAng = Math.atan2(b.vy, b.vx);
-                    let diff = angToTarget - currentAng;
-                    while (diff > Math.PI) diff -= Math.PI * 2;
-                    while (diff < -Math.PI) diff += Math.PI * 2;
-                    
-                    let turnSpeed = (char.id === 'shiina' || char.id === 'mamoru') ? 0.08 : 0.04; 
-                    currentAng += Math.sign(diff) * Math.min(Math.abs(diff), turnSpeed);
-                    
-                    let speed = Math.hypot(b.vx, b.vy);
-                    if ((char.id === 'shiina' || char.id === 'mamoru') && speed < 12) speed += 0.2; 
-                    
-                    b.vx = Math.cos(currentAng) * speed;
-                    b.vy = Math.sin(currentAng) * speed;
+                    if (shouldHoming) {
+                        let angToTarget = Math.atan2(target.y - b.y, target.x - b.x);
+                        let currentAng = Math.atan2(b.vy, b.vx);
+                        let diff = angToTarget - currentAng;
+                        while (diff > Math.PI) diff -= Math.PI * 2;
+                        while (diff < -Math.PI) diff += Math.PI * 2;
+                        
+                        let turnSpeed = 0.08; 
+                        currentAng += Math.sign(diff) * Math.min(Math.abs(diff), turnSpeed);
+                        
+                        let speed = Math.hypot(b.vx, b.vy);
+                        if (speed < 12) speed += 0.2; 
+                        
+                        b.vx = Math.cos(currentAng) * speed;
+                        b.vy = Math.sin(currentAng) * speed;
+                    }
                 }
             }
             
             b.x += b.vx || 0;
             b.y += b.vy;
             
-            // ★修正：特異反応の巨大化は「椎名護（shiina/mamoru）」の時だけ適用する
             let ds = b.size; 
+            // 巨大化の特異反応は椎名護のみ
             if ((char.id === 'shiina' || char.id === 'mamoru') && b.isClose) {
                 ds = b.size * 2;
             }
@@ -517,7 +521,7 @@ export function initStageListTexts(selectedCharId) {
         let stageTexts = [];
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
-                "Stage 1: 兄弟のサドンデス", "Stage 2: ？？？", "Stage 3: ？？？", 
+                "Stage 1: 兄弟のサドンデス", "Stage 2: 宇宙人襲来", "Stage 3: ？？？", 
                 "Stage 4: ？？？", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
