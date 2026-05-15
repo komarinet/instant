@@ -1,9 +1,10 @@
-export const VER_UI = "0.3.21"; // バージョン更新（猪狩のホーミング誤爆を修正し、まっすぐ飛ぶレーザーに完全に戻す）
+export const VER_UI = "0.3.22"; // バージョン更新（文字はみ出し防止、仮想敵の追加、椎名のホーミングとTARGET CLOSE表示対応）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
 let demoEnemyBullets = []; 
+let demoEnemies = []; // 仮想敵用の配列を追加
 
 function getRubyName(id, defaultName) {
     const rtStyle = 'font-size:0.65em; opacity:0.8; letter-spacing: 0px;';
@@ -19,6 +20,7 @@ function startDemoLoop(char) {
     if (demoAnimId) cancelAnimationFrame(demoAnimId);
     demoBullets = [];
     demoEnemyBullets = []; 
+    demoEnemies = [];
     demoFrame = 0;
     const canvas = document.getElementById('char-demo-canvas');
     if (!canvas) return;
@@ -49,32 +51,51 @@ function startDemoLoop(char) {
         
         const playerX = canvas.width / 2;
         const playerY = canvas.height - 35; 
-        
-        // 敵弾の生成ロジック（斜め軌道）
-        if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
-            if (demoFrame % 90 === 0) {
-                let startX = playerX - (Math.random() * 50 + 20); 
-                demoEnemyBullets.push({ 
-                    x: startX, y: -10, 
-                    vx: 0.5 + Math.random(), vy: 3 + Math.random() * 0.5, 
-                    color: '#ff0055', size: 4 
-                });
-            }
-            if ((demoFrame + 45) % 90 === 0) {
-                let startX = playerX + (Math.random() * 50 + 20); 
-                demoEnemyBullets.push({ 
-                    x: startX, y: -10, 
-                    vx: -(0.5 + Math.random()), vy: 3 + Math.random() * 0.5, 
-                    color: '#ffaa00', size: 4 
+
+        // 仮想敵の生成（椎名護のホーミング確認用）
+        if (char.id === 'shiina' || char.id === 'mamoru') {
+            if (demoFrame % 100 === 0) {
+                demoEnemies.push({ 
+                    x: playerX + (Math.random() * 60 - 30), 
+                    y: -15, vy: 1.2, size: 12, hp: 6 
                 });
             }
         }
+        
+        // 仮想敵の更新と描画
+        for (let i = demoEnemies.length - 1; i >= 0; i--) {
+            let e = demoEnemies[i];
+            e.y += e.vy;
+            let shikiImg = window.advManager && window.advManager.assets['shiki.png'];
+            if (shikiImg && shikiImg.naturalWidth > 0) {
+                ctx.drawImage(shikiImg, 0, 0, shikiImg.width/4, shikiImg.height, e.x - e.size*1.5, e.y - e.size*1.5, e.size*3, e.size*3);
+            } else {
+                ctx.fillStyle = '#ff5500';
+                ctx.beginPath(); ctx.arc(e.x, e.y, e.size, 0, Math.PI*2); ctx.fill();
+            }
+            if (e.y > canvas.height + 30) demoEnemies.splice(i, 1);
+        }
+        
+        // 敵弾の生成ロジック
+        if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
+            if (demoFrame % 90 === 0) {
+                let startX = playerX - (Math.random() * 50 + 20); 
+                demoEnemyBullets.push({ x: startX, y: -10, vx: 0.5 + Math.random(), vy: 3 + Math.random() * 0.5, color: '#ff0055', size: 4 });
+            }
+            if ((demoFrame + 45) % 90 === 0) {
+                let startX = playerX + (Math.random() * 50 + 20); 
+                demoEnemyBullets.push({ x: startX, y: -10, vx: -(0.5 + Math.random()), vy: 3 + Math.random() * 0.5, color: '#ffaa00', size: 4 });
+            }
+        }
 
-        // 接近判定（isClose）を共通化
+        // 接近判定（isClose）を共通化（敵弾だけでなく仮想敵との距離も測る）
         let minDist = Infinity;
         for (let i = 0; i < demoEnemyBullets.length; i++) {
-            let eb = demoEnemyBullets[i];
-            let d = Math.hypot(eb.x - playerX, eb.y - playerY);
+            let d = Math.hypot(demoEnemyBullets[i].x - playerX, demoEnemyBullets[i].y - playerY);
+            if (d < minDist) minDist = d;
+        }
+        for (let i = 0; i < demoEnemies.length; i++) {
+            let d = Math.hypot(demoEnemies[i].x - playerX, demoEnemies[i].y - playerY);
             if (d < minDist) minDist = d;
         }
         let isClose = minDist < 150; 
@@ -92,6 +113,7 @@ function startDemoLoop(char) {
             }
         }
         
+        // 敵弾の更新と描画
         for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
             let eb = demoEnemyBullets[i];
             eb.x += eb.vx; 
@@ -107,35 +129,26 @@ function startDemoLoop(char) {
             if (eb.y > canvas.height + 20 || eb.x < -20 || eb.x > canvas.width + 20) demoEnemyBullets.splice(i, 1);
         }
 
-        // 連射レートの決定
         let fireRate = (char.id === 'shiina' || char.id === 'mamoru') ? 24 : 8;
-        if (char.id === 'igari' && isClose) {
-            fireRate = 3; // 猪狩は接近時に連射アップ
-        }
+        if (char.id === 'igari' && isClose) fireRate = 3; 
 
         if (demoFrame % fireRate === 0) {
             let color = char.color;
             let speed = 8; 
             
-            // 猪狩は接近時に弾速アップ＆色変化
-            if (char.id === 'igari' && isClose) {
-                color = '#00ffff'; 
-                speed = 16; 
-            }
+            if (char.id === 'igari' && isClose) { color = '#00ffff'; speed = 16; }
             
             let b = { x: playerX, y: playerY - 5, vx: 0, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id }; 
             
             if (char.id === 'shiina' || char.id === 'mamoru') {
                 b.charIndex = Math.floor(Math.random() * 10);
-                b.size = 8;
-                b.timer = 0; 
+                b.size = 8; b.timer = 0; 
             } else if (char.id === 'igari') {
                 b.size = 4;
             }
             demoBullets.push(b);
             
             if (char.id === 'igari') {
-                // 猪狩は左右に少し広がるV字ショットを追加（まっすぐ飛ぶ）
                 demoBullets.push({ x: playerX - 6, y: playerY - 5, vx: -0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
                 demoBullets.push({ x: playerX + 6, y: playerY - 5, vx: 0.5, vy: -speed, color: color, size: 4, isClose: isClose, charId: char.id });
             }
@@ -144,14 +157,19 @@ function startDemoLoop(char) {
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
             
-            // ★修正：ホーミング処理を完全に「椎名護（shiina/mamoru）」専用に限定。猪狩は素通りしてまっすぐ飛ぶ。
+            // 椎名のホーミング先は仮想敵（いなければ敵弾）
             let target = null;
             let mDist = Infinity;
             if (char.id === 'shiina' || char.id === 'mamoru') {
-                for (let j = 0; j < demoEnemyBullets.length; j++) {
-                    let eb = demoEnemyBullets[j];
-                    let d = Math.hypot(eb.x - b.x, eb.y - b.y);
-                    if (d < mDist) { mDist = d; target = eb; }
+                for (let j = 0; j < demoEnemies.length; j++) {
+                    let d = Math.hypot(demoEnemies[j].x - b.x, demoEnemies[j].y - b.y);
+                    if (d < mDist) { mDist = d; target = demoEnemies[j]; }
+                }
+                if (!target) {
+                    for (let j = 0; j < demoEnemyBullets.length; j++) {
+                        let d = Math.hypot(demoEnemyBullets[j].x - b.x, demoEnemyBullets[j].y - b.y);
+                        if (d < mDist) { mDist = d; target = demoEnemyBullets[j]; }
+                    }
                 }
 
                 if (target) {
@@ -175,16 +193,25 @@ function startDemoLoop(char) {
                         b.vy = Math.sin(currentAng) * speed;
                     }
                 }
+
+                // 仮想敵への着弾判定
+                let hit = false;
+                for (let j = demoEnemies.length - 1; j >= 0; j--) {
+                    let e = demoEnemies[j];
+                    if (Math.hypot(e.x - b.x, e.y - b.y) < e.size + (b.isClose ? b.size*2 : b.size)) {
+                        hit = true; e.hp -= 2;
+                        if(e.hp <= 0) demoEnemies.splice(j, 1);
+                        break;
+                    }
+                }
+                if (hit) { demoBullets.splice(i, 1); continue; }
             }
             
             b.x += b.vx || 0;
             b.y += b.vy;
             
             let ds = b.size; 
-            // 巨大化の特異反応は椎名護のみ
-            if ((char.id === 'shiina' || char.id === 'mamoru') && b.isClose) {
-                ds = b.size * 2;
-            }
+            if ((char.id === 'shiina' || char.id === 'mamoru') && b.isClose) ds = b.size * 2;
             
             if (char.id === 'igari') {
                 ctx.save(); ctx.translate(b.x, b.y);
@@ -208,12 +235,10 @@ function startDemoLoop(char) {
                     ctx.drawImage(sansImg, col * sw, row * sh, sw, sh, -ds, -ds, ds*2, ds*2);
                     ctx.restore();
                 } else {
-                    ctx.fillStyle = b.color;
-                    ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
+                    ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
                 }
             } else {
-                ctx.fillStyle = b.color;
-                ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
+                ctx.fillStyle = b.color; ctx.beginPath(); ctx.arc(b.x, b.y, ds, 0, Math.PI*2); ctx.fill(); 
             }
             
             if (b.y < -30 || b.y > canvas.height + 30 || b.x < -30 || b.x > canvas.width + 30) demoBullets.splice(i, 1);
@@ -257,9 +282,9 @@ function startDemoLoop(char) {
             ctx.fill();
         }
         
-        // 猪狩の接近表示を復帰
-        if (char.id === 'igari' && isClose) {
-            ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
+        // TARGET CLOSE表示（椎名護にも対応）
+        if ((char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') && isClose) {
+            ctx.fillStyle = char.color; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
             ctx.fillText("TARGET CLOSE", playerX, playerY - 35); 
         }
     }
@@ -280,9 +305,10 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
         btn.style.textOverflow = 'ellipsis';
         btn.style.width = '100%';
         btn.style.boxSizing = 'border-box';
-        btn.style.fontSize = 'clamp(14px, 4vw, 18px)'; 
-        btn.style.padding = '8px 5px';
-        btn.style.lineHeight = '1.4';
+        // はみ出し防止のためフォントサイズと余白を極限まで縮小
+        btn.style.fontSize = 'clamp(11px, 3vw, 15px)'; 
+        btn.style.padding = '4px 2px';
+        btn.style.lineHeight = '1.2';
         
         btn.onclick = (e) => {
             onSelect(char.id);
@@ -299,8 +325,19 @@ export function updatePreview(characters, selectedCharId) {
     
     document.getElementById('preview-name').innerHTML = getRubyName(char.id, char.name);
     document.getElementById('preview-name').style.color = char.color;
-    document.getElementById('preview-desc').innerText = char.desc;
-    document.getElementById('preview-weapon').innerText = char.weapon;
+    
+    // 説明文を改行対応にし、フォントサイズをスマホに収まるよう調整
+    const descEl = document.getElementById('preview-desc');
+    if (descEl) {
+        descEl.innerHTML = char.desc.replace(/\n/g, '<br>');
+        descEl.style.fontSize = 'clamp(10px, 2.8vw, 13px)';
+        descEl.style.lineHeight = '1.4';
+        descEl.style.textAlign = 'left';
+        descEl.style.marginTop = '10px';
+    }
+    // Weaponはdescに統合したため非表示にする
+    const wpnEl = document.getElementById('preview-weapon');
+    if (wpnEl) wpnEl.style.display = 'none';
 
     let flexWrap = document.getElementById('char-select-flex');
     
@@ -317,7 +354,7 @@ export function updatePreview(characters, selectedCharId) {
         flexWrap.style.gap = '10px';
         flexWrap.style.width = '100%';
         flexWrap.style.maxWidth = '600px';
-        flexWrap.style.margin = '55px auto 15px auto'; 
+        flexWrap.style.margin = '45px auto 10px auto'; 
         flexWrap.style.padding = '0 10px';
         flexWrap.style.boxSizing = 'border-box';
 
@@ -329,7 +366,8 @@ export function updatePreview(characters, selectedCharId) {
         listWrap.style.display = 'flex';
         listWrap.style.flexDirection = 'column';
         listWrap.style.justifyContent = 'flex-start';
-        listWrap.style.gap = '8px'; 
+        // 行間を詰める（プレビューの縦幅を短くするため）
+        listWrap.style.gap = '4px'; 
         listWrap.style.minWidth = '0'; 
         listWrap.appendChild(list);
         
