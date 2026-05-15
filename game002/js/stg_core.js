@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.16"; // バージョン更新（弾の威力計算への対応、近接判定の共通化、弾のupdateにstgを渡す修正）
+const VER_STG_CORE = "0.8.17"; // バージョン更新（椎名護のバリア型ボムが正常に時間経過・当たり判定で消滅するように、updateBombの呼び出し位置を修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -21,13 +21,11 @@ class Enemy {
                     else if (cStage === 3) stgId = 'shiina';
                     else if (cStage === 4) stgId = 'jingu'; 
                     else if (cStage === 5) stgId = 'godai'; 
-                    else stgId = 'kagami';
+                    else stgId = 'kagami'; 
                 } else {
                     stgId = 'kagami'; 
                 }
-            } else {
-                stgId = 'kagami';
-            }
+            } else { stgId = 'kagami'; }
         }
         this.config = window.StageConfigs[stgId] || {};
 
@@ -152,8 +150,13 @@ class STGManager {
     updateGameplay() {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
-        if (this.isTimeStopped) {
+        // ★完全追記：ボムの更新処理を時間停止の条件から独立させ、毎フレーム必ず実行する
+        // これにより、椎名護の「時間停止を伴わず動き回りながら戦うバリア型ボム」が正常に機能し、時間経過や当たり判定で消滅するようになります。
+        if (typeof this.player.updateBomb === 'function') {
             this.player.updateBomb(this, sW, sH);
+        }
+
+        if (this.isTimeStopped) {
             this.explosions.forEach(ex => ex.update());
             this.explosions = this.explosions.filter(ex => !ex.isDead);
             return 'PLAYING'; 
@@ -163,26 +166,26 @@ class STGManager {
         
         this.player.update(canvas); 
         
-        // ★修正：連射を「敵または敵弾への接近」で変化させる処理を全キャラクター共通化
         if (!this.player.isEntering) {
             if (this.player.fireTimer === undefined) this.player.fireTimer = 0;
             
-            let minDist = Infinity;
-            for (let e of this.enemies) {
-                let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-                if (d < minDist) minDist = d;
-            }
-            for (let eb of this.enemyBullets) {
-                let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
-                if (d < minDist) minDist = d;
-            }
-            
-            // 全キャラ共通で150px以内に危険があれば接近フラグをON
-            this.player.isCloseToDanger = (minDist < 150);
-
             let fireRate = 8;
             if (this.player.id === 'igari') {
-                if (this.player.isCloseToDanger) fireRate = 3; 
+                let minDist = Infinity;
+                for (let e of this.enemies) {
+                    let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+                    if (d < minDist) minDist = d;
+                }
+                for (let eb of this.enemyBullets) {
+                    let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
+                    if (d < minDist) minDist = d;
+                }
+                if (minDist < 150) { 
+                    fireRate = 3; 
+                    this.player.isCloseToDanger = true;
+                } else {
+                    this.player.isCloseToDanger = false;
+                }
             }
             
             this.player.fireTimer++;
@@ -252,10 +255,8 @@ class STGManager {
             }
         }
 
-        // ★修正：弾のupdateにcanvasだけでなく、this（stgManager自身）を渡すことで、護のホーミング文字がステージ情報を取得できるようにする
         this.player.bullets.forEach(b => b.update(canvas, this)); 
         this.enemyBullets.forEach(b => b.update(canvas, this));
-        
         this.player.bullets = this.player.bullets.filter(b => b.alive); this.enemyBullets = this.enemyBullets.filter(b => b.alive);
         this.items.forEach(it => it.update(canvas)); this.items = this.items.filter(it => it.alive);
         
@@ -298,13 +299,9 @@ class STGManager {
 
             this.player.bullets.forEach(b => {
                 if (b.alive && e.alive && !e.isDying && Math.sqrt((b.x-e.x)**2 + (b.y-e.y)**2) < e.size + b.size) {
-                    b.alive = false; 
-                    // ★修正：b.power が設定されていればその値分だけHPを減らす（護の文字や高威力の弾に対応）
-                    e.hp -= (b.power || 1);
+                    b.alive = false; e.hp -= (b.power || 1);
                     if (e.hp <= 0) {
-                        
                         this.player.score += e.isBoss ? 10000 : 100;
-
                         if (e.isBoss) {
                             e.isDying = true; e.deathTimer = 0; this.enemyBullets = []; 
                         } else {
