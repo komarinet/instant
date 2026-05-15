@@ -61,12 +61,12 @@ scenarios.mamoru = {
     'kagami_arrival': [
         { bg: 'shiinake.png', place: 'Shiina House', time: '2025.04', character: 'eiji.png', spriteIndex: 3, speaker: '衛二', text: '家督を譲れ？', delay: 60, bgm: 'dark' },
         { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 4, speaker: '衛二', text: '兄さん、椎名の家業には興味ないって言ったじゃないか' },
-        { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: '仕方ないんだよ、事情が事情で' },
+        { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '仕方ないんだよ、事情が事情で' },
         { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 2, speaker: '衛二', text: 'それでも納得できないよ！' },
         { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 8, speaker: '衛二', text: '父さんも何か言ってやってよ' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '衛二は厳しい修行で仮面の力を手に入れた' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '家督を継ぎたいのであれば、衛二に勝る力を証明しろ' },
-        { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '・・・わかった' }
+        { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: '・・・わかった' }
     ],
     1: {
         stgId: 'eiji', // 新設したサドンデスステージを指定
