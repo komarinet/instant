@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.7"; // バージョン更新（タイトル画面へのローディング表示と、ロード完了後のプレビュー開始処理を追加）
+const VER_MAIN = "0.9.8"; // バージョン更新（NOW LOADINGの文字がボタンと被らないように画面下部へ位置調整）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -132,13 +132,10 @@ async function init() {
     ui.initCharSelect(safeChars, selectedCharId, (id) => {
         selectedCharId = id;
         window.selectedCharId = id; 
-        // 初期ロード中はプレビューを更新しない
         if (isPreloadCompleted) {
             ui.updatePreview(safeChars, selectedCharId);
         }
     });
-    
-    // ★削除：ここにあった ui.updatePreview(safeChars, selectedCharId); をロード完了後に移動
     
     ui.createBombButton(() => {
         if (stgManager && gameState === 'STG_PLAY') stgManager.triggerBomb();
@@ -156,15 +153,15 @@ async function init() {
     
     resizeCanvas();
 
-    // ★追加：タイトル画面にローディングUIを表示し、ロードが終わるまでタップ操作をブロックする
     const titleScreen = document.getElementById('title-screen');
     let loadingOverlay = null;
     if (titleScreen) {
-        titleScreen.style.pointerEvents = 'none'; // ロード中のタップを無効化
+        titleScreen.style.pointerEvents = 'none'; 
         
         loadingOverlay = document.createElement('div');
         loadingOverlay.id = 'loading-overlay';
-        loadingOverlay.style.cssText = 'position: absolute; top: 65%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 1000;';
+        // ★修正：top指定をやめ、bottom: 20% と width: 100% を指定してどんなスマホでもボタン群の下の空きスペースに収まるように変更
+        loadingOverlay.style.cssText = 'position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); text-align: center; z-index: 1000; width: 100%;';
         loadingOverlay.innerHTML = `
             <div style="color: #00ffff; font-size: 24px; font-weight: bold; text-shadow: 0 0 15px #00ffff; letter-spacing: 2px; animation: pulse 1.5s infinite;">NOW LOADING...</div>
             <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px; margin-top: 5px;">システムアセットを展開中</div>
@@ -186,13 +183,11 @@ async function init() {
     soundManager.init();
     isPreloadCompleted = true;
     
-    // ★追加：ロード完了後、ローディングUIを削除してタップ操作を解禁
     if (titleScreen) {
         titleScreen.style.pointerEvents = 'auto';
         if (loadingOverlay) loadingOverlay.remove();
     }
 
-    // ★追加：すべての画像が読み込まれた「このタイミング」で、初めてプレビュー描画を開始する
     ui.updatePreview(safeChars, selectedCharId);
     
     ui.initStageListTexts(selectedCharId);
