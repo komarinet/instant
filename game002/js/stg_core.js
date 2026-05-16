@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.17"; // バージョン更新（椎名護のバリア型ボムが正常に時間経過・当たり判定で消滅するように、updateBombの呼び出し位置を修正）
+const VER_STG_CORE = "0.8.18"; // バージョン更新（TARGET CLOSE判定を全キャラ共通化し、椎名護の接近火力アップを修正）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -170,22 +170,26 @@ class STGManager {
             if (this.player.fireTimer === undefined) this.player.fireTimer = 0;
             
             let fireRate = 8;
-            if (this.player.id === 'igari') {
-                let minDist = Infinity;
-                for (let e of this.enemies) {
-                    let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
-                    if (d < minDist) minDist = d;
+
+            // ★修正：キャラ指定を外し、距離計算（TARGET CLOSE判定）を全キャラ共通で行う
+            let minDist = Infinity;
+            for (let e of this.enemies) {
+                let d = Math.hypot(e.x - this.player.x, e.y - this.player.y);
+                if (d < minDist) minDist = d;
+            }
+            for (let eb of this.enemyBullets) {
+                let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
+                if (d < minDist) minDist = d;
+            }
+            
+            // 150ピクセル以内でTARGET CLOSE状態にする
+            if (minDist < 150) { 
+                this.player.isCloseToDanger = true;
+                if (this.player.id === 'igari') {
+                    fireRate = 3; // 猪狩のみ接近時連射力アップ
                 }
-                for (let eb of this.enemyBullets) {
-                    let d = Math.hypot(eb.x - this.player.x, eb.y - this.player.y);
-                    if (d < minDist) minDist = d;
-                }
-                if (minDist < 150) { 
-                    fireRate = 3; 
-                    this.player.isCloseToDanger = true;
-                } else {
-                    this.player.isCloseToDanger = false;
-                }
+            } else {
+                this.player.isCloseToDanger = false;
             }
             
             this.player.fireTimer++;
