@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.1.0"; // サドンデス形式の兄弟対決ステージ
+const VER_STG_EIJI = "0.1.2"; // ユーザー考案のサドンデス対決形式を完全ベースにし、nightmtstg.pngのシームレス背景のみを統合
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -15,8 +15,7 @@ window.StageConfigs['eiji'] = {
         stg.cpuBullets = [];
         stg.cpuTimer = 0;
 
-        // 背景スクロール用
-        stg.bgScrollY = 0; 
+        // 背景スクロール用雲（シームレス背景の上に重ねる演出）
         stg.clouds = [];
         for (let i=0; i<15; i++) {
             stg.clouds.push({ x: Math.random()*(canvas.width/dpr), y: Math.random()*(canvas.height/dpr), size: Math.random()*80+40, speed: Math.random()*3+2, opacity: Math.random()*0.15+0.05 });
@@ -79,16 +78,52 @@ window.StageConfigs['eiji'] = {
     },
     
     updateBackground: function(stg, sW, sH) {
-        stg.bgScrollY += 1.5; if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
+        // 雲の更新
         stg.clouds.forEach(c => { c.y += c.speed; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
     },
+
     drawBackground: function(stg, ctx, sW, sH) {
-        const bgImg = stg.advManager?.assets['nightmt.png'];
+        // ★修正：nightmtstg.pngを使用し、上下を反転させながらシームレスにスクロール
+        const bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmtstg.png'] : null;
         if (bgImg && bgImg.naturalWidth > 0) {
-            ctx.drawImage(bgImg, 0, stg.bgScrollY, sW, sH); ctx.drawImage(bgImg, 0, stg.bgScrollY - sH, sW, sH);
-        } else { ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, sW, sH); }
+            const imgRatio = bgImg.height / bgImg.width;
+            const drawW = sW;
+            const drawH = sW * imgRatio;
+            const speed = 1.5; 
+            const cycle = drawH * 2; 
+            const offset = (stg.stageTimer * speed) % cycle;
+            let startY = offset - cycle;
+
+            ctx.save();
+            for (let i = 0; i < 4; i++) {
+                let y = startY + (i * drawH);
+                if (y > sH || y + drawH < 0) continue; 
+                ctx.save();
+                if (i % 2 === 1) {
+                    // 反転描画
+                    ctx.translate(0, y + drawH);
+                    ctx.scale(1, -1);
+                    ctx.drawImage(bgImg, 0, 0, drawW, drawH);
+                } else {
+                    // 通常描画
+                    ctx.translate(0, y);
+                    ctx.drawImage(bgImg, 0, 0, drawW, drawH);
+                }
+                ctx.restore();
+            }
+            ctx.restore();
+            
+            // 背景になじませるオーバーレイ
+            ctx.fillStyle = 'rgba(10, 10, 25, 0.4)';
+            ctx.fillRect(0, 0, sW, sH);
+        } else { 
+            ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, sW, sH); 
+        }
+        
+        // 雲の描画
         stg.clouds.forEach(c => { ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`; ctx.beginPath(); ctx.arc(c.x, c.y, c.size, 0, Math.PI*2); ctx.fill(); });
     },
+
     getEnemyData: function(type) {
         const initShiki = (e, colIndex) => {
             e.draw = function(ctx) {
@@ -194,9 +229,10 @@ window.StageConfigs['eiji'] = {
                 stg.isStageClear = true; 
             } else {
                 // 護の敗北 → 負けADVを再生して強制ゲームオーバーへ
-                let charId = stg.player.id;
+                let charId = stg.player.id || 'mamoru';
                 let lossAdv = [];
                 try {
+                    // シナリオデータの階層に合わせて取得
                     lossAdv = window.scenarios[charId][1].loss_adv || [];
                 } catch(e) {}
 
