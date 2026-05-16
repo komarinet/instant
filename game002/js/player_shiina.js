@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.2.3"; // 椎名護：ホーミング弾が強すぎるため、攻撃力を通常（基本1、巨大化時2）に下方修正
+const VER_PLAYER_SHIINA = "0.2.4"; // 椎名護：ボムでザコ敵を倒した際にボス撃破判定になりステージクリアしてしまうバグを修正
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -90,7 +90,6 @@ const ShiinaController = {
     createShot: function(x, y, vx, vy, color, player, isClose) {
         let b = new Bullet(x, y, vx, vy, color, null, 'shiina');
         
-        // ★修正：強すぎたため、威力を通常レベル（基本1、巨大化時2）にダウン
         b.power = isClose ? 2 : 1; 
         b.size = isClose ? 24 : 12; 
         b.charIndex = Math.floor(Math.random() * 10);
@@ -99,7 +98,6 @@ const ShiinaController = {
 
         b.update = function(canvas, stg) {
             this.timer++;
-            // 180フレーム（約3秒）で弾が消滅する
             if (this.timer > 180) {
                 this.alive = false;
                 return;
@@ -157,7 +155,6 @@ const ShiinaController = {
                 
                 let ds = this.size; 
                 
-                // 消滅直前（2.5秒〜3秒）はチカチカ点滅する
                 if (this.timer > 150) {
                     ctx.globalAlpha = (Math.floor(this.timer / 4) % 2 === 0) ? 1.0 : 0.3;
                 }
@@ -239,7 +236,25 @@ const ShiinaController = {
                     stg.enemies.forEach(e => {
                         if (e.alive && !e.isDying && Math.hypot(e.x - cx, e.y - cy) < e.size + 25) {
                             e.hp -= 30; 
-                            if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; }
+                            
+                            if (e.hp <= 0 && !e.isDying) { 
+                                // ★修正：ボム撃破時もザコとボスで死に方を分ける
+                                stg.player.score += e.isBoss ? 10000 : 100;
+                                
+                                if (e.isBoss) {
+                                    e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; 
+                                } else {
+                                    // ザコ敵の場合は通常の爆発エフェクトのみで即消滅
+                                    e.alive = false; 
+                                    stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
+                                    if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                                    
+                                    // アイテムドロップも反映
+                                    if(Math.random()<0.1) stg.items.push(new Item('power', e.x, e.y)); 
+                                    else if(Math.random()<0.15) stg.items.push(new Item('recover', e.x, e.y));
+                                    else if(Math.random()<0.03) stg.items.push(new Item('bomb', e.x, e.y)); 
+                                }
+                            }
                             c.hp = 0; 
                         }
                     });
