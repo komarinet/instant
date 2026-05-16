@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.2.2"; // 椎名護：弾丸寿命(3秒)とボムの寿命(10秒)・接触即消滅の追加
+const VER_PLAYER_SHIINA = "0.2.3"; // 椎名護：ホーミング弾が強すぎるため、攻撃力を通常（基本1、巨大化時2）に下方修正
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -90,7 +90,8 @@ const ShiinaController = {
     createShot: function(x, y, vx, vy, color, player, isClose) {
         let b = new Bullet(x, y, vx, vy, color, null, 'shiina');
         
-        b.power = isClose ? 6 : 3; 
+        // ★修正：強すぎたため、威力を通常レベル（基本1、巨大化時2）にダウン
+        b.power = isClose ? 2 : 1; 
         b.size = isClose ? 24 : 12; 
         b.charIndex = Math.floor(Math.random() * 10);
         b.advManager = player._advManager; 
@@ -98,7 +99,7 @@ const ShiinaController = {
 
         b.update = function(canvas, stg) {
             this.timer++;
-            // ★追加: 180フレーム（約3秒）で消滅させる処理
+            // 180フレーム（約3秒）で弾が消滅する
             if (this.timer > 180) {
                 this.alive = false;
                 return;
@@ -156,7 +157,7 @@ const ShiinaController = {
                 
                 let ds = this.size; 
                 
-                // ★追加: 点滅エフェクト（消滅直前：2.5秒〜3秒の間）
+                // 消滅直前（2.5秒〜3秒）はチカチカ点滅する
                 if (this.timer > 150) {
                     ctx.globalAlpha = (Math.floor(this.timer / 4) % 2 === 0) ? 1.0 : 0.3;
                 }
@@ -177,7 +178,6 @@ const ShiinaController = {
         player.bombs--; 
         stg.bombState = 'BARRIER';
         stg.bombTimer = 0;
-        // ★追加：ボムの制限時間を設定（10秒 = 600フレーム）
         stg.bombDuration = 600; 
         
         stg.bombData = { rings: [] };
@@ -190,7 +190,7 @@ const ShiinaController = {
             for (let i = 0; i < charsPerRing[r]; i++) {
                 chars.push({
                     angleOffset: (i * Math.PI * 2) / charsPerRing[r],
-                    hp: 1, // ★変更：耐久力を3から1へ（1回当たると消える仕様に）
+                    hp: 1, 
                     charIndex: Math.floor(Math.random() * 10)
                 });
             }
@@ -208,7 +208,6 @@ const ShiinaController = {
         if (stg.bombState !== 'BARRIER' || !stg.bombData) return;
         stg.bombTimer++;
         
-        // ★追加：制限時間を超えたらバリアを強制解除
         if (stg.bombTimer > stg.bombDuration) {
             stg.bombState = 'READY';
             stg.bombData = null;
@@ -227,30 +226,27 @@ const ShiinaController = {
                 let cx = player.x + Math.cos(ring.baseAngle + c.angleOffset) * ring.radius;
                 let cy = player.y + Math.sin(ring.baseAngle + c.angleOffset) * ring.radius;
                 
-                // 敵の弾をかき消す
                 for (let i = stg.enemyBullets.length - 1; i >= 0; i--) {
                     let eb = stg.enemyBullets[i];
                     if (Math.hypot(eb.x - cx, eb.y - cy) < 25) { 
                         stg.enemyBullets.splice(i, 1); 
-                        c.hp = 0; // ★変更：1発で消滅
+                        c.hp = 0; 
                         break; 
                     }
                 }
                 
-                // 敵にダメージを与えて文字が消える
                 if (c.hp > 0) {
                     stg.enemies.forEach(e => {
                         if (e.alive && !e.isDying && Math.hypot(e.x - cx, e.y - cy) < e.size + 25) {
-                            e.hp -= 30; // 威力を高めに設定
+                            e.hp -= 30; 
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; }
-                            c.hp = 0; // ★変更：1発で消滅
+                            c.hp = 0; 
                         }
                     });
                 }
             });
         });
         
-        // すべての文字が消えれば終了
         if (totalCharsActive === 0) {
             stg.bombState = 'READY';
             stg.bombData = null;
@@ -268,7 +264,6 @@ const ShiinaController = {
             ctx.save();
             ctx.translate(-shakeX, -shakeY); 
             
-            // ★追加：時間切れが近づくと全体が点滅する演出
             const timeLeft = stg.bombDuration - stg.bombTimer;
             let currentAlpha = 1.0;
             if (timeLeft < 90) {
@@ -289,7 +284,7 @@ const ShiinaController = {
                     ctx.translate(cx, cy);
                     
                     ctx.globalAlpha = currentAlpha;
-                    ctx.shadowColor = '#00ffff'; // 一律でシアンブルーに
+                    ctx.shadowColor = '#00ffff';
                     ctx.shadowBlur = 15;
                     
                     ctx.rotate(stg.bombTimer * 0.1); 
