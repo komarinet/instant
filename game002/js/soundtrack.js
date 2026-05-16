@@ -1,4 +1,4 @@
-export const VER_SOUNDTRACK = "0.1.1"; // バージョン更新（ステージ4、ステージ5のBGM追加）
+export const VER_SOUNDTRACK = "0.1.2"; // バージョン更新（ステージ6のBGM追加）
 
 // サントラに表示する曲のリスト
 const trackList = [
@@ -15,8 +15,10 @@ const trackList = [
     { id: 'boss_jingu', name: '11. Boss - Jingu', src: 'bgm/boss_jingu.mp3' },
     { id: 'stage_godai', name: '12. Stage 5 - Dark Side of the Moon', src: 'bgm/stage_godai.mp3' },
     { id: 'boss_godai', name: '13. Boss - G.O.D.A.I.', src: 'bgm/boss_godai.mp3' },
-    { id: 'clear', name: '14. Stage Clear', src: 'bgm/clear.mp3' },
-    { id: 'gameover', name: '15. Game Over', src: 'bgm/gameover.mp3' }
+    { id: 'stage_cap', name: '14. Stage 6 - Final', src: 'bgm/stage_cap.mp3' },
+    { id: 'boss_cap', name: '15. Boss - Final', src: 'bgm/boss_cap.mp3' },
+    { id: 'clear', name: '16. Stage Clear', src: 'bgm/clear.mp3' },
+    { id: 'gameover', name: '17. Game Over', src: 'bgm/gameover.mp3' }
 ];
 
 let currentAudio = null;
