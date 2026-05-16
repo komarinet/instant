@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.1.2"; // ユーザー考案のサドンデス対決形式を完全ベースにし、nightmtstg.pngのシームレス背景のみを統合
+const VER_STG_EIJI = "0.1.4"; // UI被り修正（TIMEを左上へ移動、スコアボードを縦積みにしてスマホ幅に対応）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -53,26 +53,34 @@ window.StageConfigs['eiji'] = {
             });
 
             // --- UIの描画（タイマーとスコア） ---
-            // 制限時間タイマー
+            // 1. 制限時間タイマー（左上に配置して、右上の標準スコアと被らないようにする）
             ctx.fillStyle = this.timeLimit < 600 ? '#ff3366' : '#fff';
-            ctx.font = 'bold 36px "Segoe UI", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`TIME: ${Math.ceil(this.timeLimit / 60)}`, sW/2, 50);
-
-            // スコアボード（護 vs 衛二）
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillRect(10, 80, sW - 20, 60);
-            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
-            ctx.strokeRect(10, 80, sW - 20, 60);
-
-            ctx.font = 'bold 20px "Segoe UI", sans-serif';
+            ctx.font = 'bold 24px "Segoe UI", sans-serif';
             ctx.textAlign = 'left';
-            ctx.fillStyle = '#33ccff';
-            ctx.fillText(`護 SCORE: ${this.player.score}`, 20, 115);
+            ctx.fillText(`TIME: ${Math.ceil(this.timeLimit / 60)}`, 20, 35);
 
-            ctx.textAlign = 'right';
+            // 2. スコアボード（横並びだと狭いスマホで被るため、中央に「縦積み」でコンパクトに表示）
+            const boardW = 200;
+            const boardH = 60;
+            const boardX = sW / 2 - boardW / 2; // 画面中央
+            const boardY = 55;
+
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(boardX, boardY, boardW, boardH);
+            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
+            ctx.strokeRect(boardX, boardY, boardW, boardH);
+
+            ctx.font = 'bold 16px "Segoe UI", sans-serif';
+            ctx.textAlign = 'left';
+            
+            // 護のスコア (上段)
+            ctx.fillStyle = '#33ccff';
+            ctx.fillText(`護(YOU) : ${this.player.score}`, boardX + 15, boardY + 25);
+            
+            // 衛二のスコア (下段)
             ctx.fillStyle = '#0055ff';
-            ctx.fillText(`衛二 SCORE: ${this.cpuScore}`, sW - 20, 115);
+            ctx.fillText(`衛二(CPU) : ${this.cpuScore}`, boardX + 15, boardY + 48);
+            
             ctx.restore();
         };
     },
@@ -83,8 +91,14 @@ window.StageConfigs['eiji'] = {
     },
 
     drawBackground: function(stg, ctx, sW, sH) {
-        // ★修正：nightmtstg.pngを使用し、上下を反転させながらシームレスにスクロール
-        const bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmtstg.png'] : null;
+        let bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmtstg.png'] : null;
+        let loadFailed = false;
+
+        if (!bgImg || bgImg.naturalWidth === 0) {
+            bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmt.png'] : null;
+            loadFailed = true;
+        }
+
         if (bgImg && bgImg.naturalWidth > 0) {
             const imgRatio = bgImg.height / bgImg.width;
             const drawW = sW;
@@ -100,12 +114,10 @@ window.StageConfigs['eiji'] = {
                 if (y > sH || y + drawH < 0) continue; 
                 ctx.save();
                 if (i % 2 === 1) {
-                    // 反転描画
                     ctx.translate(0, y + drawH);
                     ctx.scale(1, -1);
                     ctx.drawImage(bgImg, 0, 0, drawW, drawH);
                 } else {
-                    // 通常描画
                     ctx.translate(0, y);
                     ctx.drawImage(bgImg, 0, 0, drawW, drawH);
                 }
@@ -113,14 +125,18 @@ window.StageConfigs['eiji'] = {
             }
             ctx.restore();
             
-            // 背景になじませるオーバーレイ
             ctx.fillStyle = 'rgba(10, 10, 25, 0.4)';
             ctx.fillRect(0, 0, sW, sH);
+
+            if (loadFailed) {
+                ctx.fillStyle = '#ff3366';
+                ctx.font = 'bold 12px sans-serif';
+                ctx.fillText("⚠ nightmtstg.png読込失敗", 10, 20);
+            }
         } else { 
             ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, sW, sH); 
         }
         
-        // 雲の描画
         stg.clouds.forEach(c => { ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`; ctx.beginPath(); ctx.arc(c.x, c.y, c.size, 0, Math.PI*2); ctx.fill(); });
     },
 
@@ -142,7 +158,6 @@ window.StageConfigs['eiji'] = {
                 ctx.restore();
             };
         };
-        // 雑魚敵データ (ボスは無し)
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 2, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 6, init: (e) => { initShiki(e, 1); } };
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
@@ -151,10 +166,8 @@ window.StageConfigs['eiji'] = {
     updateWaves: function(stg, timer, sW, sH) {
         if (stg.isTimeStopped) return;
 
-        // タイマー減少
         stg.timeLimit--;
 
-        // 雑魚の定期スポーン
         if (stg.timeLimit > 0) {
             if (stg.frame % 60 === 0) {
                 let e = new Enemy('shiki_a', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId);
@@ -169,12 +182,9 @@ window.StageConfigs['eiji'] = {
             }
         }
 
-        // --- CPU（衛二）の行動ロジック ---
         stg.cpuTimer++;
-        // Y座標はふわふわ上下
         stg.cpuY = sH * 0.8 + Math.sin(stg.cpuTimer * 0.05) * 20;
         
-        // X座標は一番近い敵を狙う
         let target = null;
         let minDist = Infinity;
         stg.enemies.forEach(e => {
@@ -187,17 +197,14 @@ window.StageConfigs['eiji'] = {
             stg.cpuX += Math.sign(target.x - stg.cpuX) * 4; 
         }
 
-        // 画面外に出ないように
         if (stg.cpuX < 30) stg.cpuX = 30;
         if (stg.cpuX > sW - 30) stg.cpuX = sW - 30;
 
-        // CPUの射撃
         if (stg.cpuTimer % 12 === 0) {
             stg.cpuBullets.push({ x: stg.cpuX - 10, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
             stg.cpuBullets.push({ x: stg.cpuX + 10, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
         }
 
-        // --- CPUの弾の更新と独自の当たり判定 ---
         stg.cpuBullets.forEach(b => {
             b.x += b.vx; b.y += b.vy;
             if (b.y < -50) b.alive = false;
@@ -208,7 +215,7 @@ window.StageConfigs['eiji'] = {
                     e.hp--;
                     if (e.hp <= 0) {
                         e.alive = false; 
-                        stg.cpuScore += 100; // 衛二のスコア加算
+                        stg.cpuScore += 100; 
                         stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                     }
@@ -217,27 +224,22 @@ window.StageConfigs['eiji'] = {
         });
         stg.cpuBullets = stg.cpuBullets.filter(b => b.alive);
 
-        // --- タイムアップ時の勝敗判定 ---
         if (stg.timeLimit <= 0 && !stg.isTimeStopped) {
             stg.isTimeStopped = true;
             
-            // 全敵消去
             stg.enemies = []; stg.enemyBullets = [];
             
             if (stg.player.score >= stg.cpuScore) {
-                // 護の勝利 → 通常のクリアへ
                 stg.isStageClear = true; 
             } else {
-                // 護の敗北 → 負けADVを再生して強制ゲームオーバーへ
                 let charId = stg.player.id || 'mamoru';
                 let lossAdv = [];
                 try {
-                    // シナリオデータの階層に合わせて取得
                     lossAdv = window.scenarios[charId][1].loss_adv || [];
                 } catch(e) {}
 
                 window.startMidStgADV(lossAdv, () => {
-                    stg.player.hp = 0; // 強制的にゲームオーバー条件を満たす
+                    stg.player.hp = 0; 
                     stg.isTimeStopped = false;
                 });
             }
@@ -261,7 +263,6 @@ window.StageConfigs['eiji'] = {
     },
 
     shootEnemy: function(e, stg) {
-        // 自機とCPU（衛二）のどちらか近い方を狙うロジック
         const targetX = (Math.abs(stg.player.x - e.x) < Math.abs(stg.cpuX - e.x)) ? stg.player.x : stg.cpuX;
         const targetY = (Math.abs(stg.player.x - e.x) < Math.abs(stg.cpuX - e.x)) ? stg.player.y : stg.cpuY;
 
