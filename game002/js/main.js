@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.9"; // バージョン更新（ユーザー提案の神UIを採用！START GAMEボタン自体をローディング表示に変更）
+const VER_MAIN = "0.9.10"; // バージョン更新（ALL CLEAR時のBGMをエンディングに変更）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -153,7 +153,6 @@ async function init() {
     
     resizeCanvas();
 
-    // ★修正：START GAMEボタンを探してローディング表示にすり替える
     const titleScreen = document.getElementById('title-screen');
     let startButton = null;
     let originalBtnHTML = "";
@@ -161,9 +160,8 @@ async function init() {
     let originalBtnBorder = "";
 
     if (titleScreen) {
-        titleScreen.style.pointerEvents = 'none'; // ロード中のタップ全体無効化
+        titleScreen.style.pointerEvents = 'none'; 
         
-        // title-screen内のボタン等から「START GAME」というテキストを持つ要素を探す
         const elements = titleScreen.querySelectorAll('button, div, span');
         for (let el of elements) {
             if (el.innerText && el.innerText.trim() === 'START GAME') {
@@ -173,17 +171,14 @@ async function init() {
         }
 
         if (startButton) {
-            // 元の見た目を保存
             originalBtnHTML = startButton.innerHTML;
             originalBtnColor = startButton.style.color;
             originalBtnBorder = startButton.style.borderColor;
 
-            // ローディング表示に変更
             startButton.innerHTML = '<span style="animation: pulse 1.5s infinite; display: inline-block;">NOW LOADING...</span>';
             startButton.style.color = '#00ffff';
             startButton.style.borderColor = '#00ffff';
 
-            // アニメーション用のCSSがなければ追加
             if (!document.getElementById('pulse-anim')) {
                 const style = document.createElement('style');
                 style.id = 'pulse-anim';
@@ -206,7 +201,6 @@ async function init() {
     soundManager.init();
     isPreloadCompleted = true;
     
-    // ★修正：ロード完了後、START GAMEボタンを元の姿に戻してタップを解禁
     if (titleScreen) {
         titleScreen.style.pointerEvents = 'auto';
         if (startButton) {
@@ -514,7 +508,7 @@ function handleTransitionFade() {
         } else {
             gameState = 'UI';
             stgManager = null; 
-            soundManager.playBGM('clear');
+            soundManager.playBGM('ending'); // ★修正: ALL CLEAR時に ending.mp3 を再生する
             
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
