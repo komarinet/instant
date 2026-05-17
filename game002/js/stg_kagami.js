@@ -1,4 +1,4 @@
-const VER_STG_KAGAMI = "0.2.2"; // バージョン更新（ボスのHPを2倍に増加）
+const VER_STG_KAGAMI = "0.3.0"; // バージョン更新（ザコ敵の射撃追加、ボスのHPをさらに2倍(600)に増加）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['kagami'] = {
@@ -12,8 +12,8 @@ window.StageConfigs['kagami'] = {
         if (type === 'typea') return { imgSrc: 'typea.png', size: 16, hp: 2, maxHp: 2 };
         if (type === 'typeb') return { imgSrc: 'typeb.png', size: 20, hp: 4, maxHp: 4 };
         if (type === 'typec') return { imgSrc: 'typec.png', size: 18, hp: 3, maxHp: 3 };
-        // ★修正：ボスを1.5倍の大きさに（75 × 1.5 ＝ 約112）＋将来のADV用にボスタグを追加。HPを2倍（150→300）に強化。
-        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 112, hp: 300, maxHp: 300, isBoss: true };
+        // ★修正：ボスのHPをさらに2倍（300→600）に強化。
+        if (type === 'typeboss') return { imgSrc: 'typeboss.png', size: 112, hp: 600, maxHp: 600, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // ★修正：ステージを全体で約4800フレーム（約80秒）に延長し、比率に緩急をつける
@@ -57,10 +57,21 @@ window.StageConfigs['kagami'] = {
         }
     },
     shootEnemy: function(e, stg) {
-        if (e.type === 'typeb' && e.moveTimer > 0 && e.moveTimer % 100 === 0) {
+        // ★追加：typea の射撃（自機狙いの赤い弾）
+        if (e.type === 'typea' && stg.frame % 120 === 0) {
+            const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
+            stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500'));
+        }
+        else if (e.type === 'typeb' && e.moveTimer > 0 && e.moveTimer % 100 === 0) {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*5, Math.sin(ang)*5, '#ffcc00'));
-        } else if (e.type === 'typeboss') {
+        } 
+        // ★追加：typec の射撃（少し速めの自機狙い水色弾）
+        else if (e.type === 'typec' && stg.frame % 90 === 0) {
+            const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
+            stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*4, Math.sin(ang)*4, '#00ffff'));
+        }
+        else if (e.type === 'typeboss') {
             if (stg.frame % 20 === 0) {
                 for (let i = 0; i < 16; i++) {
                     const ang = i * Math.PI * 2 / 16 + stg.frame * 0.01;
