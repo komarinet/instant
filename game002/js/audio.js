@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.4.0"; // バージョン更新（ステージ6のBGM追加）
+export const VER_AUDIO = "0.4.1"; // バージョン更新（エンディングBGMを追加）
 
 export const soundManager = {
     bgm: {},
@@ -19,6 +19,11 @@ export const soundManager = {
         this.bgm['clear'] = new Audio('bgm/clear.mp3');
         this.bgm['clear'].loop = true;
         this.bgm['clear'].volume = 0.4;
+
+        // ★追加：エンディング BGM
+        this.bgm['ending'] = new Audio('bgm/ending.mp3');
+        this.bgm['ending'].loop = true;
+        this.bgm['ending'].volume = 0.4;
 
         // --- ADV（会話）パート用 BGM ---
         this.bgm['relax'] = new Audio('bgm/relax.mp3');
@@ -75,7 +80,6 @@ export const soundManager = {
         this.bgm['boss_godai'].volume = 0.4;
 
         // --- STAGE 6: FINAL ---
-        // ★追加：stage_cap と boss_cap を登録
         this.bgm['stage_final'] = new Audio('bgm/stage_cap.mp3');
         this.bgm['stage_final'].loop = true;
         this.bgm['stage_final'].volume = 0.4;
