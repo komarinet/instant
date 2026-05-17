@@ -1,4 +1,4 @@
-const VER_SCENARIO_IGARI = "0.6.0"; // バージョン更新（ステージ6のシナリオ刷新およびエンディングの追加）
+const VER_SCENARIO_IGARI = "0.6.1"; // バージョン更新（ステージ1にボス手前ADV「mid_stg」を追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -59,6 +59,11 @@ scenarios.igari = {
         stgId: 'kagami',
         adv: [],
         pre_stg: [],
+        mid_stg: [
+            // ★追加：各務ボス手前のアドベンチャーパート
+            { bg: 'bluesky.png', character: 'kagekagami.png', spriteIndex: 0, speaker: '？？？', text: 'ふっ・・・やはり、この程度は対処できるか', isRight: false },
+            { bg: 'bluesky.png', character: 'kagekagami.png', spriteIndex: 4, speaker: '？？？', text: 'だがこれではどうだ', isRight: false }
+        ],
         post_stg: [
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'いいだろう。第１関門は合格だ', bgm: 'relax' },
             { bg: 'breakufo.png', place: 'Airport', time: '2025.04', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '合格・・・？　てか、その声！' },
