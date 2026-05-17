@@ -1,4 +1,4 @@
-const VER_PLAYER_IGARI = "0.2.5"; // バージョン更新（ボスに対するボムのダメージを割合＋固定値で大幅強化）
+const VER_PLAYER_IGARI = "0.2.6"; // バージョン更新（通常時のレーザー色を赤色に修正）
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -61,7 +61,7 @@ window.PlayerControllers['igari'] = {
         // ★修正：接近判定に応じて弾速と色を動的に変更
         const isClose = player.isCloseToDanger;
         const bS = isClose ? 20 : 10; 
-        const bColor = isClose ? '#00ffff' : player.color; 
+        const bColor = isClose ? '#00ffff' : '#ff3366'; // ★修正：player.colorから赤色に変更
         const pL = player.powerLevel;
         
         if (pL === 0) { player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, bColor)); }
