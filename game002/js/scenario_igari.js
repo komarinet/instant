@@ -438,7 +438,7 @@ scenarios.igari = {
         ],
         ending: [
             { bg: 'airport.png', speaker: '', text: '１年後', isRight: true },
-            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: '本当に本当に大丈夫なんだろうな', isRight: true },
+            { bg: 'airport.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: '本当に本当に大丈夫なんだろうな', isRight: true },
             { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 0, speaker: '柊', text: '大丈夫だって。防護結界も３重に張ってるし' },
             { bg: 'airport.png', character: 'hiragi01.png', spriteIndex: 1, speaker: '柊', text: '核爆弾が落ちても無事だよ', isRight: true },
             { bg: 'airport.png', character: 'igari02.png', spriteIndex: 5, speaker: '猪狩', text: 'その場合俺が無事で済まないから困るが', isRight: true },
