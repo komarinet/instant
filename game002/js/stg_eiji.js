@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.2.0"; // バージョン更新（勝敗を撃破数に変更、パワーアップアイテム禁止、敵の数を2倍に増加）
+const VER_STG_EIJI = "0.2.1"; // バージョン更新（CPU衛二の射線を4から3に減らしてバランス調整）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -8,7 +8,7 @@ window.StageConfigs['eiji'] = {
         // 制限時間（120秒 = 7200フレーム）
         stg.timeLimit = 7200; 
         
-        // ★追加：撃破数カウンターの初期化
+        // 撃破数カウンターの初期化
         stg.playerKills = 0;
         stg.cpuKills = 0;
 
@@ -27,7 +27,7 @@ window.StageConfigs['eiji'] = {
         // STGManager の描画メソッドをモンキーパッチして、UIとCPUを最前面に描画
         stg.origDraw = stg.draw.bind(stg);
         stg.draw = function(ctx) {
-            // ★追加：パワーアップアイテム（P）のみ強制削除する特別ルール
+            // パワーアップアイテム（P）のみ強制削除する特別ルール
             this.items = this.items.filter(it => it.type !== 'power');
 
             this.origDraw(ctx); // 元の描画（背景、敵、自機など）
@@ -79,11 +79,11 @@ window.StageConfigs['eiji'] = {
             ctx.font = 'bold 16px "Segoe UI", sans-serif';
             ctx.textAlign = 'left';
             
-            // ★修正：護の撃破数を表示
+            // 護の撃破数を表示
             ctx.fillStyle = '#33ccff';
             ctx.fillText(`護(YOU) : ${this.playerKills} 撃破`, boardX + 15, boardY + 25);
             
-            // ★修正：衛二の撃破数を表示
+            // 衛二の撃破数を表示
             ctx.fillStyle = '#0055ff';
             ctx.fillText(`衛二(CPU) : ${this.cpuKills} 撃破`, boardX + 15, boardY + 48);
             
@@ -174,7 +174,7 @@ window.StageConfigs['eiji'] = {
 
         stg.timeLimit--;
 
-        // ★追加：自機の撃破数をカウントするため、毎フレーム敵のHP変動を監視
+        // 自機の撃破数をカウントするため、毎フレーム敵のHP変動を監視
         stg.enemies.forEach(e => {
             if (e._prevHp === undefined) e._prevHp = e.hp;
             if (e._prevHp > 0 && e.hp <= 0) {
@@ -187,7 +187,7 @@ window.StageConfigs['eiji'] = {
         });
 
         if (stg.timeLimit > 0) {
-            // ★修正：敵の出現数を2倍にするため、フレーム間隔を半分に短縮
+            // 敵の出現数を2倍にするため、フレーム間隔を半分に短縮
             if (stg.frame % 30 === 0) {
                 let e = new Enemy('shiki_a', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId);
                 e.angleToCenter = Math.atan2((sH / 2) - (-50), (sW / 2) - e.x);
@@ -219,12 +219,11 @@ window.StageConfigs['eiji'] = {
         if (stg.cpuX < 30) stg.cpuX = 30;
         if (stg.cpuX > sW - 30) stg.cpuX = sW - 30;
 
-        // ★修正：衛二の攻撃頻度と手数を増やし、敵倍増に対応できる強さに調整
+        // ★修正：衛二の攻撃を4射線から3射線（3WAY）に弱体化
         if (stg.cpuTimer % 8 === 0) {
-            stg.cpuBullets.push({ x: stg.cpuX - 15, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
-            stg.cpuBullets.push({ x: stg.cpuX + 15, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true });
-            stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: -4, vy: -15, size: 6, color: '#0055ff', alive: true });
-            stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: 4, vy: -15, size: 6, color: '#0055ff', alive: true });
+            stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true }); // 中央
+            stg.cpuBullets.push({ x: stg.cpuX - 12, y: stg.cpuY - 20, vx: -2, vy: -15, size: 6, color: '#0055ff', alive: true }); // 少し左
+            stg.cpuBullets.push({ x: stg.cpuX + 12, y: stg.cpuY - 20, vx: 2, vy: -15, size: 6, color: '#0055ff', alive: true }); // 少し右
         }
 
         stg.cpuBullets.forEach(b => {
@@ -237,8 +236,8 @@ window.StageConfigs['eiji'] = {
                     e.hp--;
                     if (e.hp <= 0) {
                         e.alive = false; 
-                        stg.cpuKills++; // ★修正：スコアではなく撃破数を加算
-                        e._killedByCpu = true; // ★追加：CPUが倒したマークを付ける
+                        stg.cpuKills++; // スコアではなく撃破数を加算
+                        e._killedByCpu = true; // CPUが倒したマークを付ける
                         stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                     }
@@ -252,7 +251,7 @@ window.StageConfigs['eiji'] = {
             
             stg.enemies = []; stg.enemyBullets = [];
             
-            // ★修正：勝敗判定をスコアから撃破数に変更
+            // 勝敗判定をスコアから撃破数に変更
             if (stg.playerKills >= stg.cpuKills) {
                 stg.isStageClear = true; 
             } else {
