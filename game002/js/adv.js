@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.26"; // バージョン更新（主人公に応じて自動的に右側配置を切り替える機能を追加 ＋ 衛二の立ち絵を1.2倍に拡大）
+const VER_ADV = "0.4.27"; // バージョン更新（主人公に応じて自動的に右側配置を切り替える機能を追加 ＋ 衛二の立ち絵を1.2倍に拡大）
 
 class ADVManager {
     constructor() {
@@ -297,7 +297,7 @@ class ADVManager {
             let mScale = 1.0;
             if (currentMsg.character === 'kagami.png') mScale = 41 / 43; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
-            else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.2; // ★追加：メイン画像の基準スケールを1.2倍に
+            else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1; // ★追加：メイン画像の基準スケールを1.1倍に
 
             const mCols = getCols(currentMsg.character); 
             mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
@@ -339,7 +339,7 @@ class ADVManager {
 
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
-                else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.2; // ★追加：実際の描画スケールを1.2倍に
+                else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; // ★追加：実際の描画スケールを1.1倍に
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
                     charScale = 1.0; 
                     specificXOffset = alignRight ? -20 : 60; 
