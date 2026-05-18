@@ -115,7 +115,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 2, speaker: '衛二(裏)', text: 'ははははっ！　勝った！　兄貴に勝った！', effect: 'shake', bgm: 'stop' },
             { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '椎名くん、残念だが君の運命は確定してしまった', bgm: 'dark' },
             { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'もはや何度時間を巻き戻しても無駄だろう' },
-            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: 'そんな・・・' }
+            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: 'そんな・・・' }
         ]
     },
     2: { adv: [], pre_stg: [], post_stg: [] },
