@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.2.2"; // バージョン更新（CPU衛二の射線をさらに1射線に減らして大幅弱体化）
+const VER_STG_EIJI = "0.2.3"; // バージョン更新（負けADVの無限ループを修正し、正しくゲームオーバー画面へ遷移するように修正）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -8,9 +8,10 @@ window.StageConfigs['eiji'] = {
         // 制限時間（120秒 = 7200フレーム）
         stg.timeLimit = 7200; 
         
-        // 撃破数カウンターの初期化
+        // 撃破数カウンターと時間切れフラグの初期化
         stg.playerKills = 0;
         stg.cpuKills = 0;
+        stg.timeUpProcessed = false; // ★追加：時間切れ判定が何度も呼ばれるのを防ぐフラグ
 
         // 衛二（CPU）のステータス
         stg.cpuX = (canvas.width/dpr) * 0.7; // 右側に配置
@@ -23,6 +24,13 @@ window.StageConfigs['eiji'] = {
         for (let i=0; i<15; i++) {
             stg.clouds.push({ x: Math.random()*(canvas.width/dpr), y: Math.random()*(canvas.height/dpr), size: Math.random()*80+40, speed: Math.random()*3+2, opacity: Math.random()*0.15+0.05 });
         }
+
+        // ★追加：ゲームオーバー状態を強制的に返すためのモンキーパッチ
+        stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
+        stg.updateGameplay = function() {
+            if (this.forceGameOver) return 'GAMEOVER';
+            return this.origUpdateGameplay();
+        };
 
         // STGManager の描画メソッドをモンキーパッチして、UIとCPUを最前面に描画
         stg.origDraw = stg.draw.bind(stg);
@@ -219,7 +227,7 @@ window.StageConfigs['eiji'] = {
         if (stg.cpuX < 30) stg.cpuX = 30;
         if (stg.cpuX > sW - 30) stg.cpuX = sW - 30;
 
-        // ★修正：衛二の攻撃をさらに1射線（中央のみ）に弱体化
+        // 衛二の攻撃をさらに1射線（中央のみ）に弱体化
         if (stg.cpuTimer % 8 === 0) {
             stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true }); // 中央のみ
         }
@@ -244,7 +252,9 @@ window.StageConfigs['eiji'] = {
         });
         stg.cpuBullets = stg.cpuBullets.filter(b => b.alive);
 
-        if (stg.timeLimit <= 0 && !stg.isTimeStopped) {
+        // ★修正：時間切れ時の処理（無限ループ防止 ＆ 正しいゲームオーバー遷移）
+        if (stg.timeLimit <= 0 && !stg.isTimeStopped && !stg.timeUpProcessed) {
+            stg.timeUpProcessed = true; // ★追加：処理済みのフラグを立てる
             stg.isTimeStopped = true;
             
             stg.enemies = []; stg.enemyBullets = [];
@@ -252,6 +262,7 @@ window.StageConfigs['eiji'] = {
             // 勝敗判定をスコアから撃破数に変更
             if (stg.playerKills >= stg.cpuKills) {
                 stg.isStageClear = true; 
+                stg.isTimeStopped = false; // クリア時はそのまま進行
             } else {
                 let charId = stg.player.id || 'mamoru';
                 let lossAdv = [];
@@ -262,6 +273,7 @@ window.StageConfigs['eiji'] = {
                 window.startMidStgADV(lossAdv, () => {
                     stg.player.hp = 0; 
                     stg.isTimeStopped = false;
+                    stg.forceGameOver = true; // ★追加：ADV再生終了後にゲームオーバーの信号を送る
                 });
             }
         }
