@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.2.1"; // バージョン更新（CPU衛二の射線を4から3に減らしてバランス調整）
+const VER_STG_EIJI = "0.2.2"; // バージョン更新（CPU衛二の射線をさらに1射線に減らして大幅弱体化）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -219,11 +219,9 @@ window.StageConfigs['eiji'] = {
         if (stg.cpuX < 30) stg.cpuX = 30;
         if (stg.cpuX > sW - 30) stg.cpuX = sW - 30;
 
-        // ★修正：衛二の攻撃を4射線から3射線（3WAY）に弱体化
+        // ★修正：衛二の攻撃をさらに1射線（中央のみ）に弱体化
         if (stg.cpuTimer % 8 === 0) {
-            stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true }); // 中央
-            stg.cpuBullets.push({ x: stg.cpuX - 12, y: stg.cpuY - 20, vx: -2, vy: -15, size: 6, color: '#0055ff', alive: true }); // 少し左
-            stg.cpuBullets.push({ x: stg.cpuX + 12, y: stg.cpuY - 20, vx: 2, vy: -15, size: 6, color: '#0055ff', alive: true }); // 少し右
+            stg.cpuBullets.push({ x: stg.cpuX, y: stg.cpuY - 20, vx: 0, vy: -15, size: 6, color: '#0055ff', alive: true }); // 中央のみ
         }
 
         stg.cpuBullets.forEach(b => {
