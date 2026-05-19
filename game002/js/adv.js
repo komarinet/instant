@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.27"; // バージョン更新（主人公に応じて自動的に右側配置を切り替える機能を追加 ＋ 衛二の立ち絵を1.2倍に拡大）
+const VER_ADV = "0.4.28"; // バージョン更新（kagami.pngの行数指定を3行に修正し、Pixel切断を解消）
 
 class ADVManager {
     constructor() {
@@ -275,9 +275,10 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
+        // ★修正：行数（Rows）の計算関数に kagami.png を追加（3行であることを明示）
         const getRows = (key) => {
             if (key === 'urashiina.png' || key === 'nurse.png' || key === 'uraeiji.png') return 2; 
-            if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png' || key === 'eiji.png' || key === 'tadashige.png') return 3; 
+            if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png' || key === 'eiji.png' || key === 'tadashige.png' || key === 'kagami.png') return 3; 
             if (key === 'shiina.png' || key === 'cap.png' || key === 'jingu.png' || key === 'kagejingu.png') return 4; 
             return 4; 
         };
@@ -297,20 +298,18 @@ class ADVManager {
             let mScale = 1.0;
             if (currentMsg.character === 'kagami.png') mScale = 41 / 43; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
-            else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1; // ★追加：メイン画像の基準スケールを1.1倍に
+            else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1;
 
             const mCols = getCols(currentMsg.character); 
             mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
-            // 主人公（選ばれているキャラ）に応じてデフォルトの立ち位置を自動判定
             const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
             const isShiina = currentMsg.character === 'shiina.png' || currentMsg.character === 'urashiina.png';
             
             let defaultRight = false;
-            // 現在のルート主人公判定
             if (window.selectedCharId === 'igari' && isIgari) defaultRight = true;
             else if ((window.selectedCharId === 'shiina' || window.selectedCharId === 'mamoru') && isShiina) defaultRight = true;
-            else if (!window.selectedCharId && isIgari) defaultRight = true; // フォールバック
+            else if (!window.selectedCharId && isIgari) defaultRight = true; 
 
             alignRight = currentMsg.isRight !== undefined ? currentMsg.isRight : defaultRight;
         }
@@ -339,7 +338,7 @@ class ADVManager {
 
                 if (cData.key === 'kagami.png') charScale = 41 / 43; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
-                else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; // ★追加：実際の描画スケールを1.1倍に
+                else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; 
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
                     charScale = 1.0; 
                     specificXOffset = alignRight ? -20 : 60; 
