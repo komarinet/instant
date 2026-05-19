@@ -47,8 +47,8 @@ scenarios.mamoru = {
         { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 10, speaker: '椎名', text: '異世界保険組合・・・なるほど' },
         { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '驚かないのだな' },
         { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 0, speaker: '椎名', text: '実家が特殊ですから、非日常には慣れてるんです' },
-        { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'それで、僕はどうすればいいんでしょう？' },
-        { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '単刀直入に言うと、君に椎名家を継いでほしい' },
+        { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 1, speaker: '椎名', text: 'それで、あなたは何のために僕のところへ？' },
+        { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '単刀直入に言う。君に椎名家を継いでほしい' },
         { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 7, speaker: '椎名', text: 'あなた、椎名の回し者ですか？' },
         { bg: 'hospital.png', character: 'shiina.png', spriteIndex: 3, speaker: '椎名', text: '僕に幻覚をみせ、家を継がせようと？' },
         { bg: 'hospital.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '信じる信じないは勝手だがね' },
@@ -60,10 +60,10 @@ scenarios.mamoru = {
     ],
     'kagami_arrival': [
         { bg: 'shiinake.png', place: 'Shiina House', time: '2025.04', character: 'eiji.png', spriteIndex: 3, speaker: '衛二', text: '家督を譲れ？', delay: 60, bgm: 'dark' },
-        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 4, speaker: '衛二', text: '兄さん、椎名の家業には興味ないって言ったじゃないか' },
+        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 4, speaker: '衛二', text: '椎名の家業には興味ないって言ってたじゃないか！' },
         { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '仕方ないんだよ、事情が事情で' },
-        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 2, speaker: '衛二', text: 'それでも納得できないよ！' },
-        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 8, speaker: '衛二', text: '父さんも何か言ってやってよ' },
+        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 2, speaker: '衛二', text: 'それでも納得できないね！' },
+        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 8, speaker: '衛二', text: '親父、どうよ？' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '衛二は厳しい修行で仮面の力を手に入れた' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '家督を継ぎたいのであれば、衛二に勝る力を証明しろ' },
         { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: '・・・わかった' }
@@ -71,7 +71,7 @@ scenarios.mamoru = {
     1: {
         stgId: 'eiji', // 新設したサドンデスステージを指定
         adv: [
-            { bg: 'nightmt.png', place: 'Night Mountain', time: '2025.04', character: 'eiji.png', spriteIndex: 0, speaker: '衛二', text: '仮面は持ってたよね？', delay: 60, bgm: 'relax' },
+            { bg: 'nightmt.png', place: 'Night Mountain', time: '2025.04', character: 'eiji.png', spriteIndex: 0, speaker: '衛二', text: '仮面は持ってんだろ？', delay: 60, bgm: 'relax' },
             { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '一応僕も椎名の人間だからね' },
             { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'すまないが、部外者にもわかるように説明してもらってもいいかな' },
             { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: 'すみません、各務さん' },
@@ -79,11 +79,11 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'そうか・・・' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: 'すまないな、異世界の客人よ' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: 'まあ要は仮面の力をより示せた方の勝利、ということだ' },
-            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 3, speaker: '衛二', text: 'そもそも仮面の力、使えるの？　医者なんて仕事に逃げた兄さんが・・・' }
+            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 3, speaker: '衛二', text: 'そもそも仮面の力、使えんのかよ？　医者なんて仕事に逃げた兄貴がさ' }
         ], 
         pre_stg: [
             { bg: 'nightmt.png', item: 'mask.png', se: 'vibration.mp3', text: '', bgm: 'stop' },
-            { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: 'これでいいよな？　悪いが、手加減出来ねぇぞ？', bgm: 'dark' },
+            { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '・・・これでいいか？', bgm: 'dark' },
             { bg: 'nightmt.png', item: 'mask2.png', se: 'vibration.mp3', text: '' },
             { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: '上等だよ、流れ弾に当たって死んでも知らねぇからな！', effect: 'shake' }
         ], 
@@ -94,22 +94,22 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '衛二・・・' },
             { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '衛二くん、椎名くんは１年後に殺される運命を覆すために' },
             { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 9, speaker: '衛二', text: 'わかってるよ。俺だって兄貴に死んでもらいたくはない' },
-            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 0, speaker: '衛二', text: 'ただ、納得したかったんだ' },
+            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 0, speaker: '衛二', text: 'ただ、納得したかっただけだ' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '勝負はついた。両者とも見事だったぞ' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '家督は護に譲るものとする' },
             { bg: 'nightmt.png', effect: 'whiteout', text: '' },
             { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: 'これは・・・力が溢れてくる' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '先祖の力がお前の仮面に注がれたのだ' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '今後、椎名家の依頼はお前が指揮をとれ' },
-            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '医者は続けていいの？' },
+            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: 'わかった。でも、医者は続けたい。いいかな' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '好きにしろ、お前が当主だ' },
-            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 6, speaker: '衛二', text: '兄貴、大変だ！　UFOが攻めてきた！', effect: 'shake', bgm: 'dark' },
-            { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: '衛二、お前全滅させてきたって言ってたよな' },
-            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 3, speaker: '衛二', text: '実は最後デカいやつがいたから逃げてきたんだよな' },
-            { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 4, speaker: '忠重', text: '全く、そんなことでよく当主になろうと思ったな' },
+            { bg: 'nightmt.png', character: 'eiji.png', spriteIndex: 6, speaker: '衛二', text: '兄貴、大変だ！　UFOが攻めてきたって報告が！', effect: 'shake', bgm: 'dark' },
+            { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: 'はっ、早速だな' },
+            { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'UFOと戦ったことが？' },
+            { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: '日常茶飯時だ。我々にとって外来種駆除の様なものよ' },
             { bg: 'nightmt.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '護、当主としての初仕事だ。UFOを全滅させろ' },
-            { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'なんだか就任早々慌ただしいな' },
-            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 1, speaker: '護', text: '職業柄、忙しいのには慣れてるよ' }
+            { bg: 'nightmt.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '就任早々慌ただしいな' },
+            { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 1, speaker: '護', text: '大丈夫です。忙しいのには慣れてますから' }
         ],
         loss_adv: [ // 負けパターン（STG内で呼び出される）
             { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 2, speaker: '衛二(裏)', text: 'ははははっ！　勝った！　兄貴に勝った！', effect: 'shake', bgm: 'stop' },
