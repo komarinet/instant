@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.29"; // バージョン更新（kagami.pngのスケールを0.9倍に修正）
+const VER_ADV = "0.4.30"; // バージョン更新（kagami.pngのスケールを0.9倍に修正）
 
 class ADVManager {
     constructor() {
@@ -296,8 +296,8 @@ class ADVManager {
             const mainImg = this.assets[currentMsg.character];
             const msHeight = Math.floor(mainImg.height / getRows(currentMsg.character)) - 4; 
             let mScale = 1.0;
-            // ★変更：各務（kagami.png）のスケールを 0.9 に変更
-            if (currentMsg.character === 'kagami.png') mScale = 0.9; 
+            // ★変更：各務（kagami.png）のスケールを 0.85 に変更
+            if (currentMsg.character === 'kagami.png') mScale = 0.85; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
             else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1;
 
@@ -337,8 +337,8 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                // ★変更：描画時の各務（kagami.png）のスケールも 0.9 に変更
-                if (cData.key === 'kagami.png') charScale = 0.9; 
+                // ★変更：描画時の各務（kagami.png）のスケールも 0.85 に変更
+                if (cData.key === 'kagami.png') charScale = 0.85; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; 
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
