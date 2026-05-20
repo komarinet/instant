@@ -175,13 +175,13 @@ scenarios.igari = {
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: 'ふふ・・・はははっ', isRight: false },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '何がテストだ！　俺が貴様らを認めるわけねぇだろうが！', isRight: false },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 2, speaker: '椎名', text: '特にそっちの魔女、ホイホイ付いてきやがって。飛んで火に入る何とやらだ', isRight: false },
-            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名家はその多大なる能力を使うため、潜在意識と顕在意識をバイパスするらしい', isRight: true },
+            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名家はその多大なる能力を使うため、潜在意識と顕在意識をバイパスすると聞いた', isRight: true },
             { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'つまり性格変わっちゃうわけね', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '話も通じない化け物なんだよ、あいつらは！', isRight: true },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 3, speaker: '椎名', text: '久々に外に出られて気分がいいぜ！', isRight: false },
             { bg: 'sanrin.png', character: 'urashiina.png', spriteIndex: 4, speaker: '椎名', text: '誰でもいいからぶん殴りてぇ！', isRight: false },
-            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'なんとかなんないのか', isRight: true },
-            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: 'まあ、叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
+            { bg: 'sanrin.png', character: 'igari02.png', spriteIndex: 12, speaker: '猪狩', text: 'なんとかならんのか', isRight: true },
+            { bg: 'sanrin.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '叩き伏せて椎名くんを呼び戻す他ないな', isRight: true },
             { bg: 'sanrin.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: '来るよ!', isRight: true }
         ],
         event_adv: [
