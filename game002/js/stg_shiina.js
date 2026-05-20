@@ -1,4 +1,4 @@
-const VER_STG_SHIINA = "0.4.11"; // バージョン更新（ADV後のボスBGM切り替え処理を追加）
+const VER_STG_SHIINA = "0.4.12"; // バージョン更新（背景画像を上下反転させてシームレスにループするように修正）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
@@ -15,15 +15,36 @@ window.StageConfigs['shiina'] = {
     },
     updateBackground: function(stg, sW, sH) {
         // ★修正：速度を約1.3倍に（1.5 -> 1.95）
-        stg.bgScrollY += 1.95; if (stg.bgScrollY >= sH) stg.bgScrollY = 0;
+        stg.bgScrollY += 1.95; 
+        
+        // ★修正：反転ループのためリセットのタイミングを sH * 2 に変更
+        if (stg.bgScrollY >= sH * 2) {
+            stg.bgScrollY -= sH * 2;
+        }
+        
         // ★修正：雲の速度も1.3倍
         stg.clouds.forEach(c => { c.y += c.speed * 1.3; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
     },
     drawBackground: function(stg, ctx, sW, sH) {
         const bgImg = stg.advManager?.assets['mountain.png'];
         if (bgImg && bgImg.naturalWidth > 0) {
-            ctx.drawImage(bgImg, 0, stg.bgScrollY, sW, sH); ctx.drawImage(bgImg, 0, stg.bgScrollY - sH, sW, sH);
-        } else { ctx.fillStyle = '#112233'; ctx.fillRect(0, 0, sW, sH); }
+            const y = stg.bgScrollY;
+
+            // 1枚目（通常）
+            ctx.drawImage(bgImg, 0, y, sW, sH);
+
+            // 2枚目（上下反転・鏡像）
+            ctx.save();
+            ctx.translate(0, (y - sH) + sH / 2);
+            ctx.scale(1, -1);
+            ctx.drawImage(bgImg, 0, -sH / 2, sW, sH);
+            ctx.restore();
+
+            // 3枚目（通常）
+            ctx.drawImage(bgImg, 0, y - sH * 2, sW, sH);
+        } else { 
+            ctx.fillStyle = '#112233'; ctx.fillRect(0, 0, sW, sH); 
+        }
         stg.clouds.forEach(c => { ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`; ctx.beginPath(); ctx.arc(c.x, c.y, c.size, 0, Math.PI*2); ctx.fill(); });
     },
     getEnemyData: function(type) {
