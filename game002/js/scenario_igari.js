@@ -87,7 +87,7 @@ scenarios.igari = {
             { bg: 'breakufo.png', maskBg: 'darkcandle.png', maskDelay: 90, character: 'hiragi01.png', spriteIndex: 13, effect: 'shake', text: '', isRight: false, bgm: 'dark' }
         ],
         pre_stg: [
-            { bg: 'darkcandle.png', character: 'kagami.png', spriteIndex: 14, speaker: '各務', text: 'なんだ？　何が起こった!?', isRight: true },
+            { bg: 'darkcandle.png', character: 'kagami.png', spriteIndex: 7, speaker: '各務', text: 'なんだ？　何が起こった!?', isRight: true },
             { bg: 'darkcandle.png', character: 'igari02.png', spriteIndex: 4, speaker: '猪狩', text: '魔女の結界だ！　千華のやつブチ切れやがった！', isRight: true },
             { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 11, speaker: '柊', text: 'もう殺す。その女も、俊基も', isRight: false },
             { bg: 'darkcandle.png', character: 'hiragi01.png', spriteIndex: 3, speaker: '柊', text: '両方殺して私も死ぬ！', isRight: false, effect: 'shake' },
