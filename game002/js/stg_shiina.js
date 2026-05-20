@@ -1,11 +1,10 @@
-const VER_STG_SHIINA = "0.4.12"; // バージョン更新（背景画像を上下反転させてシームレスにループするように修正）
+const VER_STG_SHIINA = "0.4.13"; // バージョン更新（敵の移動速度・出現数アップ、ボス体力倍増、背景シームレス化）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['shiina'] = {
     init: function(stg, canvas) { 
         stg.bossSpawned = false; stg.bgScrollY = 0; stg.clouds = [];
         
-        // ★追加：コア(stg_core.js)によるボス出現時の自動BGM切り替えをブロック
         stg.bgmChanged = true; 
         
         const dpr = window.devicePixelRatio || 1;
@@ -14,15 +13,12 @@ window.StageConfigs['shiina'] = {
         }
     },
     updateBackground: function(stg, sW, sH) {
-        // ★修正：速度を約1.3倍に（1.5 -> 1.95）
         stg.bgScrollY += 1.95; 
         
-        // ★修正：反転ループのためリセットのタイミングを sH * 2 に変更
         if (stg.bgScrollY >= sH * 2) {
             stg.bgScrollY -= sH * 2;
         }
         
-        // ★修正：雲の速度も1.3倍
         stg.clouds.forEach(c => { c.y += c.speed * 1.3; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
     },
     drawBackground: function(stg, ctx, sW, sH) {
@@ -53,7 +49,6 @@ window.StageConfigs['shiina'] = {
                 const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.png'] : null;
                 ctx.save(); ctx.translate(this.x, this.y);
                 
-                // 画像を進行方向に向けるための回転処理
                 if (this.angle) ctx.rotate(this.angle);
                 
                 if (this.config && this.config.transformEnemy) this.config.transformEnemy(this, ctx); 
@@ -74,14 +69,14 @@ window.StageConfigs['shiina'] = {
             };
         };
 
-        // AのHPを1（元の1/3）、CのHPを3に弱体化
         if (type === 'shiki_a') return { imgSrc: 'shiki.png', size: 25, hp: 1, init: (e) => { initShiki(e, 0); } };
         if (type === 'shiki_b') return { imgSrc: 'shiki.png', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
         if (type === 'shiki_c') return { imgSrc: 'shiki.png', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
         if (type === 'shiki_d') return { imgSrc: 'shiki.png', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
 
+        // ★修正：ボス体力を2倍 (800) に強化
         if (type === 'shiinaboss') return {
-            imgSrc: 'shiinaboss.png', size: 80, hp: 400, maxHp: 400,
+            imgSrc: 'shiinaboss.png', size: 80, hp: 800, maxHp: 800,
             init: (e) => {
                 e.animTimer = 0;
                 e.isInvincible = true; 
@@ -90,7 +85,6 @@ window.StageConfigs['shiina'] = {
                     const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiinaboss.png'] : null;
                     ctx.save(); ctx.translate(this.x, this.y);
 
-                    // ★追加：ボス撃破時に透明になりながら消える処理を追加
                     if (this.isDying && this.deathTimer >= 60) {
                         ctx.globalAlpha = Math.max(0, 1.0 - (this.deathTimer - 60) / 120); 
                     }
@@ -158,7 +152,6 @@ window.StageConfigs['shiina'] = {
     },
 
     updateWaves: function(stg, timer, sW, sH) {
-        // ★追加：パワーレベル4以上なら難易度アップ（1.3倍）
         const isHard = stg.player.powerLevel >= 4;
         const spawn = (type, x, y) => {
             let e = new Enemy(type, x, y, stg.player.charData, stg.advManager, stg.stgId);
@@ -177,8 +170,9 @@ window.StageConfigs['shiina'] = {
 
         let boss = stg.enemies.find(e => e.type === 'shiinaboss');
 
+        // ★修正：敵の頻度を上げ、編隊の機数を増やしました
         if (timer > 100 && timer < 1000) { 
-            let freq = isHard ? 90 : 120; // 頻度を1.3倍（間隔を短く）
+            let freq = isHard ? 60 : 90; 
             if (timer % freq === 0) {
                 let isLeft = Math.random() > 0.5;
                 let startX = isLeft ? -50 : sW + 50;
@@ -187,7 +181,7 @@ window.StageConfigs['shiina'] = {
                 let targetY = sH / 2; 
                 let angle = Math.atan2(targetY - startY, targetX - startX);
                 
-                let count = isHard ? 4 : 3; // 編隊の数も増やす
+                let count = isHard ? 5 : 4; // 編隊増量
                 for (let i = 0; i < count; i++) {
                     let offsetX = 0; let offsetY = 0;
                     if (i === 1) { 
@@ -199,6 +193,9 @@ window.StageConfigs['shiina'] = {
                     } else if (i === 3) {
                         offsetX = Math.cos(angle) * 70;
                         offsetY = Math.sin(angle) * 70;
+                    } else if (i === 4) {
+                        offsetX = Math.cos(angle - Math.PI * 0.75) * 70;
+                        offsetY = Math.sin(angle - Math.PI * 0.75) * 70;
                     }
                     let enemy = spawn('shiki_a', startX + offsetX, startY + offsetY);
                     enemy.angleToCenter = angle;
@@ -206,23 +203,23 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer >= 1000 && timer < 2000) { 
-            let freq = isHard ? 60 : 80;
+            let freq = isHard ? 45 : 60; // 頻度アップ
             if (timer % freq === 0) {
                 spawn('shiki_b', Math.random() * sW, -30);
             }
         } 
         else if (timer >= 2000 && timer < 3000) { 
-            let freq = isHard ? 115 : 150;
+            let freq = isHard ? 80 : 110; // 頻度アップ
             if (timer % freq === 0) {
                 let startX = Math.random() * (sW - 100) + 50;
-                let count = isHard ? 9 : 7;
+                let count = isHard ? 11 : 8; // 機数アップ
                 for(let i = 0; i < count; i++) {
                     spawn('shiki_c', startX, -40 - (i * 45));
                 }
             }
         } 
         else if (timer >= 3000 && timer < 4200) { 
-            let freq = isHard ? 90 : 120;
+            let freq = isHard ? 60 : 85; // 頻度アップ
             if (timer % freq === 0) {
                 spawn('shiki_d', Math.random() * sW, -50);
             }
@@ -253,7 +250,6 @@ window.StageConfigs['shiina'] = {
                 let currentBoss = stg.enemies.find(e => e.type === 'shiinaboss');
                 if (currentBoss) currentBoss.isInvincible = false;
                 
-                // ★追加：ADVの演出が終わった直後にボスBGMを再生
                 if (typeof window.soundManager !== 'undefined') {
                     window.soundManager.playBGM('boss_shiina');
                 }
@@ -266,7 +262,7 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (timer > 4300) { 
-            let freq = isHard ? 90 : 120;
+            let freq = isHard ? 70 : 100; // ボス戦中の湧きも頻度アップ
             if (timer % freq === 0) {
                 const rand = Math.random();
                 if (rand < 0.25) {
@@ -274,12 +270,13 @@ window.StageConfigs['shiina'] = {
                     let startX = isLeft ? -50 : sW + 50;
                     let startY = -50;
                     let angle = Math.atan2((sH / 2) - startY, (sW / 2) - startX);
-                    let count = isHard ? 4 : 3;
+                    let count = isHard ? 5 : 4;
                     for (let i = 0; i < count; i++) {
                         let offsetX = 0; let offsetY = 0;
                         if (i === 1) { offsetX = Math.cos(angle - Math.PI * 0.75) * 35; offsetY = Math.sin(angle - Math.PI * 0.75) * 35; } 
                         else if (i === 2) { offsetX = Math.cos(angle + Math.PI * 0.75) * 35; offsetY = Math.sin(angle + Math.PI * 0.75) * 35; } 
                         else if (i === 3) { offsetX = Math.cos(angle) * 70; offsetY = Math.sin(angle) * 70; }
+                        else if (i === 4) { offsetX = Math.cos(angle - Math.PI * 0.75) * 70; offsetY = Math.sin(angle - Math.PI * 0.75) * 70; }
                         let enemy = spawn('shiki_a', startX + offsetX, startY + offsetY);
                         enemy.angleToCenter = angle;
                     }
@@ -287,7 +284,7 @@ window.StageConfigs['shiina'] = {
                     spawn('shiki_b', Math.random() * sW, -30);
                 } else if (rand < 0.75) {
                     let startX = Math.random() * (sW - 100) + 50;
-                    let count = isHard ? 9 : 7;
+                    let count = isHard ? 11 : 8;
                     for(let i = 0; i < count; i++) spawn('shiki_c', startX, -40 - (i * 45));
                 } else {
                     spawn('shiki_d', Math.random() * sW, -50);
@@ -305,23 +302,19 @@ window.StageConfigs['shiina'] = {
             e.y = 90; 
         } 
         else if (e.type === 'shiki_a') {
-            // ゆっくりと一直線に移動
-            e.x += Math.cos(e.angleToCenter) * 0.8;
-            e.y += Math.sin(e.angleToCenter) * 0.8;
-            // 画像が下向き(Math.PI/2)をデフォルトとしている前提で進行方向に画像を回転させる
+            // ★修正：速度を 0.8 から 1.5 にアップ
+            e.x += Math.cos(e.angleToCenter) * 1.5;
+            e.y += Math.sin(e.angleToCenter) * 1.5;
             e.angle = e.angleToCenter - Math.PI / 2;
         } 
         else if (e.type === 'shiki_b') {
-            // 蝶のようにふらふら飛ぶ
             e.x += Math.sin(e.moveTimer * 0.1) * 3;
             e.y += 1.5 + Math.cos(e.moveTimer * 0.15) * 1.5;
         } 
         else if (e.type === 'shiki_c') {
-            // 人形（直線で飛んでくる）
             e.y += 4;
         } 
         else if (e.type === 'shiki_d') {
-            // 竿（回転しながら飛ぶ）
             e.angle = (e.angle || 0) + 0.1; 
             e.y += 2.5;
         }
@@ -341,27 +334,23 @@ window.StageConfigs['shiina'] = {
             }
         } 
         else if (e.type === 'shiki_a') {
-            // 自機狙いの弾（赤オレンジ）
             if (stg.frame % 80 === 0) {
                 const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*3, Math.sin(ang)*3, '#ff5500')); 
             }
         } 
         else if (e.type === 'shiki_b') {
-            // 蝶のばらまき弾（ピンク）
             if (stg.frame % 60 === 0) {
                 const rAng = Math.random() * Math.PI * 2;
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(rAng)*2, Math.sin(rAng)*2, '#ff33cc')); 
             }
         } 
         else if (e.type === 'shiki_c') {
-            // まっすぐ速い弾（赤ピンク）
             if (stg.frame % 100 === 0 && e.y > 0) {
                 stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 4.5, '#ff0055')); 
             }
         } 
         else if (e.type === 'shiki_d') {
-            // 4方向放射弾（赤）
             if (stg.frame % 90 === 0) {
                 for (let i = 0; i < 4; i++) {
                     const ang = (e.angle || 0) + (i * Math.PI / 2);
