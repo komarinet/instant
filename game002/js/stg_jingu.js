@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.2.3"; // バージョン更新（コアのボスタグ機能に対応し、競合する手動ADV呼び出しのみを綺麗に削除）
+const VER_STG_JINGU = "0.2.4"; // バージョン更新（ボス（robotboss）のHPを元の4倍の1000に大幅強化）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -43,8 +43,8 @@ window.StageConfigs['jingu'] = {
         if (type === 'sui') return { imgSrc: 'sui.png', size: 23, hp: 3, maxHp: 3 };
         if (type === 'tv') return { imgSrc: 'tv.png', size: 38, hp: 6, maxHp: 6 };
         
-        // ★修正：コアシステムにADVを任せるための「ボスタグ（isBoss: true）」を追加！
-        if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 250, maxHp: 250, isBoss: true };
+        // ★修正：ボス（robotboss）のHPを元の250の4倍（1000）に大幅強化！
+        if (type === 'robotboss') return { imgSrc: 'robot.png', size: 120, hp: 1000, maxHp: 1000, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // 前半 (100〜1500フレーム): sui, rei 多め
