@@ -1,4 +1,4 @@
-export const VER_SOUNDTRACK = "0.1.3"; // バージョン更新（エンディングBGMをリストに追加）
+export const VER_SOUNDTRACK = "0.1.4"; // バージョン更新（衛二BGMをリストに追加）
 
 // サントラに表示する曲のリスト
 const trackList = [
@@ -18,8 +18,9 @@ const trackList = [
     { id: 'stage_cap', name: '14. Stage 6 - Final', src: 'bgm/stage_cap.mp3' },
     { id: 'boss_cap', name: '15. Boss - Final', src: 'bgm/boss_cap.mp3' },
     { id: 'clear', name: '16. Stage Clear', src: 'bgm/clear.mp3' },
-    { id: 'ending', name: '17. Ending Theme', src: 'bgm/ending.mp3' }, // ★追加
-    { id: 'gameover', name: '18. Game Over', src: 'bgm/gameover.mp3' }
+    { id: 'ending', name: '17. Ending Theme', src: 'bgm/ending.mp3' }, 
+    { id: 'eiji', name: '18. Stage - Eiji', src: 'bgm/eiji.mp3' }, // ★追加
+    { id: 'gameover', name: '19. Game Over', src: 'bgm/gameover.mp3' }
 ];
 
 let currentAudio = null;
