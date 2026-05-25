@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.4.1"; // バージョン更新（エンディングBGMを追加）
+export const VER_AUDIO = "0.4.2"; // バージョン更新（衛二ステージBGMを追加）
 
 export const soundManager = {
     bgm: {},
@@ -88,6 +88,10 @@ export const soundManager = {
         this.bgm['boss_final'].loop = true;
         this.bgm['boss_final'].volume = 0.4;
 
+        // ★追加：衛二ステージ BGM
+        this.bgm['eiji'] = new Audio('bgm/eiji.mp3');
+        this.bgm['eiji'].loop = true;
+        this.bgm['eiji'].volume = 0.4;
 
         // --- SE（効果音） ---
         this.se['smallb'] = new Audio('se/smallb.mp3');
