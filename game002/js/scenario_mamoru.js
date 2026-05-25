@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.3.2"; // バージョン更新（負けADV追加、話者表記を「護」に統一）
+const VER_SCENARIO_MAMORU = "0.4.0"; // バージョン更新（ステージ2：各務システムの暴走とUFO戦のシナリオを追加）
 
 window.scenarios = window.scenarios || {};
 
@@ -127,7 +127,64 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '・・・' }
         ]
     },
-    2: { adv: [], pre_stg: [], post_stg: [] },
+    2: {
+        stgId: 'kagami', // 敵の構成などは各務ステージを流用
+        adv: [
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '・・・あれは!!', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: '各務さん？' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'あれはうちの迎撃装置だ' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: 'ええ！？', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '別件で使ったあと、スイッチを切るのを忘れてしまってな' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: 'じゃあ、スイッチを切ってもらえれば止まるんですね' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '母艦までたどり着ければな' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 7, speaker: '護', text: '母艦・・・無数の戦闘機に守られてますね' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '丁度いいじゃないか、護' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '先祖の力を引き継いだお前の力、試してみろ' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: 'いくら何でも多勢に無勢だよ' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '家督、衛二に戻してもいいんだぞ' },
+            { bg: 'citypanic.png', item: 'mask.png', se: 'vibration.mp3', text: '' }, 
+            { bg: 'citypanic.png', character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ちっ、しゃーねぇな！　行ってくらぁ', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '大丈夫なのか。うちのシステムはかなり堅牢だぞ' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '心配はいらん。あいつは家を継ぐのを拒否していたがな' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '才能は、一族随一だ' }
+        ], 
+        pre_stg: [
+            { character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '的が・・・的が一杯だ！　うははははっ！', effect: 'shake' },
+            { character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名くん・・・なんか随分とハイだな' },
+            { character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '仮面は脳を100％使用すると言われてる' },
+            { character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '理性も本能も全部剥き出しになるというわけだ' },
+            { character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '椎名くんは普段、色々我慢してるんだな' },
+            { character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ぶっ潰すぞオラァ！', effect: 'shake' },
+            { character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
+        ], 
+        event_adv: [
+            { bg: 'cityboss.png', character: 'urashiina.png', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、なかなかデケェじゃねぇか' },
+            { bg: 'cityboss.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '母艦の弾幕は半端ないぞ、椎名くん' },
+            { bg: 'cityboss.png', character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: '弾幕？　見えねぇな、そんなモン' },
+            { bg: 'cityboss.png', character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '真・言・展・開！', effect: 'shake' }
+        ],
+        post_stg: [ 
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: 'やった・・・のか？　僕が？', delay: 60, bgm: 'relax' },
+            { bg: 'breakufo2.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: 'ああ、やり過ぎたくらいだ' },
+            { bg: 'breakufo2.png', character: 'tadashige.png', spriteIndex: 4, speaker: '忠重', text: '護。後始末のコストも考えて動いてもらわねば困るぞ' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: 'ご、ごめんなさい、父さん', effect: 'shake' },
+            { bg: 'breakufo2.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: 'とはいえ、今回はよしとするかな' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: 'えっ！？' },
+            { bg: 'breakufo2.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '世に十分知らしめただろうからな、新当主の力を' },
+            { bg: 'breakufo2.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: 'これから忙しくなるぞ。ははははっ' },
+            { bg: 'breakufo2.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'なんか・・・すまない' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '良いんです。僕が自分で選んだ・・・いや' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '自分で選び直した道ですから' },
+            { bg: 'breakufo2.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '潔い男だな、君は' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 1, speaker: '護', text: 'ところで各務さん。これで僕は一年後、死なずに済むのでしょうか' },
+            { bg: 'breakufo2.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'いや。もちろん、力を得た上で元凶となる相手を倒さなくてはならない' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 7, speaker: '護', text: '元凶ってのは・・・？' },
+            { bg: 'breakufo2.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'すまない、規定上ここから先の介入はできないんだ' },
+            { bg: 'breakufo2.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '自分で探すしかない、か' }
+        ]
+    },
     3: { adv: [], pre_stg: [], post_stg: [] },
     4: { adv: [], pre_stg: [], post_stg: [] },
     5: { adv: [], pre_stg: [], post_stg: [] },
