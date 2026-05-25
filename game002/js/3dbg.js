@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.2"; // バージョン更新（kagamiやhiragiなどの既存3Dステージの表示崩れを完全に修正し、eiji等の2D背景時のみ3D描画・アニメーション計算を安全かつ確実にスキップする軽量化と完全両立を達成）
+const VER_3DBG = "0.7.3"; // バージョン更新（起動時にstageKeyが未定義の状態でelseフォールバックに吸い込まれるバグを完全に修正し、3D背景の描画復旧と2D時の軽量化スキップを完全に両立）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -52,6 +52,9 @@ class BGManager3D {
         this.scrollSpeed = -1.2; 
         this.cloudScrollSpeed = -0.5; 
         this.trenchScrollSpeed = -1.5; 
+
+        // 起動時にフォールバックへ吸い込まれないよう初期値をセット
+        this.stageKey = 'kagami'; 
 
         window._bgManagerInstance = this; 
     }
@@ -181,7 +184,6 @@ class BGManager3D {
             }
         }
 
-        // 内部アニメーション分岐のために識別キーを保持
         this.stageKey = stageKey;
 
         if (stageKey === 'kagami') {
@@ -338,7 +340,6 @@ class BGManager3D {
             this.scene.fog.color.setHex(0x000000);
             this.renderer.setClearColor(0x000000, 1.0); 
 
-            // 3Dアセット群をすべて完全に非表示へ
             if (this.ground) this.ground.visible = false;
             if (this.buildings) this.buildings.forEach(b => b.visible = false);
             if (this.clouds) this.clouds.forEach(c => c.visible = false);
@@ -354,25 +355,24 @@ class BGManager3D {
     loop(timestamp) {
         if (!this.isActive) return;
 
-        if (!timestamp) timestamp = performance.now();
-        let delta = (timestamp - this.lastTime) / (1000 / 60); 
-        this.lastTime = timestamp;
-
-        if (delta > 3.0) delta = 3.0; 
-
+        // ★修正：初期値のズレによるバグを防ぐため、毎フレームのステージ名割り出し・更新をスキップ条件より「前」に実行させます
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
                 this.setStage(currentStage);
             }
         }
 
-        // --- 【軽量化と3D背景表示の完全両立】 ---
-        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏で起動している3D更新計算およびWebGLレンダリング処理をスキップして負荷を完全にカットします。
+        // ステージキーが完全に確定した状態で2Dステージ（eijiなど）の場合のみ、以降の3D処理を安全にパスさせます
         if (this.stageKey === 'eiji') {
             return;
         }
 
-        // 3Dアセットが表示される通常ステージでは、毎フレーム確実にアニメーション計算を走らせます。
+        if (!timestamp) timestamp = performance.now();
+        let delta = (timestamp - this.lastTime) / (1000 / 60); 
+        this.lastTime = timestamp;
+
+        if (delta > 3.0) delta = 3.0; 
+
         if (window.BG3DObjects) {
             window.BG3DObjects.updateAnimations(this, delta);
         }
