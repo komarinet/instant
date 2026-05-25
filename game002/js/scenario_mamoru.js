@@ -151,13 +151,13 @@ scenarios.mamoru = {
             { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '才能は、一族随一だ' }
         ], 
         pre_stg: [
-            { character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '的が・・・的が一杯だ！　うははははっ！', effect: 'shake' },
-            { character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名くん・・・なんか随分とハイだな' },
-            { character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '仮面は脳を100％使用すると言われてる' },
-            { character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '理性も本能も全部剥き出しになるというわけだ' },
-            { character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '椎名くんは普段、色々我慢してるんだな' },
-            { character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ぶっ潰すぞオラァ！', effect: 'shake' },
-            { character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
+            { bg: 'citypanic.png',character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '的が・・・的が一杯だ！　うははははっ！', effect: 'shake' },
+            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名くん・・・なんか随分とハイだな' },
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '仮面は脳を100％使用すると言われてる' },
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '理性も本能も全部剥き出しになるというわけだ' },
+            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '椎名くんは普段、色々我慢してるんだな' },
+            { bg: 'citypanic.png',character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ぶっ潰すぞオラァ！', effect: 'shake' },
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
         ], 
         event_adv: [
             { bg: 'cityboss.png', character: 'urashiina.png', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、なかなかデケェじゃねぇか' },
