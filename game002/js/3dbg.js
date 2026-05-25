@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.1"; // バージョン更新（仮登録ステージや未定義識別子における3D計算・描画アニメーションループを完全にスキップし、無駄なCPU/GPU消費を極小化する軽量化最適化を適用）
+const VER_3DBG = "0.7.2"; // バージョン更新（kagamiやhiragiなどの既存3Dステージの表示崩れを完全に修正し、eiji等の2D背景時のみ3D描画・アニメーション計算を安全かつ確実にスキップする軽量化と完全両立を達成）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -181,6 +181,9 @@ class BGManager3D {
             }
         }
 
+        // 内部アニメーション分岐のために識別キーを保持
+        this.stageKey = stageKey;
+
         if (stageKey === 'kagami') {
             this.scene.fog.near = 100;
             this.scene.fog.far = 500;
@@ -329,14 +332,13 @@ class BGManager3D {
             }
 
         } else {
-            // --- 【CPU/GPUの大幅軽量化】未定義識別子（eijiなど）におけるフォールバック処理 ---
-            // 3Dアセット群を一切描画・更新しないため、クリアカラーを不透明な黒に設定し、フォグ設定も最小限に留めます。
+            // --- 未定義の識別子（eijiなど純粋な2D背景ステージ）におけるフォールバック ---
             this.scene.fog.near = 10000;
             this.scene.fog.far = 10000; 
             this.scene.fog.color.setHex(0x000000);
             this.renderer.setClearColor(0x000000, 1.0); 
 
-            // 表示フラグをすべて false に変更し、頂点計算や描画パイプラインの対象から完全に除外します。
+            // 3Dアセット群をすべて完全に非表示へ
             if (this.ground) this.ground.visible = false;
             if (this.buildings) this.buildings.forEach(b => b.visible = false);
             if (this.clouds) this.clouds.forEach(c => c.visible = false);
@@ -364,13 +366,14 @@ class BGManager3D {
             }
         }
 
-        // --- 【CPU軽量化】いずれかの主要3D要素が表示されている場合のみ、毎フレームのアニメーション計算を実行 ---
-        // フォールバックステージ（eiji等）では visible が全て false になるため、頂点や位置更新の無駄な高負荷ループをスキップします。
-        const isAnyObjectVisible = (this.ground && this.ground.visible) || 
-                                   (this.starField && this.starField.visible) || 
-                                   (this.trenchGroup && this.trenchGroup.visible);
+        // --- 【軽量化と3D背景表示の完全両立】 ---
+        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏で起動している3D更新計算およびWebGLレンダリング処理をスキップして負荷を完全にカットします。
+        if (this.stageKey === 'eiji') {
+            return;
+        }
 
-        if (window.BG3DObjects && isAnyObjectVisible) {
+        // 3Dアセットが表示される通常ステージでは、毎フレーム確実にアニメーション計算を走らせます。
+        if (window.BG3DObjects) {
             window.BG3DObjects.updateAnimations(this, delta);
         }
 
