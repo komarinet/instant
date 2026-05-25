@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.16"; // バージョン更新（床の明度を上げ、Three.js標準のジオメトリで雲/モヤを追加）
+const VER_3DBG_OBJ = "0.3.17"; // バージョン更新（既存コードを完全維持し、必要な修正のみを適用）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -8,10 +8,10 @@ window.BG3DObjects = {
             groundTexture.wrapS = THREE.MirroredRepeatWrapping; 
             groundTexture.wrapT = THREE.MirroredRepeatWrapping; 
             groundTexture.repeat.set(4, 10);
-            // ★修正：床もビルと同じく光の影響を受けない MeshBasicMaterial に変更し明るくする
+            // ★修正：床を MeshBasicMaterial に変更し明るくする
             material = new THREE.MeshBasicMaterial({ map: groundTexture });
         } else {
-            // テクスチャがない場合のベース色も少し明るめのグレーに
+            // ★修正：テクスチャがない場合も明るめのグレーに
             material = new THREE.MeshBasicMaterial({ color: 0x555555 });
         }
         m.ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 400), material);
@@ -171,9 +171,7 @@ window.BG3DObjects = {
             flameMesh.position.y = h + 1 + flameSize * 0.4; 
             candleGroup.add(flameMesh);
 
-            candleGroup.position.x = (Math.random() - 0.5) * 400; 
-            candleGroup.position.y = 0; 
-            candleGroup.position.z = (Math.random() - 0.5) * 800 - 100; 
+            candleGroup.position.set((Math.random() - 0.5) * 400, 0, (Math.random() - 0.5) * 800 - 100); 
 
             candleGroup.visible = false; 
 
