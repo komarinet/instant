@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.0"; // バージョン更新（ステージ番号による一律の分岐を完全撤廃し、選択キャラクターのstages配列から取得したステージ識別子『stageKey』に基づく動的な3D背景切り替え制御を完全統合）
+const VER_3DBG = "0.7.1"; // バージョン更新（仮登録ステージや未定義識別子における3D計算・描画アニメーションループを完全にスキップし、無駄なCPU/GPU消費を極小化する軽量化最適化を適用）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -170,11 +170,9 @@ class BGManager3D {
         this.currentStage = stageNum;
         this.isCoreTransitioning = false; 
 
-        // 現在選択中のキャラクターIDを取得（表記揺れ揺らぎ吸収対策）
         let charId = window.selectedCharId || 'igari';
         if (charId === 'shiina') charId = 'mamoru';
 
-        // data_core.js に定義されている各キャラクター固有の配列からステージ識別子（'kagami', 'hiragi'など）を動的特定
         let stageKey = 'kagami';
         if (typeof characters !== 'undefined') {
             const foundChar = characters.find(c => c.id === charId);
@@ -183,9 +181,7 @@ class BGManager3D {
             }
         }
 
-        // ★修正：stageNumでの判定を廃止し、取得した stageKey に基づき背景グラフィックを完全同期
         if (stageKey === 'kagami') {
-            // --- 各務ステージの3D背景（通常のビル街空間） ---
             this.scene.fog.near = 100;
             this.scene.fog.far = 500;
             this.scene.fog.color.setHex(0x0a0a14);
@@ -209,7 +205,6 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'hiragi') {
-            // --- 柊ステージの3D背景（キャンドルの並ぶ暗い精神世界空間） ---
             this.scene.fog.near = 30;
             this.scene.fog.far = 250;
             this.scene.fog.color.setHex(0x020205);
@@ -233,7 +228,6 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'shiina') {
-            // --- 椎名ステージの3D背景（雲海が高速スクロールする上空空間） ---
             this.scene.fog.near = 80;
             this.scene.fog.far = 400;
             this.scene.fog.color.setHex(0x0a0f1d);
@@ -257,7 +251,6 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'jingu') {
-            // --- 神宮寺ステージの3D背景（雪の降る極地空間、ビル群を消して流用フォールバック） ---
             this.scene.fog.near = 50;
             this.scene.fog.far = 300;
             this.scene.fog.color.setHex(0x111c24);
@@ -281,7 +274,6 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'godai') {
-            // --- GODAIステージの3D背景（巨大な月が迫る宇宙空間） ---
             this.scene.fog.near = 2000;
             this.scene.fog.far = 8000;
             this.scene.fog.color.setHex(0x000002);
@@ -305,7 +297,6 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'final') {
-            // --- ファイナルステージの3D背景（要塞トレンチ＆コア空間） ---
             this.scene.fog.near = 100;
             this.scene.fog.far = 1200;
             this.scene.fog.color.setHex(0x030101); 
@@ -338,23 +329,18 @@ class BGManager3D {
             }
 
         } else {
-            // --- 上記以外の仮登録ステージ（eijiなど）が指定された場合の安全なフォールバック背景 ---
-            this.scene.fog.near = 50;
-            this.scene.fog.far = 300; 
-            this.scene.fog.color.setHex(0x0a0a14);
-            this.renderer.setClearColor(0x000000, 0);
+            // --- 【CPU/GPUの大幅軽量化】未定義識別子（eijiなど）におけるフォールバック処理 ---
+            // 3Dアセット群を一切描画・更新しないため、クリアカラーを不透明な黒に設定し、フォグ設定も最小限に留めます。
+            this.scene.fog.near = 10000;
+            this.scene.fog.far = 10000; 
+            this.scene.fog.color.setHex(0x000000);
+            this.renderer.setClearColor(0x000000, 1.0); 
 
-            this.ground.visible = true;
-            if (this.textures.ground) {
-                this.ground.material.map = this.textures.ground;
-                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.repeat.set(4, 10);
-                this.ground.material.needsUpdate = true;
-            }
-            this.buildings.forEach(b => b.visible = true);
-            this.clouds.forEach(c => c.visible = true);
-            this.candles.forEach(c => c.visible = false);
+            // 表示フラグをすべて false に変更し、頂点計算や描画パイプラインの対象から完全に除外します。
+            if (this.ground) this.ground.visible = false;
+            if (this.buildings) this.buildings.forEach(b => b.visible = false);
+            if (this.clouds) this.clouds.forEach(c => c.visible = false);
+            if (this.candles) this.candles.forEach(c => c.visible = false);
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
             if (this.moonLight) this.moonLight.visible = false;
@@ -378,7 +364,13 @@ class BGManager3D {
             }
         }
 
-        if (window.BG3DObjects) {
+        // --- 【CPU軽量化】いずれかの主要3D要素が表示されている場合のみ、毎フレームのアニメーション計算を実行 ---
+        // フォールバックステージ（eiji等）では visible が全て false になるため、頂点や位置更新の無駄な高負荷ループをスキップします。
+        const isAnyObjectVisible = (this.ground && this.ground.visible) || 
+                                   (this.starField && this.starField.visible) || 
+                                   (this.trenchGroup && this.trenchGroup.visible);
+
+        if (window.BG3DObjects && isAnyObjectVisible) {
             window.BG3DObjects.updateAnimations(this, delta);
         }
 
