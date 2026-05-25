@@ -1,4 +1,4 @@
-const VER_3DBG = "0.6.2"; // バージョン更新（タッチ時の背景高速化バグを防ぐため、タイムスタンプベースのフレーム制御を導入）
+const VER_3DBG = "0.6.3"; // バージョン更新（ステージ1以外で雲を非表示にする制御を追加）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -53,7 +53,7 @@ class BGManager3D {
         this.currentStage = 1;
         this.flameMaterial = null; 
         
-        this.lastTime = 0; // ★追加：フレーム間の経過時間を計るための変数
+        this.lastTime = 0;
 
         if (!window._bgManagerInstance) {
             window._bgManagerInstance = this;
@@ -156,8 +156,8 @@ class BGManager3D {
         }
 
         this.isActive = true;
-        this.lastTime = performance.now(); // ★追加：ループ開始時のタイムスタンプをセット
-        this.loop(this.lastTime); // ★修正：初期タイムスタンプを渡す
+        this.lastTime = performance.now();
+        this.loop(this.lastTime);
     }
 
     transitionToCore() {
@@ -171,7 +171,10 @@ class BGManager3D {
         this.ground.visible = false;
         this.buildings.forEach(b => b.visible = false);
         this.candles.forEach(c => c.visible = false);
-        this.clouds.forEach(c => c.visible = false);
+        
+        // ★修正：雲はステージ1（kagami）のみ表示し、それ以外は非表示に固定
+        this.clouds.forEach(c => c.visible = (stageNum === 1));
+
         if (this.starField) this.starField.visible = false;
         if (this.moon) this.moon.visible = false;
         if (this.moonLight) this.moonLight.visible = false;
@@ -236,7 +239,6 @@ class BGManager3D {
                 this.ground.material.needsUpdate = true;
             }
             this.candles.forEach(c => c.visible = true);
-            this.clouds.forEach(c => c.visible = true);
             
         } else {
             this.scene.fog.near = 50;
@@ -253,19 +255,16 @@ class BGManager3D {
                 this.ground.material.needsUpdate = true;
             }
             this.buildings.forEach(b => b.visible = true);
-            this.clouds.forEach(c => c.visible = true);
         }
     }
 
     loop(timestamp) {
         if (!this.isActive) return;
 
-        // ★追加：タイムスタンプベースで delta を計算
         if (!timestamp) timestamp = performance.now();
-        let delta = (timestamp - this.lastTime) / (1000 / 60); // 60FPSを基準（1.0）とする
+        let delta = (timestamp - this.lastTime) / (1000 / 60); 
         this.lastTime = timestamp;
 
-        // ★追加：タブ切り替えや長時間のタッチで delta が極端に大きくなるのを防ぐ上限リミッター
         if (delta > 3.0) delta = 3.0; 
 
         if (typeof currentStage !== 'undefined') {
@@ -275,10 +274,10 @@ class BGManager3D {
         }
 
         if (window.BG3DObjects) {
-            window.BG3DObjects.updateAnimations(this, delta); // ★修正：計算した delta を渡す
+            window.BG3DObjects.updateAnimations(this, delta);
         }
 
         this.renderer.render(this.scene, this.camera);
-        requestAnimationFrame((ts) => this.loop(ts)); // ★修正：タイムスタンプを次フレームに渡す
+        requestAnimationFrame((ts) => this.loop(ts));
     }
 }
