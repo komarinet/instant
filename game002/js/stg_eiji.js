@@ -1,8 +1,10 @@
-const VER_STG_EIJI = "0.2.3"; // バージョン更新（負けADVの無限ループを修正し、正しくゲームオーバー画面へ遷移するように修正）
+const VER_STG_EIJI = "0.2.4"; // バージョン更新（BGM追加対応）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
     init: function(stg, canvas) { 
+        stg.bgmChanged = true; // ★追加：自動BGM切り替えをブロック
+
         const dpr = window.devicePixelRatio || 1;
         
         // 制限時間（120秒 = 7200フレーム）
@@ -178,6 +180,11 @@ window.StageConfigs['eiji'] = {
     },
 
     updateWaves: function(stg, timer, sW, sH) {
+        // ★追加：ステージが始まった瞬間に eiji.mp3 を再生
+        if (timer === 1 && typeof window.soundManager !== 'undefined') {
+            window.soundManager.playBGM('eiji');
+        }
+
         if (stg.isTimeStopped) return;
 
         stg.timeLimit--;
