@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.12"; // バージョン更新（一切の省略をせず、ビル群の自己発光のみを追加）
+const VER_3DBG_OBJ = "0.3.14"; // バージョン更新（昼の街設定に合わせ、ビルにMeshBasicMaterialを適用して明るく表示）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -30,12 +30,11 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/3, 1/2); 
                 tex.offset.set((i % 3) * (1/3), 1 - (Math.floor(i / 3) + 1) * (1/2));
-                // ★修正：emissive（自己発光）を追加して窓を明るく表現
-                sideMaterials.push(new THREE.MeshPhongMaterial({ map: tex, emissive: 0x444444, emissiveMap: tex }));
+                // ★修正：昼の街に合わせて MeshBasicMaterial に変更。画像そのままの色が出ます。
+                sideMaterials.push(new THREE.MeshBasicMaterial({ map: tex }));
             }
         } else {
-            // ★修正：テクスチャがない場合の予備色にも発光を足す
-            sideMaterials.push(new THREE.MeshPhongMaterial({ color: 0x333333, emissive: 0x222222 }));
+            sideMaterials.push(new THREE.MeshBasicMaterial({ color: 0xcccccc })); // テクスチャなしの場合も明るいグレーに
         }
 
         if (m.textures.topatlas) {
@@ -44,11 +43,11 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/4, 1/3);
                 tex.offset.set((i % 4) * (1/4), 1 - (Math.floor(i / 4) + 1) * (1/3));
-                // ★修正：屋上も少し自己発光を足して暗すぎないように
-                topMaterials.push(new THREE.MeshPhongMaterial({ map: tex, emissive: 0x222222, emissiveMap: tex }));
+                // ★修正：こちらも MeshBasicMaterial に変更
+                topMaterials.push(new THREE.MeshBasicMaterial({ map: tex }));
             }
         } else {
-            topMaterials.push(new THREE.MeshPhongMaterial({ color: 0x555555, emissive: 0x222222 }));
+            topMaterials.push(new THREE.MeshBasicMaterial({ color: 0xaaaaaa }));
         }
 
         for (let i = 0; i < numBuildings; i++) {
