@@ -1,4 +1,4 @@
-const VER_3DBG_OBJ = "0.3.14"; // バージョン更新（昼の街設定に合わせ、ビルにMeshBasicMaterialを適用して明るく表示）
+const VER_3DBG_OBJ = "0.3.16"; // バージョン更新（床の明度を上げ、Three.js標準のジオメトリで雲/モヤを追加）
 
 window.BG3DObjects = {
     createGround: function(m) {
@@ -8,9 +8,11 @@ window.BG3DObjects = {
             groundTexture.wrapS = THREE.MirroredRepeatWrapping; 
             groundTexture.wrapT = THREE.MirroredRepeatWrapping; 
             groundTexture.repeat.set(4, 10);
-            material = new THREE.MeshPhongMaterial({ map: groundTexture, shininess: 0 });
+            // ★修正：床もビルと同じく光の影響を受けない MeshBasicMaterial に変更し明るくする
+            material = new THREE.MeshBasicMaterial({ map: groundTexture });
         } else {
-            material = new THREE.MeshPhongMaterial({ color: 0x111111, shininess: 0 });
+            // テクスチャがない場合のベース色も少し明るめのグレーに
+            material = new THREE.MeshBasicMaterial({ color: 0x555555 });
         }
         m.ground = new THREE.Mesh(new THREE.PlaneGeometry(300, 400), material);
         m.ground.rotation.x = -Math.PI / 2; 
@@ -30,11 +32,10 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/3, 1/2); 
                 tex.offset.set((i % 3) * (1/3), 1 - (Math.floor(i / 3) + 1) * (1/2));
-                // ★修正：昼の街に合わせて MeshBasicMaterial に変更。画像そのままの色が出ます。
                 sideMaterials.push(new THREE.MeshBasicMaterial({ map: tex }));
             }
         } else {
-            sideMaterials.push(new THREE.MeshBasicMaterial({ color: 0xcccccc })); // テクスチャなしの場合も明るいグレーに
+            sideMaterials.push(new THREE.MeshBasicMaterial({ color: 0xcccccc })); 
         }
 
         if (m.textures.topatlas) {
@@ -43,7 +44,6 @@ window.BG3DObjects = {
                 tex.needsUpdate = true;
                 tex.repeat.set(1/4, 1/3);
                 tex.offset.set((i % 4) * (1/4), 1 - (Math.floor(i / 4) + 1) * (1/3));
-                // ★修正：こちらも MeshBasicMaterial に変更
                 topMaterials.push(new THREE.MeshBasicMaterial({ map: tex }));
             }
         } else {
@@ -71,20 +71,22 @@ window.BG3DObjects = {
     },
 
     createClouds: function(m) {
-        const numClouds = 20;
-        const cloudGeo = new THREE.PlaneGeometry(40, 40);
+        // ★修正：雲の数を増やし、白くて少し透ける素材に変更して「モヤ」を表現
+        const numClouds = 40;
+        const cloudGeo = new THREE.PlaneGeometry(80, 80);
         const cloudMat = new THREE.MeshBasicMaterial({
-            color: 0x111115,
+            color: 0xffffff,
             transparent: true,
-            opacity: 0.4,
+            opacity: 0.15, // 薄く透けるように
             depthWrite: false 
         });
 
         for (let i = 0; i < numClouds; i++) {
             const cloud = new THREE.Mesh(cloudGeo, cloudMat);
-            cloud.position.x = (Math.random() - 0.5) * 200;
-            cloud.position.y = Math.random() * 20 + 60; 
-            cloud.position.z = (Math.random() - 0.5) * 300;
+            cloud.position.x = (Math.random() - 0.5) * 300;
+            // ビルの中腹あたりを漂うように
+            cloud.position.y = Math.random() * 30 + 10; 
+            cloud.position.z = (Math.random() - 0.5) * 400;
             cloud.rotation.x = -Math.PI / 2; 
             cloud.rotation.z = Math.random() * Math.PI * 2;
             
