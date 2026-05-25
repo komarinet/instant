@@ -3,7 +3,7 @@ export const VER_CONFIG = "0.1.2"; // 3D用の月テクスチャ追加
 export const imagesToPreload = [
     'airport.png', 'igari02.png', 'hiragi01.png', 'kagami.png', 'room.png', 'igni.png', 'breakufo.png',
     'breakplane.png', 'citysky.png','city.png','citypanic.png',
-    'typea.png', 'typeb.png', 'typec.png', 'typeboss.png',
+    'typea.png', 'typeb.png', 'typec.png', 'typeboss.png','shiinabomb.png',
     '2typea.png', '2typeb.png', '2typec.png', '2typeboss.png', 'cityboss.png',
     'darkcandle.png','hospital.png', 'mountain.png','sanrin.png', 'yakerin.png', 
     'shiina.png', 'urashiina.png','baku01.png','igari_jiki.png','igaribomb.png',
