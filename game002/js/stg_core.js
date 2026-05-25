@@ -1,4 +1,4 @@
-const VER_STG_CORE = "0.8.18"; // バージョン更新（TARGET CLOSE判定を全キャラ共通化し、椎名護の接近火力アップを修正）
+const VER_STG_CORE = "0.9.0"; // バージョン更新（一律ハードコーディングされていたigari分岐を完全撤廃し、選択キャラクターのstages配列マッピングによる動的制御に移行）
 
 window.StageConfigs = window.StageConfigs || {};
 
@@ -12,18 +12,23 @@ class Enemy {
         this.deathTimer = 0;
         
         if (!stgId) {
-            let charId = (this.charData && this.charData.id) ? this.charData.id : 'igari';
+            // 選択中のキャラクターIDを取得（表記揺れ対策としてmamoruに統一化）
+            let charId = (this.charData && this.charData.id) ? this.charData.id : (window.selectedCharId || 'igari');
+            if (charId === 'shiina') charId = 'mamoru';
+
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
-                if (charId === 'igari') {
-                    if (cStage === 1) stgId = 'kagami';
-                    else if (cStage === 2) stgId = 'hiragi';
-                    else if (cStage === 3) stgId = 'shiina';
-                    else if (cStage === 4) stgId = 'jingu'; 
-                    else if (cStage === 5) stgId = 'godai'; 
-                    else stgId = 'kagami'; 
+                
+                // data_core.js に新たに追記された各キャラクター定義の「stages」配列を参照する共通マッピングロジック
+                let foundChar = null;
+                if (typeof characters !== 'undefined') {
+                    foundChar = characters.find(c => c.id === charId);
+                }
+                
+                if (foundChar && foundChar.stages && foundChar.stages[cStage - 1]) {
+                    stgId = foundChar.stages[cStage - 1]; // 各キャラの登録配列から自動アサイン
                 } else {
-                    stgId = 'kagami'; 
+                    stgId = 'kagami'; // 該当する枠が万が一ない場合の安全なフォールバック
                 }
             } else { stgId = 'kagami'; }
         }
@@ -117,16 +122,19 @@ class STGManager {
         
         this.stgId = stgId;
         if (!this.stgId) {
-            let charId = (charData && charData.id) ? charData.id : 'igari';
+            let charId = (charData && charData.id) ? charData.id : (window.selectedCharId || 'igari');
+            if (charId === 'shiina') charId = 'mamoru';
+
             if (typeof currentStage !== 'undefined') {
                 let cStage = Number(currentStage);
-                if (charId === 'igari') {
-                    if (cStage === 1) this.stgId = 'kagami';
-                    else if (cStage === 2) this.stgId = 'hiragi';
-                    else if (cStage === 3) this.stgId = 'shiina';
-                    else if (cStage === 4) this.stgId = 'jingu'; 
-                    else if (cStage === 5) this.stgId = 'godai'; 
-                    else this.stgId = 'kagami'; 
+                
+                let foundChar = null;
+                if (typeof characters !== 'undefined') {
+                    foundChar = characters.find(c => c.id === charId);
+                }
+                
+                if (foundChar && foundChar.stages && foundChar.stages[cStage - 1]) {
+                    this.stgId = foundChar.stages[cStage - 1]; // 各キャラの登録配列から自動アサイン
                 } else {
                     this.stgId = 'kagami'; 
                 }
@@ -151,7 +159,6 @@ class STGManager {
         const canvas = document.getElementById('gameCanvas'), dpr = window.devicePixelRatio || 1, sW = canvas.width/dpr, sH = canvas.height/dpr;
 
         // ★完全追記：ボムの更新処理を時間停止の条件から独立させ、毎フレーム必ず実行する
-        // これにより、椎名護の「時間停止を伴わず動き回りながら戦うバリア型ボム」が正常に機能し、時間経過や当たり判定で消滅するようになります。
         if (typeof this.player.updateBomb === 'function') {
             this.player.updateBomb(this, sW, sH);
         }
@@ -221,7 +228,9 @@ class STGManager {
             
             let midAdvData = [];
             try {
-                const charId = this.player.id || 'igari';
+                let charId = this.player.id || 'igari';
+                if (charId === 'shiina') charId = 'mamoru';
+                
                 let charScenario = null;
                 if (typeof scenarios !== 'undefined') {
                     charScenario = scenarios[charId];
