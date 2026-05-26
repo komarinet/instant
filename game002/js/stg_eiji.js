@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.2.5"; // バージョン更新（CPU撃破時のアイテム出現追加、およびボム出現率の引き上げ）
+const VER_STG_EIJI = "0.2.6"; // バージョン更新（CPU衛二の中心に表示されていた当たり判定用の白い丸を削除）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -13,7 +13,7 @@ window.StageConfigs['eiji'] = {
         // 撃破数カウンターと時間切れフラグの初期化
         stg.playerKills = 0;
         stg.cpuKills = 0;
-        stg.timeUpProcessed = false; // ★追加：時間切れ判定が何度も呼ばれるのを防ぐフラグ
+        stg.timeUpProcessed = false; 
 
         // 衛二（CPU）のステータス
         stg.cpuX = (canvas.width/dpr) * 0.7; // 右側に配置
@@ -27,7 +27,7 @@ window.StageConfigs['eiji'] = {
             stg.clouds.push({ x: Math.random()*(canvas.width/dpr), y: Math.random()*(canvas.height/dpr), size: Math.random()*80+40, speed: Math.random()*3+2, opacity: Math.random()*0.15+0.05 });
         }
 
-        // ★追加：ゲームオーバー状態を強制的に返すためのモンキーパッチ
+        // ゲームオーバー状態を強制的に返すためのモンキーパッチ
         stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
         stg.updateGameplay = function() {
             if (this.forceGameOver) return 'GAMEOVER';
@@ -59,7 +59,7 @@ window.StageConfigs['eiji'] = {
                     ctx.moveTo(this.cpuX, this.cpuY - 20); ctx.lineTo(this.cpuX - 20, this.cpuY + 20); ctx.lineTo(this.cpuX + 20, this.cpuY + 20);
                     ctx.fill();
                 }
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; ctx.beginPath(); ctx.arc(this.cpuX, this.cpuY, 4, 0, Math.PI*2); ctx.fill();
+                // ★修正：中心の白い丸を描画する行を削除しました
             }
 
             // --- CPUの弾描画 ---
@@ -180,7 +180,6 @@ window.StageConfigs['eiji'] = {
     },
 
     updateWaves: function(stg, timer, sW, sH) {
-        // ★追加：ステージが始まった瞬間に eiji.mp3 を再生
         if (timer === 1 && typeof window.soundManager !== 'undefined') {
             window.soundManager.playBGM('eiji');
         }
@@ -197,7 +196,7 @@ window.StageConfigs['eiji'] = {
                 if (!e._killedByCpu) {
                     stg.playerKills++;
                     
-                    // ★追加：自機が倒した際、基本のアイテムドロップとは別にボムの追加ドロップチャンスを与える（出現率アップ）
+                    // 自機が倒した際、基本のアイテムドロップとは別にボムの追加ドロップチャンスを与える（出現率アップ）
                     if (Math.random() < 0.05) {
                         if (typeof Item !== 'undefined') {
                             stg.items.push(new Item('bomb', e.x, e.y));
@@ -261,11 +260,11 @@ window.StageConfigs['eiji'] = {
                         stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
 
-                        // ★追加：CPUが撃破した場合にもプレイヤー用アイテムを生成（ボム率少し高め）
+                        // CPUが撃破した場合にもプレイヤー用アイテムを生成（ボム率少し高め）
                         if (typeof Item !== 'undefined') {
                             if (Math.random() < 0.15) {
                                 stg.items.push(new Item('recover', e.x, e.y));
-                            } else if (Math.random() < 0.08) { // 通常の3%より高めに設定
+                            } else if (Math.random() < 0.08) { 
                                 stg.items.push(new Item('bomb', e.x, e.y));
                             }
                         }
