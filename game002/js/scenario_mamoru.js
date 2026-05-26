@@ -40,7 +40,7 @@ scenarios.mamoru = {
         { bg: 'meeting.png', character: 'shiina.png', spriteIndex: 7, speaker: '護', text: '・・・１年後？' },
         { bg: 'meeting.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'カレンダーを見るといい' },
         { bg: 'meeting.png', item: 'calendar.png', text: '' },
-        { bg: 'meeting.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: '2025年・・・4月2日だって!?　そんなバカな！' },
+        { bg: 'meeting.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: '2025年・・・4月3日だって!?　そんなバカな！' },
         { bg: 'meeting.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '１年後の今日、君は臓器目的の男に捉えられ、殺された' },
         { bg: 'meeting.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'だが我々にとって、それは都合が悪くてね' },
         { bg: 'meeting.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: '我々？　あなたは一体' },
