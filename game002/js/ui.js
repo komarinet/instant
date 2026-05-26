@@ -1,10 +1,10 @@
-export const VER_UI = "0.3.22"; // バージョン更新（文字はみ出し防止、仮想敵の追加、椎名のホーミングとTARGET CLOSE表示対応）
+export const VER_UI = "0.3.23"; // バージョン更新（レスポンシブ対応のローディングプログレスバーUIを追加）
 
 let demoAnimId = null;
 let demoFrame = 0;
 let demoBullets = [];
 let demoEnemyBullets = []; 
-let demoEnemies = []; // 仮想敵用の配列を追加
+let demoEnemies = []; 
 
 function getRubyName(id, defaultName) {
     const rtStyle = 'font-size:0.65em; opacity:0.8; letter-spacing: 0px;';
@@ -52,7 +52,6 @@ function startDemoLoop(char) {
         const playerX = canvas.width / 2;
         const playerY = canvas.height - 35; 
 
-        // 仮想敵の生成（椎名護のホーミング確認用）
         if (char.id === 'shiina' || char.id === 'mamoru') {
             if (demoFrame % 100 === 0) {
                 demoEnemies.push({ 
@@ -62,7 +61,6 @@ function startDemoLoop(char) {
             }
         }
         
-        // 仮想敵の更新と描画
         for (let i = demoEnemies.length - 1; i >= 0; i--) {
             let e = demoEnemies[i];
             e.y += e.vy;
@@ -76,7 +74,6 @@ function startDemoLoop(char) {
             if (e.y > canvas.height + 30) demoEnemies.splice(i, 1);
         }
         
-        // 敵弾の生成ロジック
         if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
             if (demoFrame % 90 === 0) {
                 let startX = playerX - (Math.random() * 50 + 20); 
@@ -88,7 +85,6 @@ function startDemoLoop(char) {
             }
         }
 
-        // 接近判定（isClose）を共通化（敵弾だけでなく仮想敵との距離も測る）
         let minDist = Infinity;
         for (let i = 0; i < demoEnemyBullets.length; i++) {
             let d = Math.hypot(demoEnemyBullets[i].x - playerX, demoEnemyBullets[i].y - playerY);
@@ -100,7 +96,6 @@ function startDemoLoop(char) {
         }
         let isClose = minDist < 150; 
 
-        // 接近時の自機の当たり判定枠の描画
         if (char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') {
             if (isClose) {
                 ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
@@ -113,7 +108,6 @@ function startDemoLoop(char) {
             }
         }
         
-        // 敵弾の更新と描画
         for (let i = demoEnemyBullets.length - 1; i >= 0; i--) {
             let eb = demoEnemyBullets[i];
             eb.x += eb.vx; 
@@ -157,7 +151,6 @@ function startDemoLoop(char) {
         for (let i = demoBullets.length - 1; i >= 0; i--) {
             let b = demoBullets[i];
             
-            // 椎名のホーミング先は仮想敵（いなければ敵弾）
             let target = null;
             let mDist = Infinity;
             if (char.id === 'shiina' || char.id === 'mamoru') {
@@ -194,7 +187,6 @@ function startDemoLoop(char) {
                     }
                 }
 
-                // 仮想敵への着弾判定
                 let hit = false;
                 for (let j = demoEnemies.length - 1; j >= 0; j--) {
                     let e = demoEnemies[j];
@@ -282,7 +274,6 @@ function startDemoLoop(char) {
             ctx.fill();
         }
         
-        // TARGET CLOSE表示（椎名護にも対応）
         if ((char.id === 'igari' || char.id === 'shiina' || char.id === 'mamoru') && isClose) {
             ctx.fillStyle = char.color; ctx.font = 'bold 9px "Courier New"'; ctx.textAlign='center';
             ctx.fillText("TARGET CLOSE", playerX, playerY - 35); 
@@ -305,7 +296,6 @@ export function initCharSelect(characters, selectedCharId, onSelect) {
         btn.style.textOverflow = 'ellipsis';
         btn.style.width = '100%';
         btn.style.boxSizing = 'border-box';
-        // はみ出し防止のためフォントサイズと余白を極限まで縮小
         btn.style.fontSize = 'clamp(11px, 3vw, 15px)'; 
         btn.style.padding = '4px 2px';
         btn.style.lineHeight = '1.2';
@@ -326,7 +316,6 @@ export function updatePreview(characters, selectedCharId) {
     document.getElementById('preview-name').innerHTML = getRubyName(char.id, char.name);
     document.getElementById('preview-name').style.color = char.color;
     
-    // 説明文を改行対応にし、フォントサイズをスマホに収まるよう調整
     const descEl = document.getElementById('preview-desc');
     if (descEl) {
         descEl.innerHTML = char.desc.replace(/\n/g, '<br>');
@@ -335,7 +324,6 @@ export function updatePreview(characters, selectedCharId) {
         descEl.style.textAlign = 'left';
         descEl.style.marginTop = '10px';
     }
-    // Weaponはdescに統合したため非表示にする
     const wpnEl = document.getElementById('preview-weapon');
     if (wpnEl) wpnEl.style.display = 'none';
 
@@ -366,7 +354,6 @@ export function updatePreview(characters, selectedCharId) {
         listWrap.style.display = 'flex';
         listWrap.style.flexDirection = 'column';
         listWrap.style.justifyContent = 'flex-start';
-        // 行間を詰める（プレビューの縦幅を短くするため）
         listWrap.style.gap = '4px'; 
         listWrap.style.minWidth = '0'; 
         listWrap.appendChild(list);
@@ -636,4 +623,39 @@ export function resetResultButtons() {
         const existingButtons = resultScreen.querySelectorAll('button');
         existingButtons.forEach(btn => btn.style.display = ''); 
     }
+}
+
+// ★追加：プログレスバー付きのローディングUIを生成する関数
+export function showLoadingUI(startButton) {
+    if (!startButton) return;
+    
+    startButton.innerHTML = `
+        <div style="width: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;">
+            <div style="font-size: clamp(12px, 3.5vw, 16px); color: #00ffff; font-weight: bold; letter-spacing: 1px;">
+                NOW LOADING... <span id="loading-percent">0</span>%
+            </div>
+            <div style="width: 100%; max-width: 250px; height: 6px; background: rgba(0, 243, 255, 0.2); border-radius: 3px; overflow: hidden; position: relative;">
+                <div id="loading-bar-fill" style="width: 0%; height: 100%; background: #00ffff; transition: width 0.1s ease-out; box-shadow: 0 0 8px #00ffff;"></div>
+            </div>
+            <div id="loading-filename" style="font-size: clamp(9px, 2.5vw, 12px); color: rgba(255, 255, 255, 0.5); font-family: monospace; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">
+                initializing...
+            </div>
+        </div>
+    `;
+    
+    startButton.style.color = '#00ffff';
+    startButton.style.borderColor = '#00ffff';
+    startButton.style.cursor = 'default';
+    startButton.style.pointerEvents = 'none'; 
+}
+
+// ★追加：パーセンテージとファイル名を更新する関数
+export function updateLoadingUI(percent, fileName) {
+    const percentEl = document.getElementById('loading-percent');
+    const barEl = document.getElementById('loading-bar-fill');
+    const fileEl = document.getElementById('loading-filename');
+    
+    if (percentEl) percentEl.innerText = percent;
+    if (barEl) barEl.style.width = percent + '%';
+    if (fileEl && fileName) fileEl.innerText = fileName;
 }
