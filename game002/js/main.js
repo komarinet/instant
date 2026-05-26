@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.10"; // バージョン更新（ALL CLEAR時のBGMをエンディングに変更）
+const VER_MAIN = "0.9.11"; // バージョン更新（プログレスバーとファイル名表示に対応したリッチローディングを実装）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -175,19 +175,61 @@ async function init() {
             originalBtnColor = startButton.style.color;
             originalBtnBorder = startButton.style.borderColor;
 
-            startButton.innerHTML = '<span style="animation: pulse 1.5s infinite; display: inline-block;">NOW LOADING...</span>';
-            startButton.style.color = '#00ffff';
-            startButton.style.borderColor = '#00ffff';
-
-            if (!document.getElementById('pulse-anim')) {
-                const style = document.createElement('style');
-                style.id = 'pulse-anim';
-                style.innerHTML = '@keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }';
-                document.head.appendChild(style);
-            }
+            // ★追加：ui.js に切り出したリッチなローディングUIを表示
+            ui.showLoadingUI(startButton);
         }
     }
 
+    // ★追加：画像の読み込み進捗を監視し、プログレスバーを更新するための事前キャッシュ処理
+    const totalItems = (imagesToPreload ? imagesToPreload.length : 0) + (imagesToPreload3D ? imagesToPreload3D.length : 0);
+    let loadedItems = 0;
+
+    const updateProgress = (src) => {
+        loadedItems++;
+        let percent = Math.floor((loadedItems / totalItems) * 100);
+        if (percent > 100) percent = 100;
+        ui.updateLoadingUI(percent, src);
+    };
+
+    const cachePromises = [];
+
+    if (imagesToPreload) {
+        imagesToPreload.forEach(src => {
+            cachePromises.push(new Promise(resolve => {
+                const img = new Image();
+                img.onload = img.onerror = () => {
+                    updateProgress(src);
+                    resolve();
+                };
+                img.src = `img/${src}`;
+            }));
+        });
+    }
+
+    if (imagesToPreload3D && typeof THREE !== 'undefined') {
+        const textureLoader = new THREE.TextureLoader();
+        imagesToPreload3D.forEach(cfg => {
+            const src = typeof cfg === 'string' ? cfg : cfg.src;
+            cachePromises.push(new Promise(resolve => {
+                textureLoader.load(`img/${src}`, () => {
+                    updateProgress(src);
+                    resolve();
+                }, undefined, () => {
+                    updateProgress(src);
+                    resolve();
+                });
+            }));
+        });
+    }
+
+    // すべてのファイルの読み込み進捗が 100% になるまで待機
+    if (cachePromises.length > 0) {
+        await Promise.all(cachePromises);
+    }
+    
+    ui.updateLoadingUI(100, "Complete!");
+
+    // 本来の各マネージャーへの登録（裏ですでに読み込み終わっているため一瞬で完了します）
     await Promise.all([
         new Promise(res => advManager.preload(imagesToPreload, res)),
         new Promise(res => {
@@ -204,16 +246,17 @@ async function init() {
     if (titleScreen) {
         titleScreen.style.pointerEvents = 'auto';
         if (startButton) {
+            // ローディングが終了したら元の START GAME ボタンに戻す
             startButton.innerHTML = originalBtnHTML;
             startButton.style.color = originalBtnColor;
             startButton.style.borderColor = originalBtnBorder;
+            startButton.style.pointerEvents = 'auto';
+            startButton.style.cursor = 'pointer';
         }
     }
 
     ui.updatePreview(safeChars, selectedCharId);
-    
     ui.initStageListTexts(selectedCharId);
-
     soundManager.playBGM('title');
 
     if (pendingStageStart !== null) {
@@ -508,7 +551,7 @@ function handleTransitionFade() {
         } else {
             gameState = 'UI';
             stgManager = null; 
-            soundManager.playBGM('ending'); // ★修正: ALL CLEAR時に ending.mp3 を再生する
+            soundManager.playBGM('ending');
             
             const resTitle = document.getElementById('result-title');
             if (resTitle) {
