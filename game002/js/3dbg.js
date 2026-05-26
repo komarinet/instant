@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.6"; // バージョン更新（シナリオデータ側で'stage1' 'stage2'として定義されている本物の stgId 識別子とのマッピングのズレを完全解消。3D背景の描画復旧と2Dステージ時のCPU超軽量スキップを完璧に両立）
+const VER_3DBG = "0.7.7"; // バージョン更新（main.js側の数値制御との完全な互換性を復旧し、配列枠からグラフィック識別子を安全に逆算して表示バグを根底から完全解消。2D時のCPUスキップも完全両立）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -53,8 +53,8 @@ class BGManager3D {
         this.cloudScrollSpeed = -0.5; 
         this.trenchScrollSpeed = -1.5; 
 
-        // 初期化時にフォールバックへ落ちないよう初期値を設定
-        this.stageKey = 'stage1'; 
+        // 起動時の安全を確保するための初期化キー
+        this.stageKey = 'kagami'; 
 
         window._bgManagerInstance = this; 
     }
@@ -114,8 +114,8 @@ class BGManager3D {
         this.isActive = true;
         this.lastTime = performance.now();
         
-        // 明示的に最初のステージをセット
-        this.setStage('stage1');
+        // 数値の 1 で確実に初期背景を起動
+        this.setStage(1);
 
         this.animate = (timestamp) => {
             this.loop(timestamp);
@@ -170,34 +170,44 @@ class BGManager3D {
         requestAnimationFrame(fadeLoop);
     }
 
+    // ★修正：確実な数値（1〜6）、および送られてくる可能性のある文字列（"Stage1", "stage1"など）のすべてを完璧に受け止めて数値に統合する頑強なインターフェース
     setStage(stageInput) {
         this.isCoreTransitioning = false; 
 
-    // ★この1行を追記して、起動時にポップアップで中身を表示させてみてください！
- 　     alert("3dbgが受け取った値: " + JSON.stringify(stageInput));
+        let stageNum = 1;
 
-        let stageKey = 'stage1';
+        if (typeof stageInput === 'number') {
+            stageNum = stageInput;
+        } else if (typeof stageInput === 'string') {
+            // "Stage1" や "stage1" や "1" などの文字列から数値を確実に抽出する
+            const matched = stageInput.match(/\d+/);
+            if (matched) {
+                stageNum = Number(matched[0]);
+            } else if (stageInput === 'final') {
+                stageNum = 6;
+            }
+        } else if (stageInput && typeof stageInput === 'object') {
+            if (stageInput.currentStage) stageNum = Number(stageInput.currentStage);
+        }
 
-        if (typeof stageInput === 'string') {
-            stageKey = stageInput;
-            this.currentStage = (stageInput === 'final' || stageInput === 'stage6') ? 6 : 1;
-        } else {
-            this.currentStage = stageInput;
-            let charId = window.selectedCharId || 'igari';
-            if (charId === 'shiina') charId = 'mamoru';
+        this.currentStage = stageNum;
 
-            if (typeof characters !== 'undefined') {
-                const foundChar = characters.find(c => c.id === charId);
-                if (foundChar && foundChar.stages && foundChar.stages[stageInput - 1]) {
-                    stageKey = foundChar.stages[stageInput - 1];
-                }
+        // 割り出した現在の正確な数値（1〜6）から、選択中キャラの固有ステージ文字列（'kagami', 'eiji'など）を逆算取得
+        let stageKey = 'kagami';
+        let charId = window.selectedCharId || 'igari';
+        if (charId === 'shiina') charId = 'mamoru';
+
+        if (typeof characters !== 'undefined' && Array.isArray(characters)) {
+            const foundChar = characters.find(c => c.id === charId);
+            if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
+                stageKey = foundChar.stages[stageNum - 1];
             }
         }
 
         this.stageKey = stageKey;
 
-        // ★修正：シナリオデータ側の表記揺れ（'stage1' や 'stage2'）を元の3Dアセット群へ1対1で完璧にマッピング
-        if (stageKey === 'kagami' || stageKey === 'stage1') {
+        // ★完全復活：判定を stageKey の文字列に一本化し、既存の3Dアセットの表示フラグを元の完璧な状態へ復帰！
+        if (stageKey === 'kagami') {
             this.scene.fog.near = 100;
             this.scene.fog.far = 500;
             this.scene.fog.color.setHex(0x0a0a14);
@@ -220,7 +230,7 @@ class BGManager3D {
             if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
-        } else if (stageKey === 'hiragi' || stageKey === 'stage2') {
+        } else if (stageKey === 'hiragi') {
             this.scene.fog.near = 30;
             this.scene.fog.far = 250;
             this.scene.fog.color.setHex(0x020205);
@@ -243,7 +253,7 @@ class BGManager3D {
             if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
-        } else if (stageKey === 'shiina' || stageKey === 'stage3') {
+        } else if (stageKey === 'shiina') {
             this.scene.fog.near = 80;
             this.scene.fog.far = 400;
             this.scene.fog.color.setHex(0x0a0f1d);
@@ -266,7 +276,7 @@ class BGManager3D {
             if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
-        } else if (stageKey === 'jingu' || stageKey === 'stage4') {
+        } else if (stageKey === 'jingu') {
             this.scene.fog.near = 50;
             this.scene.fog.far = 300;
             this.scene.fog.color.setHex(0x111c24);
@@ -289,7 +299,7 @@ class BGManager3D {
             if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
-        } else if (stageKey === 'godai' || stageKey === 'stage5') {
+        } else if (stageKey === 'godai') {
             this.scene.fog.near = 2000;
             this.scene.fog.far = 8000;
             this.scene.fog.color.setHex(0x000002);
@@ -312,7 +322,7 @@ class BGManager3D {
             if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
-        } else if (stageKey === 'final' || stageKey === 'stage6') {
+        } else if (stageKey === 'final') {
             this.scene.fog.near = 100;
             this.scene.fog.far = 1200;
             this.scene.fog.color.setHex(0x030101); 
@@ -366,16 +376,14 @@ class BGManager3D {
     loop(timestamp) {
         if (!this.isActive) return;
 
-        // ゲームコアから現在の本物の stgId を最優先でキャッチして上書き強制同期
-        if (window.stgManager && window.stgManager.stgId) {
-            if (this.stageKey !== window.stgManager.stgId) {
-                this.setStage(window.stgManager.stgId);
+        // main.jsから常時流れてくる window.currentStage (数値の1〜6) を最優先で監視して完全同期
+        if (typeof currentStage !== 'undefined') {
+            if (this.currentStage !== currentStage) {
+                this.setStage(currentStage);
             }
-        } else if (typeof currentStage !== 'undefined' && this.currentStage !== currentStage) {
-            this.setStage(currentStage);
         }
 
-        // 識別キーが完全に確定した段階で、2D専用（eijiなど）ならレンダリングを完璧にスキップ
+        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏側の3Dレンダリングと計算を完全にパス
         if (this.stageKey === 'eiji') {
             return;
         }
