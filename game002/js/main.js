@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.11"; // バージョン更新（プログレスバーとファイル名表示に対応したリッチローディングを実装）
+const VER_MAIN = "0.9.12"; // バージョン更新（ステージ1開始時にそのステージ自身のadvパートがスキップされてしまう不具合を修正）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -174,13 +174,10 @@ async function init() {
             originalBtnHTML = startButton.innerHTML;
             originalBtnColor = startButton.style.color;
             originalBtnBorder = startButton.style.borderColor;
-
-            // ★追加：ui.js に切り出したリッチなローディングUIを表示
             ui.showLoadingUI(startButton);
         }
     }
 
-    // ★追加：画像の読み込み進捗を監視し、プログレスバーを更新するための事前キャッシュ処理
     const totalItems = (imagesToPreload ? imagesToPreload.length : 0) + (imagesToPreload3D ? imagesToPreload3D.length : 0);
     let loadedItems = 0;
 
@@ -222,14 +219,12 @@ async function init() {
         });
     }
 
-    // すべてのファイルの読み込み進捗が 100% になるまで待機
     if (cachePromises.length > 0) {
         await Promise.all(cachePromises);
     }
     
     ui.updateLoadingUI(100, "Complete!");
 
-    // 本来の各マネージャーへの登録（裏ですでに読み込み終わっているため一瞬で完了します）
     await Promise.all([
         new Promise(res => advManager.preload(imagesToPreload, res)),
         new Promise(res => {
@@ -246,7 +241,6 @@ async function init() {
     if (titleScreen) {
         titleScreen.style.pointerEvents = 'auto';
         if (startButton) {
-            // ローディングが終了したら元の START GAME ボタンに戻す
             startButton.innerHTML = originalBtnHTML;
             startButton.style.color = originalBtnColor;
             startButton.style.borderColor = originalBtnBorder;
@@ -318,12 +312,19 @@ function executeStart(stageNum) {
             stgManager = new STGManager(canvas, charData, stgId);
             
             gameState = 'ADV';
-            advManager.start(charScenario['kagami_arrival'], () => {
-                gameState = 'PRE_STG_DIALOGUE';
-                advManager.start(charScenario[currentStage].pre_stg || [], () => {
-                    gameState = 'STAGE_START_TEXT';
-                    transitionTimer = 90;
-                    if (skipBtn) skipBtn.classList.add('hidden');
+            // kagami_arrival がある場合は再生し、終わった後に 1面の adv を再生する
+            advManager.start(charScenario['kagami_arrival'] || [], () => {
+                
+                // ★修正：ここで 1面に設定された本編の adv パートを再生！
+                gameState = 'ADV';
+                advManager.start(charScenario[currentStage].adv || [], () => {
+                    
+                    gameState = 'PRE_STG_DIALOGUE';
+                    advManager.start(charScenario[currentStage].pre_stg || [], () => {
+                        gameState = 'STAGE_START_TEXT';
+                        transitionTimer = 90;
+                        if (skipBtn) skipBtn.classList.add('hidden');
+                    });
                 });
             });
         });
