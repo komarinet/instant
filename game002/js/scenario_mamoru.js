@@ -139,7 +139,7 @@ scenarios.mamoru = {
             { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '各務さん？' },
             { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 10, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
             { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'あれはうちの迎撃装置だ' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 11, speaker: '護', text: 'ええ！？', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: 'ええ！？', effect: 'shake' },
             { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '別件で使ったあと、スイッチを切るのを忘れてしまったようだ' },
             { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 12, speaker: '護', text: 'じゃあ、スイッチを切ってもらえれば止まるんですね' },
             { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '母艦までたどり着ければな' },
