@@ -1,4 +1,4 @@
-const VER_STG_EIJI = "0.2.4"; // バージョン更新（BGM追加対応）
+const VER_STG_EIJI = "0.2.5"; // バージョン更新（CPU撃破時のアイテム出現追加、およびボム出現率の引き上げ）
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['eiji'] = {
@@ -196,6 +196,13 @@ window.StageConfigs['eiji'] = {
                 // CPUが倒したフラグが立っていなければ、自機（またはボム）による撃破とみなす
                 if (!e._killedByCpu) {
                     stg.playerKills++;
+                    
+                    // ★追加：自機が倒した際、基本のアイテムドロップとは別にボムの追加ドロップチャンスを与える（出現率アップ）
+                    if (Math.random() < 0.05) {
+                        if (typeof Item !== 'undefined') {
+                            stg.items.push(new Item('bomb', e.x, e.y));
+                        }
+                    }
                 }
             }
             e._prevHp = e.hp;
@@ -253,15 +260,24 @@ window.StageConfigs['eiji'] = {
                         e._killedByCpu = true; // CPUが倒したマークを付ける
                         stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                         if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+
+                        // ★追加：CPUが撃破した場合にもプレイヤー用アイテムを生成（ボム率少し高め）
+                        if (typeof Item !== 'undefined') {
+                            if (Math.random() < 0.15) {
+                                stg.items.push(new Item('recover', e.x, e.y));
+                            } else if (Math.random() < 0.08) { // 通常の3%より高めに設定
+                                stg.items.push(new Item('bomb', e.x, e.y));
+                            }
+                        }
                     }
                 }
             });
         });
         stg.cpuBullets = stg.cpuBullets.filter(b => b.alive);
 
-        // ★修正：時間切れ時の処理（無限ループ防止 ＆ 正しいゲームオーバー遷移）
+        // 時間切れ時の処理（無限ループ防止 ＆ 正しいゲームオーバー遷移）
         if (stg.timeLimit <= 0 && !stg.isTimeStopped && !stg.timeUpProcessed) {
-            stg.timeUpProcessed = true; // ★追加：処理済みのフラグを立てる
+            stg.timeUpProcessed = true; 
             stg.isTimeStopped = true;
             
             stg.enemies = []; stg.enemyBullets = [];
@@ -280,7 +296,7 @@ window.StageConfigs['eiji'] = {
                 window.startMidStgADV(lossAdv, () => {
                     stg.player.hp = 0; 
                     stg.isTimeStopped = false;
-                    stg.forceGameOver = true; // ★追加：ADV再生終了後にゲームオーバーの信号を送る
+                    stg.forceGameOver = true; 
                 });
             }
         }
