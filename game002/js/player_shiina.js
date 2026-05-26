@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.2.4"; // 椎名護：ボムでザコ敵を倒した際にボス撃破判定になりステージクリアしてしまうバグを修正
+const VER_PLAYER_SHIINA = "0.2.5"; // 椎名護：ボム発動時に shiinabomb.png を用いたカットイン演出（時間停止・下から入って上に抜ける動き）を追加
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -171,9 +171,14 @@ const ShiinaController = {
     },
 
     triggerBomb: function(player, stg) {
-        if (player.bombs <= 0 || stg.bombState === 'BARRIER') return;
+        // ★修正：カットイン中（CUTIN）もボムの重複発動をブロック
+        if (player.bombs <= 0 || stg.bombState === 'BARRIER' || stg.bombState === 'CUTIN') return;
         player.bombs--; 
-        stg.bombState = 'BARRIER';
+        
+        // ★追加：シールドを展開する前に、まずはカットイン状態へ移行
+        stg.bombState = 'CUTIN';
+        stg.cutinTimer = 0; // カットイン演出用のタイマー
+        
         stg.bombTimer = 0;
         stg.bombDuration = 600; 
         
@@ -202,6 +207,18 @@ const ShiinaController = {
     },
 
     updateBomb: function(player, stg, sW, sH) {
+        // ★追加：カットイン中の処理（ゲームの時を止め、70フレームで演出を終えてバリアへ移行）
+        if (stg.bombState === 'CUTIN') {
+            stg.cutinTimer++;
+            stg.isTimeStopped = true; // ボム中はSTG側の時を止める
+            
+            if (stg.cutinTimer >= 70) {
+                stg.bombState = 'BARRIER';
+                stg.isTimeStopped = false; // カットイン終了で時を動かす
+            }
+            return;
+        }
+
         if (stg.bombState !== 'BARRIER' || !stg.bombData) return;
         stg.bombTimer++;
         
@@ -238,18 +255,15 @@ const ShiinaController = {
                             e.hp -= 30; 
                             
                             if (e.hp <= 0 && !e.isDying) { 
-                                // ★修正：ボム撃破時もザコとボスで死に方を分ける
                                 stg.player.score += e.isBoss ? 10000 : 100;
                                 
                                 if (e.isBoss) {
                                     e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; 
                                 } else {
-                                    // ザコ敵の場合は通常の爆発エフェクトのみで即消滅
                                     e.alive = false; 
                                     stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                                     if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
                                     
-                                    // アイテムドロップも反映
                                     if(Math.random()<0.1) stg.items.push(new Item('power', e.x, e.y)); 
                                     else if(Math.random()<0.15) stg.items.push(new Item('recover', e.x, e.y));
                                     else if(Math.random()<0.03) stg.items.push(new Item('bomb', e.x, e.y)); 
@@ -269,6 +283,52 @@ const ShiinaController = {
     },
 
     drawBomb: function(player, stg, ctx, sW, sH, shakeX, shakeY) {
+        // ★追加：カットイン演出の描画
+        if (stg.bombState === 'CUTIN') {
+            ctx.save();
+            
+            // 画面全体を少し暗くする
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.fillRect(0, 0, sW, sH);
+
+            // 背景の黒帯
+            const stripH = 150;
+            const stripY = sH / 2 - stripH / 2;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            ctx.fillRect(0, stripY, sW, stripH);
+            ctx.strokeStyle = '#33ccff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, stripY, sW, stripH);
+
+            const cutinImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['shiinabomb.png'] : null;
+            if (cutinImg && cutinImg.naturalHeight > 0) {
+                const imgH = stripH * 1.4; // 帯より少し大きめに設定
+                const imgW = cutinImg.naturalWidth * (imgH / cutinImg.naturalHeight);
+
+                const t = stg.cutinTimer;
+                const targetY = sH / 2;
+                let currentY = sH + imgH; 
+
+                // イージングを用いたアニメーション（下から登場 → 少し停止 → 上へ退出）
+                if (t < 15) {
+                    const p = t / 15;
+                    const ease = 1 - Math.pow(1 - p, 3); // 減速しながら入ってくる
+                    currentY = (sH + imgH) - ((sH + imgH) - (targetY + 15)) * ease;
+                } else if (t < 55) {
+                    const p = (t - 15) / 40;
+                    currentY = (targetY + 15) - 30 * p; // ゆっくりと上に微動
+                } else {
+                    const p = (t - 55) / 15;
+                    const ease = p * p; // 加速しながら抜ける
+                    currentY = (targetY - 15) - ((targetY - 15) - (-imgH)) * ease;
+                }
+
+                ctx.drawImage(cutinImg, sW / 2 - imgW / 2, currentY - imgH / 2, imgW, imgH);
+            }
+            ctx.restore();
+        }
+
+        // 既存のシールドバリアの描画
         if (stg.bombState === 'BARRIER' && stg.bombData) {
             const sansImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.png'] : null;
             if (!sansImg) return;
