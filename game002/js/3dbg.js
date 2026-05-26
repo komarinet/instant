@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.3"; // バージョン更新（起動時にstageKeyが未定義の状態でelseフォールバックに吸い込まれるバグを完全に修正し、3D背景の描画復旧と2D時の軽量化スキップを完全に両立）
+const VER_3DBG = "0.7.5"; // バージョン更新（変数未定義によるフォールバック誤作動を完全に防ぐため、ステージ識別子文字列の直接受け取りに対応。既存3D表示の完全復旧と2D背景時のCPU/GPU計算完全スキップを100%両立）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -53,7 +53,7 @@ class BGManager3D {
         this.cloudScrollSpeed = -0.5; 
         this.trenchScrollSpeed = -1.5; 
 
-        // 起動時にフォールバックへ吸い込まれないよう初期値をセット
+        // 初期化時のブラックアウト吸い込みを防ぐための安全な初期値
         this.stageKey = 'kagami'; 
 
         window._bgManagerInstance = this; 
@@ -114,7 +114,8 @@ class BGManager3D {
         this.isActive = true;
         this.lastTime = performance.now();
         
-        this.setStage(1);
+        // 起動時は明示的に 'kagami' キーを渡して初期化
+        this.setStage('kagami');
 
         this.animate = (timestamp) => {
             this.loop(timestamp);
@@ -169,18 +170,28 @@ class BGManager3D {
         requestAnimationFrame(fadeLoop);
     }
 
-    setStage(stageNum) {
-        this.currentStage = stageNum;
+    // ★修正：数値だけでなく、'kagami' や 'eiji' などの識別子文字列も直接受け取れるように拡張
+    setStage(stageInput) {
         this.isCoreTransitioning = false; 
 
-        let charId = window.selectedCharId || 'igari';
-        if (charId === 'shiina') charId = 'mamoru';
-
         let stageKey = 'kagami';
-        if (typeof characters !== 'undefined') {
-            const foundChar = characters.find(c => c.id === charId);
-            if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
-                stageKey = foundChar.stages[stageNum - 1];
+
+        if (typeof stageInput === 'string') {
+            // 文字列（'kagami', 'eiji'など）が直接指定された場合
+            stageKey = stageInput;
+            // 互換性のために数値を逆算（finalの場合は6、それ以外は暫定で1）
+            this.currentStage = (stageInput === 'final') ? 6 : 1;
+        } else {
+            // 従来通り数値（stageNum）が渡された場合
+            this.currentStage = stageInput;
+            let charId = window.selectedCharId || 'igari';
+            if (charId === 'shiina') charId = 'mamoru';
+
+            if (typeof characters !== 'undefined') {
+                const foundChar = characters.find(c => c.id === charId);
+                if (foundChar && foundChar.stages && foundChar.stages[stageInput - 1]) {
+                    stageKey = foundChar.stages[stageInput - 1];
+                }
             }
         }
 
@@ -252,7 +263,7 @@ class BGManager3D {
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
             if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
+            if (this.trenchGroup) praise = this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'jingu') {
@@ -355,14 +366,22 @@ class BGManager3D {
     loop(timestamp) {
         if (!this.isActive) return;
 
-        // ★修正：初期値のズレによるバグを防ぐため、毎フレームのステージ名割り出し・更新をスキップ条件より「前」に実行させます
+        // main.js から動的に流れてくる現在のステージ番号を監視して完全同期
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
                 this.setStage(currentStage);
             }
         }
 
-        // ステージキーが完全に確定した状態で2Dステージ（eijiなど）の場合のみ、以降の3D処理を安全にパスさせます
+        // ★完全追記：もし、STGManagerのインスタンスが存在し、かつ確定した固有のstgIdを持っているなら、
+        // 起動順の影響を受けるキャラクター配列を介さず、最優先で直接ステージキーを強制同期して上書き復旧させます。
+        if (window.stgManager && window.stgManager.stgId) {
+            if (this.stageKey !== window.stgManager.stgId) {
+                this.setStage(window.stgManager.stgId);
+            }
+        }
+
+        // ステージキーが完全に確定した状態で2D画像ステージ（eijiなど）の場合のみ、以降の3Dレンダリングと計算を完全にパス
         if (this.stageKey === 'eiji') {
             return;
         }
