@@ -87,7 +87,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', item: 'mask.png', se: 'vibration.mp3', text: '', bgm: 'stop' },
             { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '・・・これでいいか？', bgm: 'dark' },
             { bg: 'nightmt.png', item: 'mask2.png', se: 'vibration.mp3', text: '' },
-            { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: 'はっ、一応使えはすんのかよ' }
+            { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: 'はっ、一応使えはすんのかよ' },
             { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 0, speaker: '護(裏)', text: '悪いが負けるつもりはない', bgm: 'dark' },
             { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: '上等だよ、流れ弾に当たって死んでも知らねぇからな！', effect: 'shake' }
         ], 
