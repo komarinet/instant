@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.2.5"; // 椎名護：ボム発動時に shiinabomb.png を用いたカットイン演出（時間停止・下から入って上に抜ける動き）を追加
+const VER_PLAYER_SHIINA = "0.2.6"; // 椎名護：カットイン画像（shiinabomb.png）をどんなスマホでも画面の縦幅いっぱいに広がるようにサイズとアニメーションをダイナミックに最適化
 
 window.PlayerControllers = window.PlayerControllers || {};
 
@@ -171,13 +171,11 @@ const ShiinaController = {
     },
 
     triggerBomb: function(player, stg) {
-        // ★修正：カットイン中（CUTIN）もボムの重複発動をブロック
         if (player.bombs <= 0 || stg.bombState === 'BARRIER' || stg.bombState === 'CUTIN') return;
         player.bombs--; 
         
-        // ★追加：シールドを展開する前に、まずはカットイン状態へ移行
         stg.bombState = 'CUTIN';
-        stg.cutinTimer = 0; // カットイン演出用のタイマー
+        stg.cutinTimer = 0; 
         
         stg.bombTimer = 0;
         stg.bombDuration = 600; 
@@ -207,14 +205,13 @@ const ShiinaController = {
     },
 
     updateBomb: function(player, stg, sW, sH) {
-        // ★追加：カットイン中の処理（ゲームの時を止め、70フレームで演出を終えてバリアへ移行）
         if (stg.bombState === 'CUTIN') {
             stg.cutinTimer++;
-            stg.isTimeStopped = true; // ボム中はSTG側の時を止める
+            stg.isTimeStopped = true; 
             
             if (stg.cutinTimer >= 70) {
                 stg.bombState = 'BARRIER';
-                stg.isTimeStopped = false; // カットイン終了で時を動かす
+                stg.isTimeStopped = false; 
             }
             return;
         }
@@ -283,15 +280,12 @@ const ShiinaController = {
     },
 
     drawBomb: function(player, stg, ctx, sW, sH, shakeX, shakeY) {
-        // ★追加：カットイン演出の描画
         if (stg.bombState === 'CUTIN') {
             ctx.save();
             
-            // 画面全体を少し暗くする
             ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.fillRect(0, 0, sW, sH);
 
-            // 背景の黒帯
             const stripH = 150;
             const stripY = sH / 2 - stripH / 2;
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
@@ -302,25 +296,27 @@ const ShiinaController = {
 
             const cutinImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['shiinabomb.png'] : null;
             if (cutinImg && cutinImg.naturalHeight > 0) {
-                const imgH = stripH * 1.4; // 帯より少し大きめに設定
+                // ★修正：画像の高さを画面の縦幅(sH)と完全に一致させる
+                const imgH = sH; 
+                // ★修正：横幅は、縦幅に合わせて元画像の縦横比を維持したまま自動スケール
                 const imgW = cutinImg.naturalWidth * (imgH / cutinImg.naturalHeight);
 
                 const t = stg.cutinTimer;
                 const targetY = sH / 2;
                 let currentY = sH + imgH; 
 
-                // イージングを用いたアニメーション（下から登場 → 少し停止 → 上へ退出）
+                // イージングを用いたアニメーション
                 if (t < 15) {
                     const p = t / 15;
-                    const ease = 1 - Math.pow(1 - p, 3); // 減速しながら入ってくる
-                    currentY = (sH + imgH) - ((sH + imgH) - (targetY + 15)) * ease;
+                    const ease = 1 - Math.pow(1 - p, 3); 
+                    currentY = (sH + imgH) - ((sH + imgH) - targetY) * ease;
                 } else if (t < 55) {
                     const p = (t - 15) / 40;
-                    currentY = (targetY + 15) - 30 * p; // ゆっくりと上に微動
+                    currentY = targetY - (sH * 0.05) * p; // ★画面サイズに合わせてゆっくりと上に微動
                 } else {
                     const p = (t - 55) / 15;
-                    const ease = p * p; // 加速しながら抜ける
-                    currentY = (targetY - 15) - ((targetY - 15) - (-imgH)) * ease;
+                    const ease = p * p; 
+                    currentY = (targetY - (sH * 0.05)) - ((targetY - (sH * 0.05)) - (-imgH)) * ease;
                 }
 
                 ctx.drawImage(cutinImg, sW / 2 - imgW / 2, currentY - imgH / 2, imgW, imgH);
@@ -328,7 +324,6 @@ const ShiinaController = {
             ctx.restore();
         }
 
-        // 既存のシールドバリアの描画
         if (stg.bombState === 'BARRIER' && stg.bombData) {
             const sansImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.png'] : null;
             if (!sansImg) return;
