@@ -31,7 +31,7 @@ scenarios.igari = {
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 9, speaker: '猪狩', text: 'はっ・・・夢？', bgm: 'relax' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 8, speaker: '猪狩', text: 'てか、俺なんで家にいるんだよ！　いま何時だ、仕事が・・・' },
         { bg: 'room.png', place: 'Room', time: '2025.04', item: 'phone3.png', text: '' },
-        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・2025年4月2日？' },
+        { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 11, speaker: '猪狩', text: '・・・2025年4月3日？' },
         { bg: 'room.png', place: 'Room', time: '2025.04',item: 'phone2.png', se: 'vibration.mp3', text: '' },
         { bg: 'room.png', place: 'Room', time: '2025.04', character: 'igari02.png', spriteIndex: 0, speaker: '猪狩', text: 'はい、猪狩ですが' },
         { bg: 'room.png', place: 'Room', time: '2025.04', item: 'phone3.png', speaker: '？？？', text: '猪狩俊基だな。私は異世界保険組合の者だ' },
