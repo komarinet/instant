@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.5"; // バージョン更新（変数未定義によるフォールバック誤作動を完全に防ぐため、ステージ識別子文字列の直接受け取りに対応。既存3D表示の完全復旧と2D背景時のCPU/GPU計算完全スキップを100%両立）
+const VER_3DBG = "0.7.0"; // バージョン更新（ステージ番号による一律の分岐を完全撤廃し、選択キャラクターのstages配列から取得したステージ識別子『stageKey』に基づく動的な3D背景切り替え制御を完全統合）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -52,9 +52,6 @@ class BGManager3D {
         this.scrollSpeed = -1.2; 
         this.cloudScrollSpeed = -0.5; 
         this.trenchScrollSpeed = -1.5; 
-
-        // 初期化時のブラックアウト吸い込みを防ぐための安全な初期値
-        this.stageKey = 'kagami'; 
 
         window._bgManagerInstance = this; 
     }
@@ -114,8 +111,7 @@ class BGManager3D {
         this.isActive = true;
         this.lastTime = performance.now();
         
-        // 起動時は明示的に 'kagami' キーを渡して初期化
-        this.setStage('kagami');
+        this.setStage(1);
 
         this.animate = (timestamp) => {
             this.loop(timestamp);
@@ -170,34 +166,26 @@ class BGManager3D {
         requestAnimationFrame(fadeLoop);
     }
 
-    // ★修正：数値だけでなく、'kagami' や 'eiji' などの識別子文字列も直接受け取れるように拡張
-    setStage(stageInput) {
+    setStage(stageNum) {
+        this.currentStage = stageNum;
         this.isCoreTransitioning = false; 
 
+        // 現在選択中のキャラクターIDを取得（表記揺れ揺らぎ吸収対策）
+        let charId = window.selectedCharId || 'igari';
+        if (charId === 'shiina') charId = 'mamoru';
+
+        // data_core.js に定義されている各キャラクター固有の配列からステージ識別子（'kagami', 'hiragi'など）を動的特定
         let stageKey = 'kagami';
-
-        if (typeof stageInput === 'string') {
-            // 文字列（'kagami', 'eiji'など）が直接指定された場合
-            stageKey = stageInput;
-            // 互換性のために数値を逆算（finalの場合は6、それ以外は暫定で1）
-            this.currentStage = (stageInput === 'final') ? 6 : 1;
-        } else {
-            // 従来通り数値（stageNum）が渡された場合
-            this.currentStage = stageInput;
-            let charId = window.selectedCharId || 'igari';
-            if (charId === 'shiina') charId = 'mamoru';
-
-            if (typeof characters !== 'undefined') {
-                const foundChar = characters.find(c => c.id === charId);
-                if (foundChar && foundChar.stages && foundChar.stages[stageInput - 1]) {
-                    stageKey = foundChar.stages[stageInput - 1];
-                }
+        if (typeof characters !== 'undefined') {
+            const foundChar = characters.find(c => c.id === charId);
+            if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
+                stageKey = foundChar.stages[stageNum - 1];
             }
         }
 
-        this.stageKey = stageKey;
-
+        // ★修正：stageNumでの判定を廃止し、取得した stageKey に基づき背景グラフィックを完全同期
         if (stageKey === 'kagami') {
+            // --- 各務ステージの3D背景（通常のビル街空間） ---
             this.scene.fog.near = 100;
             this.scene.fog.far = 500;
             this.scene.fog.color.setHex(0x0a0a14);
@@ -221,6 +209,7 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'hiragi') {
+            // --- 柊ステージの3D背景（キャンドルの並ぶ暗い精神世界空間） ---
             this.scene.fog.near = 30;
             this.scene.fog.far = 250;
             this.scene.fog.color.setHex(0x020205);
@@ -244,6 +233,7 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'shiina') {
+            // --- 椎名ステージの3D背景（雲海が高速スクロールする上空空間） ---
             this.scene.fog.near = 80;
             this.scene.fog.far = 400;
             this.scene.fog.color.setHex(0x0a0f1d);
@@ -263,10 +253,11 @@ class BGManager3D {
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
             if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) praise = this.trenchGroup.visible = false;
+            if (this.trenchGroup) this.trenchGroup.visible = false;
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'jingu') {
+            // --- 神宮寺ステージの3D背景（雪の降る極地空間、ビル群を消して流用フォールバック） ---
             this.scene.fog.near = 50;
             this.scene.fog.far = 300;
             this.scene.fog.color.setHex(0x111c24);
@@ -290,6 +281,7 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'godai') {
+            // --- GODAIステージの3D背景（巨大な月が迫る宇宙空間） ---
             this.scene.fog.near = 2000;
             this.scene.fog.far = 8000;
             this.scene.fog.color.setHex(0x000002);
@@ -313,6 +305,7 @@ class BGManager3D {
             if (this.coreGroup) this.coreGroup.visible = false;
 
         } else if (stageKey === 'final') {
+            // --- ファイナルステージの3D背景（要塞トレンチ＆コア空間） ---
             this.scene.fog.near = 100;
             this.scene.fog.far = 1200;
             this.scene.fog.color.setHex(0x030101); 
@@ -345,16 +338,23 @@ class BGManager3D {
             }
 
         } else {
-            // --- 未定義の識別子（eijiなど純粋な2D背景ステージ）におけるフォールバック ---
-            this.scene.fog.near = 10000;
-            this.scene.fog.far = 10000; 
-            this.scene.fog.color.setHex(0x000000);
-            this.renderer.setClearColor(0x000000, 1.0); 
+            // --- 上記以外の仮登録ステージ（eijiなど）が指定された場合の安全なフォールバック背景 ---
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300; 
+            this.scene.fog.color.setHex(0x0a0a14);
+            this.renderer.setClearColor(0x000000, 0);
 
-            if (this.ground) this.ground.visible = false;
-            if (this.buildings) this.buildings.forEach(b => b.visible = false);
-            if (this.clouds) this.clouds.forEach(c => c.visible = false);
-            if (this.candles) this.candles.forEach(c => c.visible = false);
+            this.ground.visible = true;
+            if (this.textures.ground) {
+                this.ground.material.map = this.textures.ground;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.repeat.set(4, 10);
+                this.ground.material.needsUpdate = true;
+            }
+            this.buildings.forEach(b => b.visible = true);
+            this.clouds.forEach(c => c.visible = true);
+            this.candles.forEach(c => c.visible = false);
             if (this.starField) this.starField.visible = false;
             if (this.moon) this.moon.visible = false;
             if (this.moonLight) this.moonLight.visible = false;
@@ -366,31 +366,17 @@ class BGManager3D {
     loop(timestamp) {
         if (!this.isActive) return;
 
-        // main.js から動的に流れてくる現在のステージ番号を監視して完全同期
-        if (typeof currentStage !== 'undefined') {
-            if (this.currentStage !== currentStage) {
-                this.setStage(currentStage);
-            }
-        }
-
-        // ★完全追記：もし、STGManagerのインスタンスが存在し、かつ確定した固有のstgIdを持っているなら、
-        // 起動順の影響を受けるキャラクター配列を介さず、最優先で直接ステージキーを強制同期して上書き復旧させます。
-        if (window.stgManager && window.stgManager.stgId) {
-            if (this.stageKey !== window.stgManager.stgId) {
-                this.setStage(window.stgManager.stgId);
-            }
-        }
-
-        // ステージキーが完全に確定した状態で2D画像ステージ（eijiなど）の場合のみ、以降の3Dレンダリングと計算を完全にパス
-        if (this.stageKey === 'eiji') {
-            return;
-        }
-
         if (!timestamp) timestamp = performance.now();
         let delta = (timestamp - this.lastTime) / (1000 / 60); 
         this.lastTime = timestamp;
 
         if (delta > 3.0) delta = 3.0; 
+
+        if (typeof currentStage !== 'undefined') {
+            if (this.currentStage !== currentStage) {
+                this.setStage(currentStage);
+            }
+        }
 
         if (window.BG3DObjects) {
             window.BG3DObjects.updateAnimations(this, delta);
