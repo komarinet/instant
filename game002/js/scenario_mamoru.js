@@ -64,9 +64,10 @@ scenarios.mamoru = {
         { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 4, speaker: '衛二', text: '椎名の家業には興味ないって言ってたじゃないか！' },
         { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '仕方ないんだよ、事情が事情で' },
         { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 2, speaker: '衛二', text: 'それでも納得できないね！' },
-        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 8, speaker: '衛二', text: '親父、どうよ？' },
+        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 8, speaker: '衛二', text: '親父も言ってやれよ！' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '衛二は厳しい修行で仮面の力を手に入れた' },
         { bg: 'shiinake.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '家督を継ぎたいのであれば、衛二に勝る力を証明しろ' },
+        { bg: 'shiinake.png', character: 'eiji.png', spriteIndex: 7, speaker: '衛二', text: '親父!?　本気かよ!?' },
         { bg: 'shiinake.png', character: 'shiina.png', spriteIndex: 10, speaker: '護', text: '・・・わかった' }
     ],
     1: {
@@ -86,6 +87,8 @@ scenarios.mamoru = {
             { bg: 'nightmt.png', item: 'mask.png', se: 'vibration.mp3', text: '', bgm: 'stop' },
             { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '・・・これでいいか？', bgm: 'dark' },
             { bg: 'nightmt.png', item: 'mask2.png', se: 'vibration.mp3', text: '' },
+            { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: 'はっ、一応使えはすんのかよ' }
+            { bg: 'nightmt.png', character: 'urashiina.png', spriteIndex: 0, speaker: '護(裏)', text: '悪いが負けるつもりはない', bgm: 'dark' },
             { bg: 'nightmt.png', character: 'uraeiji.png', spriteIndex: 3, speaker: '衛二(裏)', text: '上等だよ、流れ弾に当たって死んでも知らねぇからな！', effect: 'shake' }
         ], 
         post_stg: [ 
@@ -131,34 +134,34 @@ scenarios.mamoru = {
     2: {
         stgId: 'kagami', // 敵の構成などは各務ステージを流用
         adv: [
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
-            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '・・・あれは!!', effect: 'shake' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: '各務さん？' },
-            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
-            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: 'あれはうちの迎撃装置だ' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 9, speaker: '護', text: 'ええ！？', effect: 'shake' },
-            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '別件で使ったあと、スイッチを切るのを忘れてしまってな' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: 'じゃあ、スイッチを切ってもらえれば止まるんですね' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 12, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 7, speaker: '各務', text: '・・・あれは!!', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 0, speaker: '護', text: '各務さん？' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 10, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: 'あれはうちの迎撃装置だ' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 11, speaker: '護', text: 'ええ！？', effect: 'shake' },
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 2, speaker: '各務', text: '別件で使ったあと、スイッチを切るのを忘れてしまったようだ' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 12, speaker: '護', text: 'じゃあ、スイッチを切ってもらえれば止まるんですね' },
             { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '母艦までたどり着ければな' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 7, speaker: '護', text: '母艦・・・無数の戦闘機に守られてますね' },
-            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '丁度いいじゃないか、護' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: '母艦・・・無数の戦闘機に守られてますね' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: '丁度いいじゃないか、護' },
             { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '先祖の力を引き継いだお前の力、試してみろ' },
-            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 8, speaker: '護', text: 'いくら何でも多勢に無勢だよ' },
-            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '家督、衛二に戻してもいいんだぞ' },
+            { bg: 'citypanic.png', character: 'shiina.png', spriteIndex: 4, speaker: '護', text: 'いくら何でも多勢に無勢だよ' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 4, speaker: '忠重', text: '家督、衛二に戻してもいいんだぞ' },
             { bg: 'citypanic.png', item: 'mask.png', se: 'vibration.mp3', text: '' }, 
             { bg: 'citypanic.png', character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ちっ、しゃーねぇな！　行ってくらぁ', effect: 'shake' },
-            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '大丈夫なのか。うちのシステムはかなり堅牢だぞ' },
-            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '心配はいらん。あいつは家を継ぐのを拒否していたがな' },
-            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '才能は、一族随一だ' }
+            { bg: 'citypanic.png', character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '大丈夫なのか。うちのシステムはかなり堅牢だぞ' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 8, speaker: '忠重', text: '心配はいらん。あいつは家を継ぐのを拒否していたがな' },
+            { bg: 'citypanic.png', character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '才能は、一族随一だ' }
         ], 
         pre_stg: [
-            { bg: 'citypanic.png',character: 'urashiina.png', spriteIndex: 2, speaker: '護(裏)', text: '的が・・・的が一杯だ！　うははははっ！', effect: 'shake' },
-            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名くん・・・なんか随分とハイだな' },
-            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '仮面は脳を100％使用すると言われてる' },
-            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 1, speaker: '忠重', text: '理性も本能も全部剥き出しになるというわけだ' },
-            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 0, speaker: '各務', text: '椎名くんは普段、色々我慢してるんだな' },
+            { bg: 'citypanic.png',character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: '的が・・・的が一杯だ！　うははははっ！', effect: 'shake' },
+            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 6, speaker: '各務', text: '椎名くん・・・なんか随分とハイだな' },
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 8, speaker: '忠重', text: '仮面は脳を100％使用すると言われてる' },
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 0, speaker: '忠重', text: '理性も本能も全部剥き出しになるというわけだ' },
+            { bg: 'citypanic.png',character: 'kagami.png', spriteIndex: 9, speaker: '各務', text: '椎名くんは普段、色々我慢してるんだな' },
             { bg: 'citypanic.png',character: 'urashiina.png', spriteIndex: 3, speaker: '護(裏)', text: 'ぶっ潰すぞオラァ！', effect: 'shake' },
-            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 2, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
+            { bg: 'citypanic.png',character: 'tadashige.png', spriteIndex: 8, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
         ], 
         event_adv: [
             { bg: 'cityboss.png', character: 'urashiina.png', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、なかなかデケェじゃねぇか' },
