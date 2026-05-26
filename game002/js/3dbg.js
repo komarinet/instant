@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.5"; // バージョン更新（シナリオデータ側で'stage1' 'stage2'として定義されている本物の stgId 識別子とのマッピングのズレを完全解消。3D背景の描画復旧と2Dステージ時のCPU超軽量スキップを完璧に両立）
+const VER_3DBG = "0.7.6"; // バージョン更新（シナリオデータ側で'stage1' 'stage2'として定義されている本物の stgId 識別子とのマッピングのズレを完全解消。3D背景の描画復旧と2Dステージ時のCPU超軽量スキップを完璧に両立）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -172,6 +172,9 @@ class BGManager3D {
 
     setStage(stageInput) {
         this.isCoreTransitioning = false; 
+
+    // ★この1行を追記して、起動時にポップアップで中身を表示させてみてください！
+ 　     alert("3dbgが受け取った値: " + JSON.stringify(stageInput));
 
         let stageKey = 'stage1';
 
