@@ -297,7 +297,7 @@ class ADVManager {
             const msHeight = Math.floor(mainImg.height / getRows(currentMsg.character)) - 4; 
             let mScale = 1.0;
             
-            if (currentMsg.character === 'kagami.png') mScale = 0.85; 
+            if (currentMsg.character === 'kagami.png') mScale = 0.9; 
             else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
             else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1;
 
@@ -337,7 +337,7 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                if (cData.key === 'kagami.png') charScale = 0.85; 
+                if (cData.key === 'kagami.png') charScale = 0.9; 
                 else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
                 else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; 
                 else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
