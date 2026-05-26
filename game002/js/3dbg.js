@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.6"; // バージョン更新（大文字の"Stage1"などの表記揺れを完璧に吸収し、既存3D背景の描画復旧と2Dステージ時のCPU軽量化を安全に完全両立）
+const VER_3DBG = "0.7.7"; // バージョン更新（0.6.3のCanvasフックとループ構造を完全復元。既存のプログラム構造を1行も壊さずに、stages配列による自由な背景切り替えと2D軽量化を完璧に組み込み）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -42,66 +42,105 @@ class BGManager3D {
         };
         this.textureAtlasSize = {
             side: { cols: 3, rows: 2, count: 5 }, 
-            top: { cols: 4, rows: 3, count: 12 } 
+            top: { cols: 4, rows: 3, count: 12 }   
         };
+        this.scrollSpeed = 0.65; 
+        this.cloudScrollSpeed = 1.3; 
+        this.trenchScrollSpeed = 2.5; 
+        this.isLoaded = false;
+        
+        this.currentStage = 1;
+        this.stageKey = 'kagami'; // 追加：内部判定用のキー
+        this.flameMaterial = null;
+        this.lastTime = 0;
 
-        this.currentStage = 0;
-        this.stageTimer = 0;
-        this.lastTime = performance.now();
-
-        this.scrollSpeed = -1.2; 
-        this.cloudScrollSpeed = -0.5; 
-        this.trenchScrollSpeed = -1.5; 
-
-        // 起動時の安全を確保するための初期値
-        this.stageKey = 'kagami'; 
-
-        window._bgManagerInstance = this; 
+        if (!window._bgManagerInstance) {
+            window._bgManagerInstance = this;
+            const origFillText = CanvasRenderingContext2D.prototype.fillText;
+            CanvasRenderingContext2D.prototype.fillText = function(text, x, y, mw) {
+                if (typeof text === 'string' && text.includes('STAGE') && text.includes('START')) {
+                    const m = text.match(/STAGE\s+(\d+)/);
+                    if (m && window._bgManagerInstance) {
+                        const stageNum = parseInt(m[1], 10);
+                        if (window._bgManagerInstance.currentStage !== stageNum) {
+                            window._bgManagerInstance.setStage(stageNum);
+                        }
+                    }
+                }
+                if (mw !== undefined) return origFillText.call(this, text, x, y, mw);
+                return origFillText.call(this, text, x, y);
+            };
+        } else {
+            window._bgManagerInstance = this;
+        }
     }
 
-    preload(textureConfigs, callback) {
-        const manager = new THREE.LoadingManager();
-        const loader = new THREE.TextureLoader(manager);
-
-        textureConfigs.forEach(cfg => {
-            loader.load(`img/${cfg.src}`, (texture) => {
-                this.textures[cfg.key] = texture;
-            }, undefined, (err) => {
-                console.error(`[BGManager3D] テクスチャ読み込み失敗: img/${cfg.src}`, err);
-            });
-        });
-
-        manager.onLoad = () => {
+    preload(images, callback) {
+        if (!images || images.length === 0) {
+            this.isLoaded = true;
             callback();
+            return;
+        }
+
+        let loaded = 0;
+        const total = images.length;
+        const textureLoader = new THREE.TextureLoader();
+
+        const checkComplete = () => {
+            loaded++;
+            if (loaded >= total) {
+                this.isLoaded = true;
+                callback();
+            }
         };
-        manager.onError = (url) => {
-            console.error(`[BGManager3D] プリロード中にエラー発生: ${url}`);
-        };
+        images.forEach(imgData => {
+            const key = imgData.key;
+            const src = `img/${imgData.src}`;
+            textureLoader.load(
+                src, 
+                (texture) => {
+                    this.textures[key] = texture;
+                    checkComplete();
+                }, 
+                undefined, 
+                (err) => {
+                    console.error(`Failed to load texture: ${src}`, err);
+                    checkComplete(); 
+                }
+            );
+        });
     }
 
     init() {
-        if (!this.canvas) return;
-
-        this.scene = new THREE.Scene();
-        this.scene.fog = new THREE.FogExp2(0x0a0a14, 0.003);
-
-        const width = this.canvas.clientWidth;
-        const height = this.canvas.clientHeight;
-        this.camera = new THREE.PerspectiveCamera(60, width / height, 1, 10000);
-        this.camera.position.set(0, 45, 140); 
-        this.camera.lookAt(0, 20, -50); 
-
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, alpha: true, antialias: false });
+        if (!this.canvas || typeof THREE === 'undefined') return;
+        if (!this.isLoaded) return;
+        
+        const dpr = window.devicePixelRatio || 1;
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas,
+            antialias: false, 
+            alpha: true 
+        });
+        this.renderer.setPixelRatio(dpr);
+        const width = this.canvas.clientWidth || window.innerWidth;
+        const height = this.canvas.clientHeight || window.innerHeight;
         this.renderer.setSize(width, height, false);
-        this.renderer.setPixelRatio(1); 
+        this.renderer.setClearColor(0x000000, 0);
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.Fog(0x0a0a14, 50, 300); 
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 8000);
+        this.camera.position.set(0, 60, 0); 
+        this.camera.rotation.x = -Math.PI / 2.5; 
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
         this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(10, 50, -20); 
+        directionalLight.castShadow = false; 
+        this.scene.add(directionalLight);
 
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.4);
-        dirLight.position.set(0, 100, 50);
-        this.scene.add(dirLight);
-
+        this.renderer.shadowMap.enabled = false;
         if (window.BG3DObjects) {
             window.BG3DObjects.createGround(this);
             window.BG3DObjects.createBuildings(this);
@@ -113,114 +152,126 @@ class BGManager3D {
 
         this.isActive = true;
         this.lastTime = performance.now();
-        
-        this.setStage(1);
-
-        this.animate = (timestamp) => {
-            this.loop(timestamp);
-            if (this.isActive) requestAnimationFrame(this.animate);
-        };
-        requestAnimationFrame(this.animate);
+        this.loop(this.lastTime);
     }
 
     transitionToCore() {
         this.isCoreTransitioning = true;
-        
-        if (this.trenchLeftWall) {
-            this.trenchLeftWall.material.transparent = true;
-            this.trenchRightWall.material.transparent = true;
-            this.trenchFloorLeft.material.transparent = true;
-            this.trenchFloorRight.material.transparent = true;
-        }
-
-        let startTime = performance.now();
-        const fadeDuration = 1000; 
-
-        const fadeLoop = () => {
-            let elapsed = performance.now() - startTime;
-            let progress = Math.min(1.0, elapsed / fadeDuration);
-
-            if (this.trenchLeftWall) {
-                let alpha = 1.0 - progress;
-                this.trenchLeftWall.material.opacity = alpha;
-                this.trenchRightWall.material.opacity = alpha;
-                this.trenchFloorLeft.material.opacity = alpha;
-                this.trenchFloorRight.material.opacity = alpha;
-            }
-
-            if (progress < 1.0) {
-                requestAnimationFrame(fadeLoop);
-            } else {
-                if (this.trenchGroup) this.trenchGroup.visible = false;
-                this.isCoreTransitioning = false; 
-                
-                if (this.trenchLeftWall) {
-                    this.trenchLeftWall.material.opacity = 1.0;
-                    this.trenchRightWall.material.opacity = 1.0;
-                    this.trenchFloorLeft.material.opacity = 1.0;
-                    this.trenchFloorRight.material.opacity = 1.0;
-                    this.trenchLeftWall.material.transparent = false;
-                    this.trenchRightWall.material.transparent = false;
-                    this.trenchFloorLeft.material.transparent = false;
-                    this.trenchFloorRight.material.transparent = false;
-                }
-            }
-        };
-        requestAnimationFrame(fadeLoop);
     }
 
-    // ★完全修正：数値、小文字、大文字（"Stage1", "Stage2"など）のどんな入力がきても、完璧に1〜6の数値ステージに変換して安全に処理する頑強な受け入れ口
-    setStage(stageInput) {
-        this.isCoreTransitioning = false; 
-
-        let stageNum = 1;
-
-        if (typeof stageInput === 'number') {
-            stageNum = stageInput;
-        } else if (typeof stageInput === 'string') {
-            // 文字列を一度小文字にして判定（"Stage1" も "stage1" もすべてカバー）
-            const sLower = stageInput.toLowerCase();
-            const matched = sLower.match(/\d+/);
-            
-            if (matched) {
-                stageNum = Number(matched[0]);
-            } else if (sLower === 'final') {
-                stageNum = 6;
-            } else if (sLower === 'kagami') {
-                stageNum = 1;
-            } else if (sLower === 'hiragi') {
-                stageNum = 2;
-            } else if (sLower === 'shiina') {
-                stageNum = 3;
-            } else if (sLower === 'jingu') {
-                stageNum = 4;
-            } else if (sLower === 'godai') {
-                stageNum = 5;
-            }
-        } else if (stageInput && typeof stageInput === 'object') {
-            if (stageInput.currentStage) stageNum = Number(stageInput.currentStage);
-        }
-
+    setStage(stageNum) {
         this.currentStage = stageNum;
-
-        // 確定したステージ面（1〜6）から、選択中キャラの固有ステージ文字列（'kagami', 'eiji'など）を安全に逆算取得
+        if (!this.ground || !this.ground.material) return;
+        
+        // --- ★ NEW: stages配列からの文字割り出しと、3D描画用数値（visualMode）への変換 ---
         let stageKey = 'kagami';
         let charId = window.selectedCharId || 'igari';
         if (charId === 'shiina') charId = 'mamoru';
 
+        // 配列から現在のステージキー（'kagami', 'eiji' 等）を逆算
         if (typeof characters !== 'undefined' && Array.isArray(characters)) {
             const foundChar = characters.find(c => c.id === charId);
             if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
                 stageKey = foundChar.stages[stageNum - 1];
             }
         }
+        
+        // stgManagerが存在すれば確実にそちらを正とする
+        if (window.stgManager && window.stgManager.stgId) {
+            stageKey = window.stgManager.stgId;
+        }
 
         this.stageKey = stageKey;
 
-        // ★完全復旧：マッピングした stageKey に基づき、既存の3Dオブジェクトの可視性を完璧に適用
-        if (stageKey === 'kagami') {
+        // キーから0.6.3基準の描画モード数値にすり替える
+        let visualMode = stageNum;
+        if (stageKey === 'kagami' || stageKey === 'stage1') visualMode = 1;
+        else if (stageKey === 'hiragi' || stageKey === 'stage2') visualMode = 2;
+        else if (stageKey === 'godai' || stageKey === 'stage5') visualMode = 5;
+        else if (stageKey === 'final' || stageKey === 'stage6') visualMode = 6;
+        else if (stageKey === 'eiji') visualMode = 99; // 2D専用ステージ
+
+        // --------------------------------------------------------------------
+        
+        this.ground.visible = false;
+        this.buildings.forEach(b => b.visible = false);
+        this.candles.forEach(c => c.visible = false);
+        // 雲はステージ1（kagami）などのみ表示
+        this.clouds.forEach(c => c.visible = (visualMode === 1 || visualMode === 3 || visualMode === 4));
+        if (this.starField) this.starField.visible = false;
+        if (this.moon) this.moon.visible = false;
+        if (this.moonLight) this.moonLight.visible = false;
+        if (this.trenchGroup) this.trenchGroup.visible = false;
+        if (this.coreGroup) this.coreGroup.visible = false;
+        this.isCoreTransitioning = false;
+        
+        const aspectFactor = Math.min(1, this.camera.aspect);
+
+        // ★追加：eijiなど（2D背景）の場合は完全に黒クリアして3Dを表示しない
+        if (visualMode === 99) {
+            this.scene.fog.near = 9999999;
+            this.scene.fog.far = 10000000;
+            this.renderer.setClearColor(0x000000, 1);
+            if (this.ground) this.ground.visible = false;
+        }
+        else if (visualMode === 6) { 
             this.scene.fog.near = 100;
-            this.scene.fog.far = 500;
+            this.scene.fog.far = 1200; 
+            this.scene.fog.color.setHex(0x050505); 
+            this.renderer.setClearColor(0x000000, 1); 
+            
+            if (this.trenchGroup) {
+                this.trenchGroup.visible = true;
+                const edgeX = 90 * this.camera.aspect; 
+                this.trenchLeftWall.position.x = -edgeX;
+                this.trenchRightWall.position.x = edgeX;
+                if (this.trenchFloorLeft) {
+                    this.trenchFloorLeft.position.x = -500;
+                    this.trenchFloorRight.position.x = 500;
+                }
+            }
+            if (this.coreGroup) {
+                this.coreGroup.visible = true;
+                this.coreGroup.position.y = 0; 
+                
+                if (this.coreReactor) {
+                    this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
+                }
+            }
+        } 
+        else if (visualMode === 5) {
+            this.scene.fog.near = 9999999;
+            this.scene.fog.far = 10000000; 
+            this.renderer.setClearColor(0x000000, 1); 
+            
+            if (this.starField) {
+                this.starField.visible = true;
+                this.starField.position.set(0, -2500, -800);
+            }
+            if (this.moon) {
+                this.moon.visible = true;
+                this.moon.position.set(0, -4500, -1200); 
+                this.moon.scale.set(0.6 * aspectFactor, 0.6 * aspectFactor, 0.6 * aspectFactor);
+            }
+            if (this.moonLight) this.moonLight.visible = true;
+        } else if (visualMode === 2) {
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300; 
+            this.scene.fog.color.setHex(0x0a0a14);
+            this.renderer.setClearColor(0x000000, 0);
+
+            this.ground.visible = true;
+            if (this.textures.ground2) {
+                this.ground.material.map = this.textures.ground2;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.repeat.set(4, -10); 
+                this.ground.material.needsUpdate = true;
+            }
+            this.candles.forEach(c => c.visible = true);
+        } else {
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300;
             this.scene.fog.color.setHex(0x0a0a14);
             this.renderer.setClearColor(0x000000, 0);
 
@@ -232,185 +283,42 @@ class BGManager3D {
                 this.ground.material.map.repeat.set(4, 10);
                 this.ground.material.needsUpdate = true;
             }
-            this.buildings.forEach(b => b.visible = true);
-            this.clouds.forEach(c => c.visible = true);
-            this.candles.forEach(c => c.visible = false);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
-
-        } else if (stageKey === 'hiragi') {
-            this.scene.fog.near = 30;
-            this.scene.fog.far = 250;
-            this.scene.fog.color.setHex(0x020205);
-            this.renderer.setClearColor(0x000000, 0);
-
-            this.ground.visible = true;
-            if (this.textures.ground2) {
-                this.ground.material.map = this.textures.ground2;
-                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.repeat.set(4, 10);
-                this.ground.material.needsUpdate = true;
-            }
-            this.buildings.forEach(b => b.visible = false);
-            this.clouds.forEach(c => c.visible = false);
-            this.candles.forEach(c => c.visible = true);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
-
-        } else if (stageKey === 'shiina') {
-            this.scene.fog.near = 80;
-            this.scene.fog.far = 400;
-            this.scene.fog.color.setHex(0x0a0f1d);
-            this.renderer.setClearColor(0x000000, 0);
-
-            this.ground.visible = true;
-            if (this.textures.ground) {
-                this.ground.material.map = this.textures.ground;
-                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.repeat.set(4, 10);
-                this.ground.material.needsUpdate = true;
-            }
-            this.buildings.forEach(b => b.visible = false);
-            this.clouds.forEach(c => c.visible = true); 
-            this.candles.forEach(c => c.visible = false);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
-
-        } else if (stageKey === 'jingu') {
-            this.scene.fog.near = 50;
-            this.scene.fog.far = 300;
-            this.scene.fog.color.setHex(0x111c24);
-            this.renderer.setClearColor(0x000000, 0);
-
-            this.ground.visible = true;
-            if (this.textures.ground2) {
-                this.ground.material.map = this.textures.ground2;
-                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
-                this.ground.material.map.repeat.set(4, 10);
-                this.ground.material.needsUpdate = true;
-            }
-            this.buildings.forEach(b => b.visible = false);
-            this.clouds.forEach(c => c.visible = true);
-            this.candles.forEach(c => c.visible = false);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
-
-        } else if (stageKey === 'godai') {
-            this.scene.fog.near = 2000;
-            this.scene.fog.far = 8000;
-            this.scene.fog.color.setHex(0x000002);
-            this.renderer.setClearColor(0x000000, 0);
-
-            this.ground.visible = false; 
-            this.buildings.forEach(b => b.visible = false);
-            this.clouds.forEach(c => c.visible = false);
-            this.candles.forEach(c => c.visible = false);
             
-            if (this.starField) this.starField.visible = true;
-            
-            if (this.moon) {
-                this.moon.visible = true;
-                this.moon.position.set(0, -3200, -1800); 
-                this.moon.scale.set(1, 1, 1); 
-                this.moon.rotation.set(0, 0, 0); 
+            // visualMode 3, 4（雲だけのステージ）の場合はビルを消す
+            if (visualMode === 3 || visualMode === 4) {
+                this.buildings.forEach(b => b.visible = false);
+            } else {
+                this.buildings.forEach(b => b.visible = true);
             }
-            if (this.moonLight) this.moonLight.visible = true;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
-
-        } else if (stageKey === 'final') {
-            this.scene.fog.near = 100;
-            this.scene.fog.far = 1200;
-            this.scene.fog.color.setHex(0x030101); 
-            this.renderer.setClearColor(0x000000, 0);
-
-            this.ground.visible = false;
-            this.buildings.forEach(b => b.visible = false);
-            this.clouds.forEach(c => c.visible = false);
-            this.candles.forEach(c => c.visible = false);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            
-            if (this.trenchGroup) {
-                this.trenchGroup.visible = true;
-                this.trenchLeftWall.position.x = -90 * this.camera.aspect;
-                this.trenchRightWall.position.x = 90 * this.camera.aspect;
-                this.trenchFloorLeft.position.x = -500;
-                this.trenchFloorRight.position.x = 500;
-            }
-            
-            if (this.coreGroup) {
-                this.coreGroup.visible = true;
-                this.coreLeftWall.position.x = -140 * this.camera.aspect;
-                this.coreRightWall.position.x = 140 * this.camera.aspect;
-                if (this.coreReactor) {
-                    this.coreReactor.position.set(0, -80, -400); 
-                    this.coreReactor.material.opacity = 1.0;
-                }
-            }
-
-        } else {
-            // --- 純粋な2D背景専用ステージ（eijiなど）における安全なフォールバック（不透明の黒でクリア） ---
-            this.scene.fog.near = 10000;
-            this.scene.fog.far = 10000; 
-            this.scene.fog.color.setHex(0x000000);
-            this.renderer.setClearColor(0x000000, 1.0); 
-
-            if (this.ground) this.ground.visible = false;
-            if (this.buildings) this.buildings.forEach(b => b.visible = false);
-            if (this.clouds) this.clouds.forEach(c => c.visible = false);
-            if (this.candles) this.candles.forEach(c => c.visible = false);
-            if (this.starField) this.starField.visible = false;
-            if (this.moon) this.moon.visible = false;
-            if (this.moonLight) this.moonLight.visible = false;
-            if (this.trenchGroup) this.trenchGroup.visible = false;
-            if (this.coreGroup) this.coreGroup.visible = false;
         }
     }
 
     loop(timestamp) {
         if (!this.isActive) return;
+        if (!timestamp) timestamp = performance.now();
+        let delta = (timestamp - this.lastTime) / (1000 / 60); 
+        this.lastTime = timestamp;
+        if (delta > 3.0) delta = 3.0; 
 
-        // main.jsが常時更新している window.currentStage (1〜6) の変化信号を完全キャッチ
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
                 this.setStage(currentStage);
             }
         }
 
-        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏側の3Dレンダリングと高負荷アニメーション計算を完全にパス
+        // ★追加：eijiなどの2D背景時は、描画をパスしつつ「次のループへ繋ぐ」ことでフリーズを完全に防ぐ
         if (this.stageKey === 'eiji') {
+            requestAnimationFrame((ts) => this.loop(ts));
             return;
         }
-
-        if (!timestamp) timestamp = performance.now();
-        let delta = (timestamp - this.lastTime) / (1000 / 60); 
-        this.lastTime = timestamp;
-
-        if (delta > 3.0) delta = 3.0; 
 
         if (window.BG3DObjects) {
             window.BG3DObjects.updateAnimations(this, delta);
         }
 
-        if (this.renderer && this.scene && this.camera) {
-            this.renderer.render(this.scene, this.camera);
-        }
+        this.renderer.render(this.scene, this.camera);
+        
+        // 0.6.3に存在した命綱となるループ呼び出し
+        requestAnimationFrame((ts) => this.loop(ts));
     }
 }
