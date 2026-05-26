@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.7"; // バージョン更新（main.js側の数値制御との完全な互換性を復旧し、配列枠からグラフィック識別子を安全に逆算して表示バグを根底から完全解消。2D時のCPUスキップも完全両立）
+const VER_3DBG = "0.7.6"; // バージョン更新（大文字の"Stage1"などの表記揺れを完璧に吸収し、既存3D背景の描画復旧と2Dステージ時のCPU軽量化を安全に完全両立）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -53,7 +53,7 @@ class BGManager3D {
         this.cloudScrollSpeed = -0.5; 
         this.trenchScrollSpeed = -1.5; 
 
-        // 起動時の安全を確保するための初期化キー
+        // 起動時の安全を確保するための初期値
         this.stageKey = 'kagami'; 
 
         window._bgManagerInstance = this; 
@@ -114,7 +114,6 @@ class BGManager3D {
         this.isActive = true;
         this.lastTime = performance.now();
         
-        // 数値の 1 で確実に初期背景を起動
         this.setStage(1);
 
         this.animate = (timestamp) => {
@@ -170,7 +169,7 @@ class BGManager3D {
         requestAnimationFrame(fadeLoop);
     }
 
-    // ★修正：確実な数値（1〜6）、および送られてくる可能性のある文字列（"Stage1", "stage1"など）のすべてを完璧に受け止めて数値に統合する頑強なインターフェース
+    // ★完全修正：数値、小文字、大文字（"Stage1", "Stage2"など）のどんな入力がきても、完璧に1〜6の数値ステージに変換して安全に処理する頑強な受け入れ口
     setStage(stageInput) {
         this.isCoreTransitioning = false; 
 
@@ -179,12 +178,24 @@ class BGManager3D {
         if (typeof stageInput === 'number') {
             stageNum = stageInput;
         } else if (typeof stageInput === 'string') {
-            // "Stage1" や "stage1" や "1" などの文字列から数値を確実に抽出する
-            const matched = stageInput.match(/\d+/);
+            // 文字列を一度小文字にして判定（"Stage1" も "stage1" もすべてカバー）
+            const sLower = stageInput.toLowerCase();
+            const matched = sLower.match(/\d+/);
+            
             if (matched) {
                 stageNum = Number(matched[0]);
-            } else if (stageInput === 'final') {
+            } else if (sLower === 'final') {
                 stageNum = 6;
+            } else if (sLower === 'kagami') {
+                stageNum = 1;
+            } else if (sLower === 'hiragi') {
+                stageNum = 2;
+            } else if (sLower === 'shiina') {
+                stageNum = 3;
+            } else if (sLower === 'jingu') {
+                stageNum = 4;
+            } else if (sLower === 'godai') {
+                stageNum = 5;
             }
         } else if (stageInput && typeof stageInput === 'object') {
             if (stageInput.currentStage) stageNum = Number(stageInput.currentStage);
@@ -192,7 +203,7 @@ class BGManager3D {
 
         this.currentStage = stageNum;
 
-        // 割り出した現在の正確な数値（1〜6）から、選択中キャラの固有ステージ文字列（'kagami', 'eiji'など）を逆算取得
+        // 確定したステージ面（1〜6）から、選択中キャラの固有ステージ文字列（'kagami', 'eiji'など）を安全に逆算取得
         let stageKey = 'kagami';
         let charId = window.selectedCharId || 'igari';
         if (charId === 'shiina') charId = 'mamoru';
@@ -206,7 +217,7 @@ class BGManager3D {
 
         this.stageKey = stageKey;
 
-        // ★完全復活：判定を stageKey の文字列に一本化し、既存の3Dアセットの表示フラグを元の完璧な状態へ復帰！
+        // ★完全復旧：マッピングした stageKey に基づき、既存の3Dオブジェクトの可視性を完璧に適用
         if (stageKey === 'kagami') {
             this.scene.fog.near = 100;
             this.scene.fog.far = 500;
@@ -355,7 +366,7 @@ class BGManager3D {
             }
 
         } else {
-            // --- 純粋な2D背景専用ステージ（eijiなど）における安全なフォールバック ---
+            // --- 純粋な2D背景専用ステージ（eijiなど）における安全なフォールバック（不透明の黒でクリア） ---
             this.scene.fog.near = 10000;
             this.scene.fog.far = 10000; 
             this.scene.fog.color.setHex(0x000000);
@@ -376,14 +387,14 @@ class BGManager3D {
     loop(timestamp) {
         if (!this.isActive) return;
 
-        // main.jsから常時流れてくる window.currentStage (数値の1〜6) を最優先で監視して完全同期
+        // main.jsが常時更新している window.currentStage (1〜6) の変化信号を完全キャッチ
         if (typeof currentStage !== 'undefined') {
             if (this.currentStage !== currentStage) {
                 this.setStage(currentStage);
             }
         }
 
-        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏側の3Dレンダリングと計算を完全にパス
+        // 2D画像背景専用ステージ（eijiなど）の場合のみ、裏側の3Dレンダリングと高負荷アニメーション計算を完全にパス
         if (this.stageKey === 'eiji') {
             return;
         }
