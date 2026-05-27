@@ -1,11 +1,11 @@
 const VER_STG_CAP = "0.9.1"; // バージョン更新（BGM制御とADV後のBGM切り替えを追加）
-
+ 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['final'] = {
-    init: function(stg, canvas) { 
+    init: function(stg, canvas) {
         stg.phase = 1; // 1:トレンチ, 2:中ボス待ち, 3:コア展開＆ザコ, 4:最終ボス
         stg.phaseTimer = 0;
-        stg.coreTransitioned = false; 
+        stg.coreTransitioned = false;
        
         stg.bgmChanged = true; // ★追加：コアロジックによるBGMの自動切り替えをブロック
        
@@ -18,16 +18,16 @@ window.StageConfigs['final'] = {
     updateBackground: function(stg, sW, sH) {},
     drawBackground: function(stg, ctx, sW, sH) {},
     getEnemyData: function(type) {
-        if (type === 'gtypea') return { imgSrc: 'gtypea.webp’, size: 22, hp: 2, maxHp: 2 };
-        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp’, size: 30, hp: 5, maxHp: 5 };
-        if (type === 'gtypec') return { imgSrc: 'gtypec.webp’, size: 26, hp: 3, maxHp: 3 };
-        if (type === 'gtyped') return { imgSrc: 'gtyped.webp’, size: 25, hp: 8, maxHp: 8 };
-        if (type === 'gtypee') return { imgSrc: 'gtypee.webp’, size: 28, hp: 10, maxHp: 10 };
+        if (type === 'gtypea') return { imgSrc: 'gtypea.webp', size: 22, hp: 2, maxHp: 2 };
+        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp', size: 30, hp: 5, maxHp: 5 };
+        if (type === 'gtypec') return { imgSrc: 'gtypec.webp', size: 26, hp: 3, maxHp: 3 };
+        if (type === 'gtyped') return { imgSrc: 'gtyped.webp', size: 25, hp: 8, maxHp: 8 };
+        if (type === 'gtypee') return { imgSrc: 'gtypee.webp', size: 28, hp: 10, maxHp: 10 };
        
-        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp’, size: 45, hp: 150, maxHp: 150, isBoss: true };
+        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp', size: 45, hp: 150, maxHp: 150, isBoss: true };
         if (type === 'capboss') return { imgSrc: null, size: 80, hp: 1500, maxHp: 1500, isBoss: true };
     },
-
+ 
     updateWaves: function(stg, timer, sW, sH) {
         if (stg.phase === 1) {
             if (timer > 100 && timer < 2500) {
@@ -37,7 +37,7 @@ window.StageConfigs['final'] = {
                
                 if (timer % 180 === 0) {
                     const isLeft = Math.random() > 0.5;
-                    const xPos = isLeft ? sW * 0.15 : sW * 0.85; 
+                    const xPos = isLeft ? sW * 0.15 : sW * 0.85;
                     stg.enemies.push(new Enemy('gtyped', xPos, -50, stg.player.charData, stg.advManager, stg.stgId));
                 }
                 if (timer > 800 && timer % 250 === 0) {
@@ -61,7 +61,7 @@ window.StageConfigs['final'] = {
                 stg.phaseTimer++;
                 if (stg.phaseTimer === 60 && !stg.coreTransitioned) {
                     if (window._bgManagerInstance && typeof window._bgManagerInstance.transitionToCore === 'function') {
-                        window._bgManagerInstance.transitionToCore(); 
+                        window._bgManagerInstance.transitionToCore();
                     }
                     stg.coreTransitioned = true;
                 }
@@ -86,10 +86,10 @@ window.StageConfigs['final'] = {
                 let boss = new Enemy('capboss', sW/2, -100, stg.player.charData, stg.advManager, stg.stgId);
                
                 if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
-                    window._bgManagerInstance.coreReactor.material.opacity = 1.0; 
+                    window._bgManagerInstance.coreReactor.material.opacity = 1.0;
                     window._bgManagerInstance.coreReactor.material.transparent = true;
                 }
-
+ 
                 boss.draw = function(ctx) {
                     ctx.save(); ctx.translate(this.x, this.y);
                     if (this.hp > 0 && !this.isDying) {
@@ -112,7 +112,7 @@ window.StageConfigs['final'] = {
                     ctx.restore();
                 };
                 stg.enemies.push(boss);
-                stg.phase = 4; 
+                stg.phase = 4;
                 stg.capBossAdvPlayed = false; // ★追加：ADVが流れたかどうかを判定するフラグ
             }
         }
@@ -120,7 +120,7 @@ window.StageConfigs['final'] = {
         else if (stg.phase === 4) {
             // ★追加：コアのmid_stg2（ADVパート）終了を検知して、ボスBGMを流す
             if (stg.isTimeStopped) {
-                stg.capBossAdvPlayed = true; 
+                stg.capBossAdvPlayed = true;
             } else if (stg.capBossAdvPlayed) {
                 // ADVが終わった瞬間
                 if (!stg.bossBgmPlayed) {
@@ -130,23 +130,23 @@ window.StageConfigs['final'] = {
             }
         }
     },
-
+ 
     updateEnemy: function(e, canvas, player) {
         const dpr = window.devicePixelRatio || 1;
         e.moveTimer = (e.moveTimer || 0) + 1;
        
-        if (e.type === 'gtypea') { 
-            e.y += 3.5; e.x += Math.sin(e.moveTimer * 0.05) * 3; 
-        } 
-        else if (e.type === 'gtypeb') { 
+        if (e.type === 'gtypea') {
+            e.y += 3.5; e.x += Math.sin(e.moveTimer * 0.05) * 3;
+        }
+        else if (e.type === 'gtypeb') {
             if (e.y < canvas.height/dpr * 0.2) e.y += 3;
             else { e.x += Math.cos(e.moveTimer * 0.03) * 2.5; if (e.moveTimer > 250) e.y -= 2; }
         }
-        else if (e.type === 'gtypec') { 
-            e.y += 2.5; if (e.y < canvas.height/dpr * 0.8) e.x += (player.x - e.x) * 0.025; 
+        else if (e.type === 'gtypec') {
+            e.y += 2.5; if (e.y < canvas.height/dpr * 0.8) e.x += (player.x - e.x) * 0.025;
         }
         else if (e.type === 'gtyped' || e.type === 'gtypee') {
-            e.y += 2.5; 
+            e.y += 2.5;
         }
         else if (e.type === 'gtypeboss') {
             const tY = canvas.height/dpr * 0.2;
@@ -160,32 +160,32 @@ window.StageConfigs['final'] = {
             const tY = canvas.height/dpr * 0.25;
            
             if (e.y < tY) {
-                e.y += (tY - e.y) * 0.02; 
+                e.y += (tY - e.y) * 0.02;
             } else {
                 e.x = canvas.width/dpr/2 + Math.sin(e.moveTimer * 0.015) * 80;
             }
-
+ 
             if (window._bgManagerInstance && window._bgManagerInstance.coreReactor && window._bgManagerInstance.camera) {
                 const camera = window._bgManagerInstance.camera;
                 const cw = canvas.width / dpr;
                 const ch = canvas.height / dpr;
-
+ 
                 const ndcX = (e.x / cw) * 2 - 1;
                 const ndcY = -(e.y / ch) * 2 + 1;
-
+ 
                 let vec = new THREE.Vector3(ndcX, ndcY, 0.5);
                 vec.unproject(camera);
                 let dir = vec.sub(camera.position).normalize();
                
-                let targetY = -80; 
+                let targetY = -80;
                 let distance = (targetY - camera.position.y) / dir.y;
                 let pos = camera.position.clone().add(dir.multiplyScalar(distance));
-
+ 
                 window._bgManagerInstance.coreReactor.position.copy(pos);
             }
         }
     },
-
+ 
     shootEnemy: function(e, stg) {
         if (e.type === 'gtypea' && e.moveTimer % 45 === 0) {
             stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 7, '#ff0000'));
@@ -198,11 +198,11 @@ window.StageConfigs['final'] = {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*6, Math.sin(ang)*6, '#00ffff'));
         }
-        else if (e.type === 'gtyped' && e.moveTimer % 40 === 0) { 
+        else if (e.type === 'gtyped' && e.moveTimer % 40 === 0) {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*8, Math.sin(ang)*8, '#ff5500'));
         }
-        else if (e.type === 'gtypee' && e.moveTimer % 120 === 0) { 
+        else if (e.type === 'gtypee' && e.moveTimer % 120 === 0) {
             for(let i=0; i<8; i++) {
                 const ang = i * Math.PI * 2 / 8;
                 stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*4, Math.sin(ang)*4, '#ff00ff'));
@@ -219,8 +219,8 @@ window.StageConfigs['final'] = {
                 const ang = stg.frame * 0.05;
                 for(let i=0; i<4; i++) {
                     const offset = i * Math.PI / 2;
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000')); 
-                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800')); 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang + offset)*3, Math.sin(ang + offset)*3, '#ff0000'));
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(-ang + offset)*3, Math.sin(-ang + offset)*3, '#ff8800'));
                 }
             }
             if (stg.frame % 120 === 0) {
