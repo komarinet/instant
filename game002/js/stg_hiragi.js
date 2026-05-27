@@ -1,9 +1,9 @@
 const VER_STG_HIRAGI = "0.1.2"; // バージョン更新（ボスHP2倍、自機パワー4以上で敵数・HPを1.3倍に）
-
+ 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['hiragi'] = {
-    init: function(stg, canvas) { 
-        stg.bossSpawned = false; stg.dragonStartX = 0; stg.dragonCount = 0; 
+    init: function(stg, canvas) {
+        stg.bossSpawned = false; stg.dragonStartX = 0; stg.dragonCount = 0;
     },
     updateBackground: function(stg, sW, sH) {},
     drawBackground: function(stg, ctx, sW, sH) {
@@ -12,12 +12,12 @@ window.StageConfigs['hiragi'] = {
     getEnemyData: function(type) {
         const dpr = window.devicePixelRatio || 1;
         const w = document.getElementById('gameCanvas').width / dpr;
-        if (type === 'typea') return { imgSrc: '2typea.png', size: 20, hp: 3, init: (e)=>e.angle = Math.random() * Math.PI * 2 };
-        if (type === 'typeb') return { imgSrc: '2typeb.png', size: 25, hp: 10, init: (e)=>e.state = 'enter' };
-        if (type === 'typec') return { imgSrc: '2typec.png', size: 15, hp: 2 };
-        
+        if (type === 'typea') return { imgSrc: '2typea.webp’, size: 20, hp: 3, init: (e)=>e.angle = Math.random() * Math.PI * 2 };
+        if (type === 'typeb') return { imgSrc: '2typeb.webp’, size: 25, hp: 10, init: (e)=>e.state = 'enter' };
+        if (type === 'typec') return { imgSrc: '2typec.webp’, size: 15, hp: 2 };
+       
         // ★修正：将来ADVを差し込めるように isBoss: true を追加し、HPを2倍（250→500）に強化
-        if (type === 'typeboss') return { imgSrc: '2typeboss.png', size: w * 0.3, hp: 500, maxHp: 500, isBoss: true };
+        if (type === 'typeboss') return { imgSrc: '2typeboss.webp’, size: w * 0.3, hp: 500, maxHp: 500, isBoss: true };
     },
     transformEnemy: function(e, ctx) {
         if (e.type === 'typea') ctx.rotate(e.angle * 2);
@@ -32,7 +32,7 @@ window.StageConfigs['hiragi'] = {
                 e.maxHp = Math.ceil(e.maxHp * 1.3);
             }
             stg.enemies.push(e);
-            
+           
             // ★追加：敵の数を増やす処理（約30%の確率で追加スポーン、ボスとドラゴン以外）
             if (isHard && type !== 'typeboss' && type !== 'typec' && Math.random() < 0.3) {
                 let e2 = new Enemy(type, x + (Math.random()*40-20), y - (Math.random()*20+10), stg.player.charData, stg.advManager, stg.stgId);
@@ -41,7 +41,7 @@ window.StageConfigs['hiragi'] = {
             }
             return e;
         };
-
+ 
         if (timer > 100 && timer < 500 && timer % 150 === 0) { stg.dragonStartX = sW * 0.2 + Math.random() * sW * 0.6; stg.dragonCount = isHard ? 10 : 8; }
         if (stg.dragonCount > 0 && timer % 10 === 0) { spawn('typec', stg.dragonStartX, -50); stg.dragonCount--; }
         if (timer > 600 && timer < 1500) {
@@ -58,7 +58,7 @@ window.StageConfigs['hiragi'] = {
     },
     updateEnemy: function(e, canvas, player) {
         const dpr = window.devicePixelRatio || 1; e.angle += 0.05;
-        if (e.type === 'typea') { e.y += 1.5; e.x = e.startX + Math.sin(e.angle * 1.5) * 80; } 
+        if (e.type === 'typea') { e.y += 1.5; e.x = e.startX + Math.sin(e.angle * 1.5) * 80; }
         else if (e.type === 'typeb') {
             if (e.state === 'enter') { e.y += 2; if (e.y > canvas.height/dpr * 0.3) { e.state = 'wait'; e.moveTimer = 0; } }
             else if (e.state === 'wait') { if (++e.moveTimer > 100) e.state = 'leave'; }
