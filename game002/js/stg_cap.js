@@ -6,9 +6,9 @@ window.StageConfigs['final'] = {
         stg.phase = 1; // 1:トレンチ, 2:中ボス待ち, 3:コア展開＆ザコ, 4:最終ボス
         stg.phaseTimer = 0;
         stg.coreTransitioned = false; 
-        
+       
         stg.bgmChanged = true; // ★追加：コアロジックによるBGMの自動切り替えをブロック
-        
+       
         if (window._bgManagerInstance && typeof window._bgManagerInstance.setStage === 'function') {
             window._bgManagerInstance.setStage(6);
         } else if (window._bgManagerInstance) {
@@ -18,13 +18,13 @@ window.StageConfigs['final'] = {
     updateBackground: function(stg, sW, sH) {},
     drawBackground: function(stg, ctx, sW, sH) {},
     getEnemyData: function(type) {
-        if (type === 'gtypea') return { imgSrc: 'gtypea.png', size: 22, hp: 2, maxHp: 2 };
-        if (type === 'gtypeb') return { imgSrc: 'gtypeb.png', size: 30, hp: 5, maxHp: 5 };
-        if (type === 'gtypec') return { imgSrc: 'gtypec.png', size: 26, hp: 3, maxHp: 3 };
-        if (type === 'gtyped') return { imgSrc: 'gtyped.png', size: 25, hp: 8, maxHp: 8 };
-        if (type === 'gtypee') return { imgSrc: 'gtypee.png', size: 28, hp: 10, maxHp: 10 };
-        
-        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.png', size: 45, hp: 150, maxHp: 150, isBoss: true };
+        if (type === 'gtypea') return { imgSrc: 'gtypea.webp’, size: 22, hp: 2, maxHp: 2 };
+        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp’, size: 30, hp: 5, maxHp: 5 };
+        if (type === 'gtypec') return { imgSrc: 'gtypec.webp’, size: 26, hp: 3, maxHp: 3 };
+        if (type === 'gtyped') return { imgSrc: 'gtyped.webp’, size: 25, hp: 8, maxHp: 8 };
+        if (type === 'gtypee') return { imgSrc: 'gtypee.webp’, size: 28, hp: 10, maxHp: 10 };
+       
+        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp’, size: 45, hp: 150, maxHp: 150, isBoss: true };
         if (type === 'capboss') return { imgSrc: null, size: 80, hp: 1500, maxHp: 1500, isBoss: true };
     },
 
@@ -34,7 +34,7 @@ window.StageConfigs['final'] = {
                 if (timer % 60 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer % 150 === 0) stg.enemies.push(new Enemy('gtypeb', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (timer > 500 && timer % 120 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-                
+               
                 if (timer % 180 === 0) {
                     const isLeft = Math.random() > 0.5;
                     const xPos = isLeft ? sW * 0.15 : sW * 0.85; 
@@ -54,7 +54,7 @@ window.StageConfigs['final'] = {
                 stg.phaseTimer = 0;
             }
         }
-        
+       
         else if (stg.phase === 2) {
             let bossAlive = stg.enemies.some(e => e.type === 'gtypeboss');
             if (!bossAlive && !stg.isTimeStopped) {
@@ -71,20 +71,20 @@ window.StageConfigs['final'] = {
                 }
             }
         }
-        
+       
         else if (stg.phase === 3) {
             stg.phaseTimer++;
-            
+           
             if (stg.phaseTimer > 0 && stg.phaseTimer < 1100) {
                 if (stg.phaseTimer % 50 === 0) stg.enemies.push(new Enemy('gtypec', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 120 === 0) stg.enemies.push(new Enemy('gtypee', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
                 if (stg.phaseTimer % 80 === 0) stg.enemies.push(new Enemy('gtypea', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
             }
-            
+           
             if (stg.phaseTimer === 1300) {
                 // 初期位置を Y = -100 に
                 let boss = new Enemy('capboss', sW/2, -100, stg.player.charData, stg.advManager, stg.stgId);
-                
+               
                 if (window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
                     window._bgManagerInstance.coreReactor.material.opacity = 1.0; 
                     window._bgManagerInstance.coreReactor.material.transparent = true;
@@ -98,7 +98,7 @@ window.StageConfigs['final'] = {
                         ctx.fillStyle = '#ff3366'; ctx.fillRect(-bW/2, -this.size-20, bW*(Math.max(0, this.hp)/this.maxHp), bH);
                         ctx.strokeStyle = '#fff'; ctx.strokeRect(-bW/2, -this.size-20, bW, bH);
                     }
-                    
+                   
                     // 撃破時の3Dコアのフェードアウト処理
                     if (this.isDying && window._bgManagerInstance && window._bgManagerInstance.coreReactor) {
                         let opacity = 1.0;
@@ -108,7 +108,7 @@ window.StageConfigs['final'] = {
                         window._bgManagerInstance.coreReactor.material.opacity = opacity;
                         window._bgManagerInstance.coreReactor.material.transparent = true;
                     }
-                    
+                   
                     ctx.restore();
                 };
                 stg.enemies.push(boss);
@@ -116,7 +116,7 @@ window.StageConfigs['final'] = {
                 stg.capBossAdvPlayed = false; // ★追加：ADVが流れたかどうかを判定するフラグ
             }
         }
-        
+       
         else if (stg.phase === 4) {
             // ★追加：コアのmid_stg2（ADVパート）終了を検知して、ボスBGMを流す
             if (stg.isTimeStopped) {
@@ -134,7 +134,7 @@ window.StageConfigs['final'] = {
     updateEnemy: function(e, canvas, player) {
         const dpr = window.devicePixelRatio || 1;
         e.moveTimer = (e.moveTimer || 0) + 1;
-        
+       
         if (e.type === 'gtypea') { 
             e.y += 3.5; e.x += Math.sin(e.moveTimer * 0.05) * 3; 
         } 
@@ -158,7 +158,7 @@ window.StageConfigs['final'] = {
         }
         else if (e.type === 'capboss') {
             const tY = canvas.height/dpr * 0.25;
-            
+           
             if (e.y < tY) {
                 e.y += (tY - e.y) * 0.02; 
             } else {
@@ -176,7 +176,7 @@ window.StageConfigs['final'] = {
                 let vec = new THREE.Vector3(ndcX, ndcY, 0.5);
                 vec.unproject(camera);
                 let dir = vec.sub(camera.position).normalize();
-                
+               
                 let targetY = -80; 
                 let distance = (targetY - camera.position.y) / dir.y;
                 let pos = camera.position.clone().add(dir.multiplyScalar(distance));
