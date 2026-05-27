@@ -1,10 +1,10 @@
 const VER_STG_GODAI = "0.2.0"; // バージョン更新（新敵画像対応、固有の動き、尺を4500フレームに延長）
-
+ 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['godai'] = {
-    init: function(stg, canvas) { 
-        stg.bossSpawned = false; 
-        
+    init: function(stg, canvas) {
+        stg.bossSpawned = false;
+       
         if (window._bgManagerInstance && typeof window._bgManagerInstance.setStage === 'function') {
             window._bgManagerInstance.setStage(5);
         } else if (window._bgManagerInstance) {
@@ -19,12 +19,12 @@ window.StageConfigs['godai'] = {
     },
     getEnemyData: function(type) {
         // ★修正：新しく登録した画像と、それぞれの特性（サイズ・HP）を設定
-        if (type === 'gtypea') return { imgSrc: 'gtypea.png', size: 22, hp: 3, maxHp: 3 };
-        if (type === 'gtypeb') return { imgSrc: 'gtypeb.png', size: 30, hp: 8, maxHp: 8 };
-        if (type === 'gtypec') return { imgSrc: 'gtypec.png', size: 26, hp: 5, maxHp: 5 };
-        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.png', size: 140, hp: 500, maxHp: 500, isBoss: true };
+        if (type === 'gtypea') return { imgSrc: 'gtypea.webp’, size: 22, hp: 3, maxHp: 3 };
+        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp’, size: 30, hp: 8, maxHp: 8 };
+        if (type === 'gtypec') return { imgSrc: 'gtypec.webp’, size: 26, hp: 5, maxHp: 5 };
+        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp’, size: 140, hp: 500, maxHp: 500, isBoss: true };
     },
-
+ 
     updateWaves: function(stg, timer, sW, sH) {
         // ★修正：ボスまでの尺を4500フレームに延長し、ウェーブ構成を構築
         // 前半 (100〜1500)
@@ -49,35 +49,35 @@ window.StageConfigs['godai'] = {
             stg.bossSpawned = true;
         }
     },
-
+ 
     updateEnemy: function(e, canvas, player) {
         const dpr = window.devicePixelRatio || 1;
         e.moveTimer = (e.moveTimer || 0) + 1;
-        
+       
         // ★修正：それぞれに異なる個性的な動きを付与
-        if (e.type === 'gtypea') { 
+        if (e.type === 'gtypea') {
             // 波打ちながら高速で突っ込んでくる
-            e.y += 4.5; 
-            e.x += Math.sin(e.moveTimer * 0.05) * 5; 
-        } 
-        else if (e.type === 'gtypeb') { 
+            e.y += 4.5;
+            e.x += Math.sin(e.moveTimer * 0.05) * 5;
+        }
+        else if (e.type === 'gtypeb') {
             // 画面上部で一旦停止して左右移動、長時間居座ったら画面下へ離脱
             if (e.y < canvas.height/dpr * 0.25) {
                 e.y += 3;
             } else {
                 e.x += Math.cos(e.moveTimer * 0.02) * 2;
-                if (e.moveTimer > 300) e.y += 2.5; 
+                if (e.moveTimer > 300) e.y += 2.5;
             }
         }
-        else if (e.type === 'gtypec') { 
+        else if (e.type === 'gtypec') {
             // 自機に向かってホーミング気味に斜めに飛ぶ
-            e.y += 3.5; 
+            e.y += 3.5;
             if (e.y < canvas.height/dpr * 0.7) {
-                e.x += (player.x - e.x) * 0.02; 
+                e.x += (player.x - e.x) * 0.02;
             }
         }
         else if (e.type === 'gtypeboss') {
-            const tY = canvas.height/dpr * 0.22; 
+            const tY = canvas.height/dpr * 0.22;
             if (e.y < tY) {
                 e.y += (tY - e.y) * 0.02;
             } else {
@@ -87,7 +87,7 @@ window.StageConfigs['godai'] = {
             }
         }
     },
-
+ 
     shootEnemy: function(e, stg) {
         if (e.type === 'gtypea' && e.moveTimer % 50 === 0) {
             stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 6, '#ff4400'));
