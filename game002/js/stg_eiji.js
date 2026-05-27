@@ -48,7 +48,7 @@ window.StageConfigs['eiji'] = {
             ctx.save();
             // --- CPU（衛二）の描画 ---
             if (!this.isTimeStopped && this.timeLimit > 0) {
-                const eijiImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['playereiji.webp’] : null;
+                const eijiImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['playereiji.webp'] : null;
                 if (eijiImg && eijiImg.naturalHeight > 0) {
                     const drawWidth = 55;
                     const drawHeight = drawWidth * (eijiImg.naturalHeight / eijiImg.naturalWidth);
@@ -107,11 +107,11 @@ window.StageConfigs['eiji'] = {
     },
  
     drawBackground: function(stg, ctx, sW, sH) {
-        let bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmtstg.webp’] : null;
+        let bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmtstg.webp'] : null;
         let loadFailed = false;
  
         if (!bgImg || bgImg.naturalWidth === 0) {
-            bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmt.webp’] : null;
+            bgImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['nightmt.webp'] : null;
             loadFailed = true;
         }
  
@@ -147,7 +147,7 @@ window.StageConfigs['eiji'] = {
             if (loadFailed) {
                 ctx.fillStyle = '#ff3366';
                 ctx.font = 'bold 12px sans-serif';
-                ctx.fillText("⚠ nightmtstg.png読込失敗", 10, 20);
+                ctx.fillText("⚠ nightmtstg.webp読込失敗", 10, 20);
             }
         } else {
             ctx.fillStyle = '#0a0a14'; ctx.fillRect(0, 0, sW, sH);
@@ -159,7 +159,7 @@ window.StageConfigs['eiji'] = {
     getEnemyData: function(type) {
         const initShiki = (e, colIndex) => {
             e.draw = function(ctx) {
-                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.webp’] : null;
+                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.webp'] : null;
                 ctx.save(); ctx.translate(this.x, this.y);
                 if (this.angle) ctx.rotate(this.angle);
                 if (img && img.naturalWidth > 0) {
@@ -174,9 +174,9 @@ window.StageConfigs['eiji'] = {
                 ctx.restore();
             };
         };
-        if (type === 'shiki_a') return { imgSrc: 'shiki.webp’, size: 25, hp: 2, init: (e) => { initShiki(e, 0); } };
-        if (type === 'shiki_b') return { imgSrc: 'shiki.webp’, size: 30, hp: 6, init: (e) => { initShiki(e, 1); } };
-        if (type === 'shiki_c') return { imgSrc: 'shiki.webp’, size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
+        if (type === 'shiki_a') return { imgSrc: 'shiki.webp', size: 25, hp: 2, init: (e) => { initShiki(e, 0); } };
+        if (type === 'shiki_b') return { imgSrc: 'shiki.webp', size: 30, hp: 6, init: (e) => { initShiki(e, 1); } };
+        if (type === 'shiki_c') return { imgSrc: 'shiki.webp', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
     },
  
     updateWaves: function(stg, timer, sW, sH) {
