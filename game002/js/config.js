@@ -15,7 +15,7 @@ export const imagesToPreload = [
     'tv.webp','advrocket.webp','aboro.webp','robodon.webp',
     'potable.webp','potable2.webp','phone.webp','bluesky.webp','phone2.webp','phone3.webp',
     // --- 新規追加分 ---
-    'moon.jpg','godai.webp','univ.webp','postuniv.webp','godaimo.webp','gtypea.webp','gtypeb.webp','gtypec.webp',
+    'moon.webp','godai.webp','univ.webp','postuniv.webp','godaimo.webp','gtypea.webp','gtypeb.webp','gtypec.webp',
     'gtypeboss.webp','cap.webp',
     // --- 新規追加分 ---
     'trench_floor.webp','trench_wall.webp','core_bg.webp','core_reactor.webp','gtyped.webp','gtypee.webp'
