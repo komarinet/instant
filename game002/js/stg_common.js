@@ -40,7 +40,7 @@ class Player {
         });
     }
     initPosition(canvas) { const dpr = window.devicePixelRatio || 1; this.x = canvas.width / dpr / 2; this.y = canvas.height / dpr + this.size * 2; }
-    
+   
     update(canvas) {
         const dpr = window.devicePixelRatio || 1;
         if (this.invincibleTimer > 0) this.invincibleTimer--;
@@ -51,11 +51,11 @@ class Player {
         if (this.x < this.size) this.x = this.size; if (this.x > canvas.width/dpr - this.size) this.x = canvas.width/dpr - this.size;
         if (this.y < this.size) this.y = this.size; if (this.y > canvas.height/dpr - this.size) this.y = canvas.height/dpr - this.size;
     }
-    
+   
     // 描画、射撃、ボムは「キャラ別コントローラー」に丸投げする（委譲）
     draw(ctx, advManager) {
         if (this.invincibleTimer > 0 && Math.floor(Date.now() / 100) % 2 === 0) return; 
-        
+       
         if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].draw) {
             window.PlayerControllers[this.id].draw(this, ctx, advManager);
         } else {
@@ -65,7 +65,7 @@ class Player {
             ctx.closePath(); ctx.fill();
         }
     }
-    
+   
     shoot() {
         if (this.isEntering) return;
         if (window.PlayerControllers[this.id] && window.PlayerControllers[this.id].shoot) {
@@ -133,7 +133,7 @@ class Item {
             ctx.rect(this.x - this.size, this.y - this.size / 3, this.size * 2, this.size / 1.5); ctx.fill(); ctx.beginPath(); ctx.rect(this.x - this.size / 3, this.y - this.size, this.size / 1.5, this.size * 2);
         }
         ctx.closePath(); ctx.fill(); ctx.fillStyle = '#000'; ctx.font = 'bold 16px sans-serif'; ctx.textAlign = 'center';
-        
+       
         // ★修正：既存の三項演算子を拡張して 'B' の文字を追加
         ctx.fillText(this.type === 'power' ? 'P' : (this.type === 'bomb' ? 'B' : 'H'), this.x, this.y + 6); ctx.textAlign = 'left'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
     }
@@ -142,7 +142,7 @@ class Item {
 class Explosion {
     constructor(x, y, targetSize, advManager) {
         this.x = x; this.y = y; this.targetSize = targetSize * 1.5; 
-        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.png'] : null;
+        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.webp’] : null;
         this.isDead = false; this.cols = 3; this.rows = 3; this.frameIndex = 0; this.totalFrames = 9; 
         this.timer = 0; this.interval = 3; 
         if (this.img && this.img.naturalWidth > 0) {
