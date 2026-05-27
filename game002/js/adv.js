@@ -13,7 +13,7 @@ class ADVManager {
         this.shakeTimer = 0; 
         this.shakeAmount = 10; 
         this.slideTimer = 0; 
-        this.fadeTimer = 0;  
+        this.fadeTimer = 0; 
         this.whiteoutAlpha = 0; 
         this.whiteoutNextCalled = false; 
         this.bgEffectTimer = 0; 
@@ -28,7 +28,7 @@ class ADVManager {
 
         let loaded = 0;
         const total = images.length;
-        
+       
         const checkComplete = () => {
             loaded++;
             if (loaded === total) callback();
@@ -60,7 +60,7 @@ class ADVManager {
         this.textIndex = 0; 
         this.shakeTimer = 0; 
         this.slideTimer = 0; 
-        this.fadeTimer = 0;  
+        this.fadeTimer = 0; 
         this.whiteoutAlpha = 0; 
         this.whiteoutNextCalled = false; 
         this.bgEffectTimer = 0; 
@@ -77,7 +77,7 @@ class ADVManager {
             this.textIndex = 0;
             this.shakeTimer = 0;
             this.slideTimer = 0; 
-            this.fadeTimer = 0;  
+            this.fadeTimer = 0; 
             this.whiteoutAlpha = 0; 
             this.whiteoutNextCalled = false; 
             this.bgEffectTimer = 0; 
@@ -87,7 +87,7 @@ class ADVManager {
 
     playSE() {
         const msg = this.currentScenario[this.index];
-        
+       
         if (msg && msg.bgm) {
             if (typeof window.soundManager !== 'undefined') {
                 if (msg.bgm === 'stop') {
@@ -113,10 +113,10 @@ class ADVManager {
                     const gain = ctx.createGain();
                     osc.type = 'sawtooth'; 
                     osc.frequency.setValueAtTime(40, ctx.currentTime); 
-                    
+                   
                     gain.gain.setValueAtTime(0.2, ctx.currentTime);
                     gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
-                    
+                   
                     osc.connect(gain);
                     gain.connect(ctx.destination);
                     osc.start();
@@ -127,10 +127,10 @@ class ADVManager {
                         const gain = ctx.createGain();
                         osc.type = 'sine';
                         osc.frequency.setValueAtTime(880, ctx.currentTime + delay); 
-                        
+                       
                         gain.gain.setValueAtTime(0.1, ctx.currentTime + delay);
                         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.1);
-                        
+                       
                         osc.connect(gain);
                         gain.connect(ctx.destination);
                         osc.start(ctx.currentTime + delay);
@@ -151,23 +151,23 @@ class ADVManager {
 
         const cssWidth = canvas.width / dpr; 
         const cssHeight = canvas.height / dpr; 
-        
+       
         let gameHeight = cssHeight * 0.7; 
         let gameWidth = cssWidth * 0.95;
         if (gameWidth > cssWidth * 0.95) gameWidth = cssWidth * 0.95;
-        
+       
         const gameX = (cssWidth - gameWidth) / 2;
         const gameY = (cssHeight - gameHeight) / 2;
 
         const padding = 15;
         const dialogueWidth = gameWidth;
         const dialogueX = gameX;
-        
+       
         const safeText = currentMsg.text || ''; 
         const textLength = safeText.split('').length;
         const lineCount = textLength / (dialogueWidth / 24); 
         const dynamicHeight = Math.max(gameHeight * 0.2, lineCount * 24 + padding * 2 + 35); 
-        
+       
         const dialogueY = gameY + gameHeight - dynamicHeight; 
         const visualAreaHeight = gameHeight - dynamicHeight; 
 
@@ -178,7 +178,7 @@ class ADVManager {
         ctx.beginPath();
         ctx.rect(gameX, gameY, gameWidth, gameHeight);
         ctx.clip();
-        
+       
         let shakeX = 0;
         let shakeY = 0;
         if (currentMsg.effect === 'shake' || this.shakeTimer > 0) {
@@ -224,7 +224,7 @@ class ADVManager {
 
                 const progress = Math.min(1.0, this.bgEffectTimer / delay);
                 const maxRadius = Math.max(gameWidth, gameHeight) * 1.5;
-                
+               
                 mCtx.globalCompositeOperation = 'destination-out';
                 mCtx.beginPath();
                 mCtx.arc(gameX + gameWidth / 2, gameY + visualAreaHeight / 2, maxRadius * progress, 0, Math.PI * 2);
@@ -276,37 +276,37 @@ class ADVManager {
         ctx.globalAlpha = charAlpha; 
 
         const getRows = (key) => {
-            if (key === 'urashiina.png' || key === 'nurse.png' || key === 'uraeiji.png') return 2; 
+            if (key === 'urashiina.webp' || key === 'nurse.webp' || key === 'uraeiji.webp') return 2; 
             // ★修正: kagami.png を3行のリストから削除しました（デフォルトの4行で処理されます）
-            if (key === 'igari01.png' || key === 'godai.png' || key === 'godaimo.png' || key === 'eiji.png' || key === 'tadashige.png') return 3; 
-            if (key === 'shiina.png' || key === 'cap.png' || key === 'jingu.png' || key === 'kagejingu.png') return 4; 
+            if (key === 'igari01.webp' || key === 'godai.webp' || key === 'godaimo.webp' || key === 'eiji.webp' || key === 'tadashige.webp') return 3; 
+            if (key === 'shiina.webp' || key === 'cap.webp' || key === 'jingu.webp' || key === 'kagejingu.webp') return 4; 
             return 4; 
         };
 
         const getCols = (key) => {
-            if (key === 'nurse.png') return 5; 
-            if (key === 'jingu.png' || key === 'kagejingu.png' || key === 'eiji.png' || key === 'tadashige.png' || key === 'uraeiji.png') return 4; 
+            if (key === 'nurse.webp') return 5; 
+            if (key === 'jingu.webp' || key === 'kagejingu.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'uraeiji.webp') return 4; 
             return 4; 
         };
 
         let mainDrawWidth = 0;
         let alignRight = true;
-        
+       
         if (currentMsg.character && this.assets[currentMsg.character]) {
             const mainImg = this.assets[currentMsg.character];
             const msHeight = Math.floor(mainImg.height / getRows(currentMsg.character)) - 4; 
             let mScale = 1.0;
-            
-            if (currentMsg.character === 'kagami.png') mScale = 0.9; 
-            else if (currentMsg.character === 'hiragi01.png') mScale = 10 / 11;
-            else if (currentMsg.character === 'eiji.png' || currentMsg.character === 'uraeiji.png') mScale = 1.1;
+           
+            if (currentMsg.character === 'kagami.webp') mScale = 0.9; 
+            else if (currentMsg.character === 'hiragi01.webp') mScale = 10 / 11;
+            else if (currentMsg.character === 'eiji.webp' || currentMsg.character === 'uraeiji.webp') mScale = 1.1;
 
             const mCols = getCols(currentMsg.character); 
             mainDrawWidth = (Math.floor(mainImg.width / mCols) - 2) * ((cssHeight * 0.50 * mScale) / msHeight);
 
-            const isIgari = currentMsg.character === 'igari01.png' || currentMsg.character === 'igari02.png';
-            const isShiina = currentMsg.character === 'shiina.png' || currentMsg.character === 'urashiina.png';
-            
+            const isIgari = currentMsg.character === 'igari01.webp' || currentMsg.character === 'igari02.webp';
+            const isShiina = currentMsg.character === 'shiina.webp' || currentMsg.character === 'urashiina.webp';
+           
             let defaultRight = false;
             if (window.selectedCharId === 'igari' && isIgari) defaultRight = true;
             else if ((window.selectedCharId === 'shiina' || window.selectedCharId === 'mamoru') && isShiina) defaultRight = true;
@@ -327,7 +327,7 @@ class ADVManager {
                 const cols = getCols(cData.key); 
                 let rows = getRows(cData.key);
                 const index = cData.spIndex || 0;
-                
+               
                 const bleedX = 1, bleedTop = 3, bleedBottom = 1;
                 const sx = Math.floor((index % cols) * (charImg.width / cols)) + bleedX;
                 const sy = Math.floor(Math.floor(index / cols) * (charImg.height / rows)) + bleedTop;
@@ -337,14 +337,14 @@ class ADVManager {
                 let charScale = 1.0;
                 let specificXOffset = 0; 
 
-                if (cData.key === 'kagami.png') charScale = 0.9; 
-                else if (cData.key === 'hiragi01.png') charScale = 10 / 11;
-                else if (cData.key === 'eiji.png' || cData.key === 'uraeiji.png') charScale = 1.1; 
-                else if (cData.key === 'godai.png' || cData.key === 'godaimo.png') {
+                if (cData.key === 'kagami.webp') charScale = 0.9; 
+                else if (cData.key === 'hiragi01.webp') charScale = 10 / 11;
+                else if (cData.key === 'eiji.webp' || cData.key === 'uraeiji.webp') charScale = 1.1; 
+                else if (cData.key === 'godai.webp' || cData.key === 'godaimo.webp') {
                     charScale = 1.0; 
                     specificXOffset = alignRight ? -20 : 60; 
                 }
-                else if (cData.key === 'cap.png') {
+                else if (cData.key === 'cap.webp') {
                     charScale = 1.0; 
                 }
 
@@ -371,7 +371,7 @@ class ADVManager {
                 ctx.imageSmoothingEnabled = true;
             }
         });
-        
+       
         ctx.globalAlpha = 1.0; 
 
         const isMasking = currentMsg.maskBg && this.bgEffectTimer > 0;
@@ -383,7 +383,7 @@ class ADVManager {
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 4;
             ctx.lineJoin = "round";
-            
+           
             ctx.beginPath();
             if(ctx.roundRect) ctx.roundRect(dialogueX, dialogueY, dialogueWidth, dynamicHeight, 15);
             else ctx.rect(dialogueX, dialogueY, dialogueWidth, dynamicHeight);
@@ -429,14 +429,14 @@ class ADVManager {
 
             ctx.fillStyle = '#fff';
             ctx.font = '16px "Segoe UI", sans-serif';
-            
+           
             if (!isWaiting) {
                 this.textTimer++;
                 if (this.textTimer >= this.textInterval) {
                     this.textTimer = 0;
                     if (this.textIndex < safeText.length) this.textIndex++;
                 }
-                
+               
                 this.wrapText(ctx, safeText, dialogueX + padding, dialogueY + 65, dialogueWidth - (padding * 2), 24);
 
                 ctx.fillStyle = (Math.floor(Date.now() / 500) % 2 === 0) ? '#fff' : 'transparent';
@@ -465,7 +465,7 @@ class ADVManager {
 
             ctx.strokeStyle = '#00ffff';
             ctx.lineWidth = 2;
-            
+           
             ctx.shadowColor = 'rgba(0, 243, 255, 0.8)';
             ctx.shadowBlur = 15;
             ctx.strokeRect(boxX, boxY, boxSize, boxSize);
@@ -509,7 +509,7 @@ class ADVManager {
     drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, placeText, timeText, visualAreaHeight, dynamicHeight, isTransparent) {
         if (!isTransparent) {
             ctx.fillStyle = '#0a0a0f'; ctx.fillRect(0, 0, cssWidth, cssHeight);
-            
+           
             ctx.strokeStyle = 'rgba(0, 243, 255, 0.15)'; ctx.lineWidth = 1; ctx.beginPath();
             for (let i = 0; i < cssWidth; i += 40) { ctx.moveTo(i, 0); ctx.lineTo(i, cssHeight); }
             for (let j = 0; j < cssHeight; j += 40) { ctx.moveTo(0, j); ctx.lineTo(cssWidth, j); }
@@ -540,10 +540,10 @@ class ADVManager {
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight);
         ctx.shadowColor = 'rgba(0, 243, 255, 0.8)'; ctx.shadowBlur = 10;
         ctx.strokeRect(gameX, gameY, gameWidth, gameHeight); ctx.shadowBlur = 0; 
-        
+       
         ctx.fillStyle = 'rgba(0, 243, 255, 0.3)'; ctx.font = '10px "Courier New"'; ctx.textAlign = 'left';
         ctx.fillText(`C:AUSES-REPORT:_${(new Date().toISOString())}`, 10, cssHeight - 10);
-        
+       
         if (placeText || timeText) {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillRect(gameX + gameWidth - 140, gameY + visualAreaHeight - dynamicHeight - 10, 140, 50); 
@@ -570,3 +570,4 @@ class ADVManager {
         ctx.fillText(line, x, y);
     }
 }
+
