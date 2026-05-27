@@ -9,11 +9,11 @@ window.StageConfigs['kagami'] = {
     },
     getEnemyData: function(type) {
         // ★修正：新しいHPバー表示に対応するため maxHp を追加
-        if (type === 'typea') return { imgSrc: 'typea.webp’, size: 16, hp: 2, maxHp: 2 };
-        if (type === 'typeb') return { imgSrc: 'typeb.webp’, size: 20, hp: 4, maxHp: 4 };
-        if (type === 'typec') return { imgSrc: 'typec.webp’, size: 18, hp: 3, maxHp: 3 };
+        if (type === 'typea') return { imgSrc: 'typea.webp', size: 16, hp: 2, maxHp: 2 };
+        if (type === 'typeb') return { imgSrc: 'typeb.webp', size: 20, hp: 4, maxHp: 4 };
+        if (type === 'typec') return { imgSrc: 'typec.webp', size: 18, hp: 3, maxHp: 3 };
         // ★修正：ボスのHPをさらに2倍（300→600）に強化。
-        if (type === 'typeboss') return { imgSrc: 'typeboss.webp’, size: 112, hp: 600, maxHp: 600, isBoss: true };
+        if (type === 'typeboss') return { imgSrc: 'typeboss.webp', size: 112, hp: 600, maxHp: 600, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // ★修正：ステージを全体で約4800フレーム（約80秒）に延長し、比率に緩急をつける
