@@ -30,7 +30,7 @@ export const imagesToPreload3D = [
     { key: 'ground', src: 'ground01.webp' },
     { key: 'ground2', src: 'ground02.webp' }, 
     { key: 'candle', src: 'candle.webp' },
-    { key: 'moon', src: 'moon.jpg' } ,
+    { key: 'moon', src: 'moon.webp' } ,
     // ★最終ステージ用 追加分
     { key: 'trenchFloor', src: 'trench_floor.webp' },
     { key: 'trenchWall', src: 'trench_wall.webp' },
