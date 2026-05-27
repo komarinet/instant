@@ -19,10 +19,10 @@ window.StageConfigs['godai'] = {
     },
     getEnemyData: function(type) {
         // ★修正：新しく登録した画像と、それぞれの特性（サイズ・HP）を設定
-        if (type === 'gtypea') return { imgSrc: 'gtypea.webp’, size: 22, hp: 3, maxHp: 3 };
-        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp’, size: 30, hp: 8, maxHp: 8 };
-        if (type === 'gtypec') return { imgSrc: 'gtypec.webp’, size: 26, hp: 5, maxHp: 5 };
-        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp’, size: 140, hp: 500, maxHp: 500, isBoss: true };
+        if (type === 'gtypea') return { imgSrc: 'gtypea.webp', size: 22, hp: 3, maxHp: 3 };
+        if (type === 'gtypeb') return { imgSrc: 'gtypeb.webp', size: 30, hp: 8, maxHp: 8 };
+        if (type === 'gtypec') return { imgSrc: 'gtypec.webp', size: 26, hp: 5, maxHp: 5 };
+        if (type === 'gtypeboss') return { imgSrc: 'gtypeboss.webp', size: 140, hp: 500, maxHp: 500, isBoss: true };
     },
  
     updateWaves: function(stg, timer, sW, sH) {
