@@ -1,4 +1,4 @@
-const VER_PLAYER_SHIINA = "0.2.6"; // 椎名護：カットイン画像（shiinabomb.png）をどんなスマホでも画面の縦幅いっぱいに広がるようにサイズとアニメーションをダイナミックに最適化
+const VER_PLAYER_SHIINA = "0.2.6"; // 椎名護：カットイン画像（shiinabomb.webp）をどんなスマホでも画面の縦幅いっぱいに広がるようにサイズとアニメーションをダイナミックに最適化
  
 window.PlayerControllers = window.PlayerControllers || {};
  
@@ -11,7 +11,7 @@ const ShiinaController = {
         ctx.save();
         ctx.translate(player.x, player.y);
  
-        const sansImg = (advManager && advManager.assets) ? advManager.assets['sans.webp’] : null;
+        const sansImg = (advManager && advManager.assets) ? advManager.assets['sans.webp'] : null;
         if (sansImg && sansImg.naturalWidth > 0) {
             const sw = sansImg.width / 5;
             const sh = sansImg.height / 2;
@@ -30,7 +30,7 @@ const ShiinaController = {
             }
         }
  
-        const jikiImg = (advManager && advManager.assets) ? advManager.assets['jikishi.webp’] : null;
+        const jikiImg = (advManager && advManager.assets) ? advManager.assets['jikishi.webp'] : null;
         if (jikiImg && jikiImg.naturalWidth > 0) {
             const animSpeed = 4;
             const cycle = 18;
@@ -142,7 +142,7 @@ const ShiinaController = {
         };
  
         b.draw = function(ctx) {
-            const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.webp’] : null;
+            const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.webp'] : null;
             if (sansImg && sansImg.naturalWidth > 0) {
                 const sw = sansImg.width / 5;
                 const sh = sansImg.height / 2;
@@ -294,7 +294,7 @@ const ShiinaController = {
             ctx.lineWidth = 2;
             ctx.strokeRect(0, stripY, sW, stripH);
  
-            const cutinImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['shiinabomb.webp’] : null;
+            const cutinImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['shiinabomb.webp'] : null;
             if (cutinImg && cutinImg.naturalHeight > 0) {
                 // ★修正：画像の高さを画面の縦幅(sH)と完全に一致させる
                 const imgH = sH;
@@ -325,7 +325,7 @@ const ShiinaController = {
         }
  
         if (stg.bombState === 'BARRIER' && stg.bombData) {
-            const sansImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.webp’] : null;
+            const sansImg = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.webp'] : null;
             if (!sansImg) return;
            
             const sw = sansImg.width / 5;
