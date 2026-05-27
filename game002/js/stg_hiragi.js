@@ -12,12 +12,12 @@ window.StageConfigs['hiragi'] = {
     getEnemyData: function(type) {
         const dpr = window.devicePixelRatio || 1;
         const w = document.getElementById('gameCanvas').width / dpr;
-        if (type === 'typea') return { imgSrc: '2typea.webp’, size: 20, hp: 3, init: (e)=>e.angle = Math.random() * Math.PI * 2 };
-        if (type === 'typeb') return { imgSrc: '2typeb.webp’, size: 25, hp: 10, init: (e)=>e.state = 'enter' };
-        if (type === 'typec') return { imgSrc: '2typec.webp’, size: 15, hp: 2 };
+        if (type === 'typea') return { imgSrc: '2typea.webp', size: 20, hp: 3, init: (e)=>e.angle = Math.random() * Math.PI * 2 };
+        if (type === 'typeb') return { imgSrc: '2typeb.webp', size: 25, hp: 10, init: (e)=>e.state = 'enter' };
+        if (type === 'typec') return { imgSrc: '2typec.webp', size: 15, hp: 2 };
        
         // ★修正：将来ADVを差し込めるように isBoss: true を追加し、HPを2倍（250→500）に強化
-        if (type === 'typeboss') return { imgSrc: '2typeboss.webp’, size: w * 0.3, hp: 500, maxHp: 500, isBoss: true };
+        if (type === 'typeboss') return { imgSrc: '2typeboss.webp', size: w * 0.3, hp: 500, maxHp: 500, isBoss: true };
     },
     transformEnemy: function(e, ctx) {
         if (e.type === 'typea') ctx.rotate(e.angle * 2);
