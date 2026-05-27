@@ -64,7 +64,7 @@ function startDemoLoop(char) {
         for (let i = demoEnemies.length - 1; i >= 0; i--) {
             let e = demoEnemies[i];
             e.y += e.vy;
-            let shikiImg = window.advManager && window.advManager.assets['shiki.webp’];
+            let shikiImg = window.advManager && window.advManager.assets['shiki.webp'];
             if (shikiImg && shikiImg.naturalWidth > 0) {
                 ctx.drawImage(shikiImg, 0, 0, shikiImg.width/4, shikiImg.height, e.x - e.size*1.5, e.y - e.size*1.5, e.size*3, e.size*3);
             } else {
@@ -216,7 +216,7 @@ function startDemoLoop(char) {
                 ctx.beginPath(); ctx.moveTo(-length * 0.8, 0); ctx.lineTo(length * 0.8, 0); ctx.stroke();
                 ctx.restore();
             } else if (char.id === 'shiina' || char.id === 'mamoru') {
-                let sansImg = window.advManager && window.advManager.assets['sans.webp’];
+                let sansImg = window.advManager && window.advManager.assets['sans.webp'];
                 if (sansImg && sansImg.naturalWidth > 0 && b.charIndex !== undefined) {
                     const col = b.charIndex % 5;
                     const row = Math.floor(b.charIndex / 5);
@@ -237,8 +237,8 @@ function startDemoLoop(char) {
         }
        
         let imgName = null;
-        if (char.id === 'igari') imgName = 'igari_jiki.webp’;
-        else if (char.id === 'shiina' || char.id === 'mamoru') imgName = 'jikishi.webp’;
+        if (char.id === 'igari') imgName = 'igari_jiki.webp';
+        else if (char.id === 'shiina' || char.id === 'mamoru') imgName = 'jikishi.webp';
        
         let img = null;
         if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
