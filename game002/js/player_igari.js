@@ -1,12 +1,12 @@
 const VER_PLAYER_IGARI = "0.2.6"; // バージョン更新（通常時のレーザー色を赤色に修正）
-
+ 
 window.PlayerControllers = window.PlayerControllers || {};
-
+ 
 class BombLaserIgari {
     constructor(canvasWidth, canvasHeight) {
         this.sW = canvasWidth; this.sH = canvasHeight;
         this.alive = true; this.state = 'WINDUP'; this.timer = 0;
-        this.windupHeight = 0; this.windupDuration = 20; 
+        this.windupHeight = 0; this.windupDuration = 20;
         this.beamDuration = 60; this.beamAlpha = 1.0;
         this.hasHit = false; // ★追加：1回のボムで1回だけダメージ処理させるフラグ
     }
@@ -14,7 +14,7 @@ class BombLaserIgari {
         this.timer++;
         if (this.state === 'WINDUP') {
             const progress = this.timer / this.windupDuration;
-            this.windupHeight = this.sH * (progress * progress); 
+            this.windupHeight = this.sH * (progress * progress);
             if (this.timer >= this.windupDuration) { this.state = 'BEAM'; this.timer = 0; }
         } else if (this.state === 'BEAM') {
             this.beamAlpha = Math.max(0, 1.0 - (this.timer / this.beamDuration));
@@ -40,10 +40,10 @@ class BombLaserIgari {
         ctx.restore();
     }
 }
-
+ 
 window.PlayerControllers['igari'] = {
     draw: function(player, ctx, advManager) {
-        let img = (advManager && advManager.assets) ? advManager.assets['igari_jiki.webp’] : null;
+        let img = (advManager && advManager.assets) ? advManager.assets['igari_jiki.webp'] : null;
         if (img && img.naturalHeight > 0) {
             const drawWidth = 60;
             const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
@@ -56,11 +56,11 @@ window.PlayerControllers['igari'] = {
             ctx.closePath(); ctx.fill();
         }
     },
-
+ 
     shoot: function(player) {
         // ★修正：接近判定に応じて弾速と色を動的に変更
         const isClose = player.isCloseToDanger;
-        const bS = isClose ? 20 : 10; 
+        const bS = isClose ? 20 : 10;
         const bColor = isClose ? '#00ffff' : '#ff3366'; // ★修正：player.colorから赤色に変更
         const pL = player.powerLevel;
        
@@ -95,9 +95,9 @@ window.PlayerControllers['igari'] = {
         b.draw = function(ctx) {
             ctx.save(); ctx.translate(this.x, this.y);
             ctx.rotate(Math.atan2(this.vy, this.vx));
-            const length = this.size * 2.5; 
-            ctx.shadowColor = this.color; ctx.shadowBlur = this.size * 2.5; 
-            ctx.strokeStyle = this.color; ctx.lineWidth = this.size; ctx.lineCap = 'round'; 
+            const length = this.size * 2.5;
+            ctx.shadowColor = this.color; ctx.shadowBlur = this.size * 2.5;
+            ctx.strokeStyle = this.color; ctx.lineWidth = this.size; ctx.lineCap = 'round';
             ctx.beginPath(); ctx.moveTo(-length, 0); ctx.lineTo(length, 0); ctx.stroke();
             ctx.shadowBlur = 0; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = this.size * 0.4;
             ctx.beginPath(); ctx.moveTo(-length * 0.8, 0); ctx.lineTo(length * 0.8, 0); ctx.stroke();
@@ -105,22 +105,22 @@ window.PlayerControllers['igari'] = {
         };
         return b;
     },
-
+ 
     triggerBomb: function(player, stg) {
         if (player.bombs <= 0 || stg.bombState !== 'READY') return;
-        player.bombs--; 
+        player.bombs--;
         stg.bombState = 'ANIM_IN';
         stg.bombTimer = 0;
-        stg.isTimeStopped = true; 
+        stg.isTimeStopped = true;
        
         stg.bombData = {
-            img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.webp’] : null,
+            img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.webp'] : null,
             laser: null
         };
         stg.enemyBullets = [];
         stg.explosions.push(new Explosion(player.x, player.y, player.size * 4, stg.advManager));
     },
-
+ 
     updateBomb: function(player, stg, sW, sH) {
         stg.bombTimer++;
         let bd = stg.bombData;
@@ -141,77 +141,77 @@ window.PlayerControllers['igari'] = {
                         // ★修正：ボス判定をより正確に行うよう分岐を変更
                         if (!e.isDying && !(e.isBoss || e.type.includes('boss'))) {
                             // ザコ敵の場合：一撃で倒す
-                            e.alive = false; 
+                            e.alive = false;
                             stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
-                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
+                            if (typeof soundManager !== 'undefined') soundManager.playSE('smallb');
                            
                             // アイテムドロップ
-                            if (Math.random() < 0.2) stg.items.push(new Item('power', e.x, e.y)); 
+                            if (Math.random() < 0.2) stg.items.push(new Item('power', e.x, e.y));
                             else if (Math.random() < 0.3) stg.items.push(new Item('recover', e.x, e.y));
                            
                         } else if (e.isBoss || e.type.includes('boss')) {
                             // ボス敵の場合：最大HPの25%か、最低150の大ダメージを与える
                             const bombDamage = Math.max(150, Math.floor(e.maxHp * 0.25));
-                            e.hp -= bombDamage; 
+                            e.hp -= bombDamage;
                             if (e.hp <= 0 && !e.isDying) { e.isDying = true; e.deathTimer = 0; stg.enemyBullets = []; }
                         }
                     });
-                    stg.flashTimer = 20; stg.shakeTimer = 60; stg.bombState = 'BEAM'; 
+                    stg.flashTimer = 20; stg.shakeTimer = 60; stg.bombState = 'BEAM';
                 }
             }
         }
         else if (stg.bombState === 'BEAM') {
             bd.laser.update();
             if (bd.laser.state === 'DONE') {
-                stg.isTimeStopped = false; 
-                stg.bombState = 'READY'; 
+                stg.isTimeStopped = false;
+                stg.bombState = 'READY';
                 stg.bombData = null;
             }
         }
     },
-
+ 
     drawBomb: function(player, stg, ctx, sW, sH, shakeX, shakeY) {
         let bd = stg.bombData;
         if (!bd) return;
-
+ 
         if (stg.bombState === 'ANIM_IN' && stg.bombTimer < 70) {
-            ctx.save(); 
-            ctx.translate(-shakeX, -shakeY); 
+            ctx.save();
+            ctx.translate(-shakeX, -shakeY);
            
             ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.6, stg.bombTimer / 15)})`;
             ctx.fillRect(0, 0, sW, sH);
-
-            const stripH = sH * 0.35; 
-            const stripY = (sH - stripH) / 2; 
+ 
+            const stripH = sH * 0.35;
+            const stripY = (sH - stripH) / 2;
            
             ctx.fillStyle = 'rgba(200, 0, 100, 0.4)';
             ctx.fillRect(0, stripY, sW, stripH);
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.strokeRect(0, stripY, sW, stripH);
-
+ 
             if (bd.img && bd.img.naturalHeight > 0) {
                 const img = bd.img;
-                const imgH = stripH * 1.3; 
+                const imgH = stripH * 1.3;
                 const imgW = img.naturalWidth * (imgH / img.naturalHeight);
-
-                let currentX = sW + imgW; 
+ 
+                let currentX = sW + imgW;
                 const t = stg.bombTimer;
-                const targetX = sW / 2; 
-
+                const targetX = sW / 2;
+ 
                 if (t < 15) {
                     const p = t / 15;
-                    const ease = 1 - Math.pow(1 - p, 3); 
+                    const ease = 1 - Math.pow(1 - p, 3);
                     currentX = (sW + imgW) - ((sW + imgW) - (targetX + 40)) * ease;
                 } else if (t < 55) {
                     const p = (t - 15) / 40;
-                    currentX = (targetX + 40) - 80 * p; 
+                    currentX = (targetX + 40) - 80 * p;
                 } else {
                     const p = (t - 55) / 15;
-                    const ease = p * p; 
+                    const ease = p * p;
                     currentX = (targetX - 40) - ((targetX - 40) - (-imgW)) * ease;
                 }
-
+ 
                 ctx.drawImage(img, currentX - imgW / 2, sH / 2 - imgH / 2, imgW, imgH);
             } else if (stg.bombTimer > 15) {
                 ctx.fillStyle = '#fff'; ctx.font = 'bold 24px sans-serif'; ctx.textAlign = 'center';
@@ -221,6 +221,6 @@ window.PlayerControllers['igari'] = {
             ctx.restore();
         }
        
-        if (bd.laser) bd.laser.draw(ctx); 
+        if (bd.laser) bd.laser.draw(ctx);
     }
 };
