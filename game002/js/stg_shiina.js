@@ -22,7 +22,7 @@ window.StageConfigs['shiina'] = {
         stg.clouds.forEach(c => { c.y += c.speed * 1.3; if(c.y > sH + c.size) { c.y = -c.size; c.x = Math.random() * sW; } });
     },
     drawBackground: function(stg, ctx, sW, sH) {
-        const bgImg = stg.advManager?.assets['mountain.webp’];
+        const bgImg = stg.advManager?.assets['mountain.webp'];
         if (bgImg && bgImg.naturalWidth > 0) {
             const y = stg.bgScrollY;
  
@@ -46,7 +46,7 @@ window.StageConfigs['shiina'] = {
     getEnemyData: function(type) {
         const initShiki = (e, colIndex) => {
             e.draw = function(ctx) {
-                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.webp’] : null;
+                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiki.webp'] : null;
                 ctx.save(); ctx.translate(this.x, this.y);
                
                 if (this.angle) ctx.rotate(this.angle);
@@ -69,20 +69,20 @@ window.StageConfigs['shiina'] = {
             };
         };
  
-        if (type === 'shiki_a') return { imgSrc: 'shiki.webp’, size: 25, hp: 1, init: (e) => { initShiki(e, 0); } };
-        if (type === 'shiki_b') return { imgSrc: 'shiki.webp’, size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
-        if (type === 'shiki_c') return { imgSrc: 'shiki.webp’, size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
-        if (type === 'shiki_d') return { imgSrc: 'shiki.webp’, size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
+        if (type === 'shiki_a') return { imgSrc: 'shiki.webp', size: 25, hp: 1, init: (e) => { initShiki(e, 0); } };
+        if (type === 'shiki_b') return { imgSrc: 'shiki.webp', size: 30, hp: 8, init: (e) => { initShiki(e, 1); } };
+        if (type === 'shiki_c') return { imgSrc: 'shiki.webp', size: 35, hp: 3, init: (e) => { initShiki(e, 2); } };
+        if (type === 'shiki_d') return { imgSrc: 'shiki.webp', size: 40, hp: 16, init: (e) => { initShiki(e, 3); } };
  
         // ★修正：ボス体力を2倍 (800) に強化
         if (type === 'shiinaboss') return {
-            imgSrc: 'shiinaboss.webp’, size: 80, hp: 800, maxHp: 800,
+            imgSrc: 'shiinaboss.webp', size: 80, hp: 800, maxHp: 800,
             init: (e) => {
                 e.animTimer = 0;
                 e.isInvincible = true;
                 e.ringAngle = 0;
                 e.draw = function(ctx) {
-                    const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiinaboss.webp’] : null;
+                    const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['shiinaboss.webp'] : null;
                     ctx.save(); ctx.translate(this.x, this.y);
  
                     if (this.isDying && this.deathTimer >= 60) {
@@ -90,7 +90,7 @@ window.StageConfigs['shiina'] = {
                     }
  
                     if (this.isInvincible) {
-                        const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.webp’] : null;
+                        const sansImg = (this.advManager && this.advManager.assets) ? this.advManager.assets['sans.webp'] : null;
                         if (sansImg && sansImg.naturalWidth > 0) {
                             this.ringAngle += 0.02;
                             const sw = sansImg.width / 5; const sh = sansImg.height / 2;
@@ -139,7 +139,7 @@ window.StageConfigs['shiina'] = {
         b.charIndex = Math.floor(Math.random() * 10);
         b.size = 12;
         b.draw = function(ctx) {
-            const img = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.webp’] : null;
+            const img = (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['sans.webp'] : null;
             if (img && img.naturalWidth > 0) {
                 const col = this.charIndex % 5; const row = Math.floor(this.charIndex / 5);
                 const sw = img.width / 5; const sh = img.height / 2;
