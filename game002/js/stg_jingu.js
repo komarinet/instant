@@ -14,7 +14,7 @@ window.StageConfigs['jingu'] = {
         }
     },
     drawBackground: function(stg, ctx, sW, sH) {
-        const bgImg = stg.advManager?.assets['snow.webp’];
+        const bgImg = stg.advManager?.assets['snow.webp'];
         if (bgImg && bgImg.naturalWidth > 0) {
             const y = stg.bgScrollY;
  
@@ -38,13 +38,13 @@ window.StageConfigs['jingu'] = {
     },
     getEnemyData: function(type) {
         // ステージ毎に定義されたデータ。ここから画像名を取得する
-        if (type === 'rei') return { imgSrc: 'rei.webp’, size: 45, hp: 12, maxHp: 12 };
-        if (type === 'renji') return { imgSrc: 'renji.webp’, size: 38, hp: 8, maxHp: 8 };
-        if (type === 'sui') return { imgSrc: 'sui.webp’, size: 23, hp: 3, maxHp: 3 };
-        if (type === 'tv') return { imgSrc: 'tv.webp’, size: 38, hp: 6, maxHp: 6 };
+        if (type === 'rei') return { imgSrc: 'rei.webp', size: 45, hp: 12, maxHp: 12 };
+        if (type === 'renji') return { imgSrc: 'renji.webp', size: 38, hp: 8, maxHp: 8 };
+        if (type === 'sui') return { imgSrc: 'sui.webp', size: 23, hp: 3, maxHp: 3 };
+        if (type === 'tv') return { imgSrc: 'tv.webp', size: 38, hp: 6, maxHp: 6 };
        
         // ★修正：ボス（robotboss）のHPを元の250の4倍（1000）に大幅強化！
-        if (type === 'robotboss') return { imgSrc: 'robot.webp’, size: 120, hp: 1000, maxHp: 1000, isBoss: true };
+        if (type === 'robotboss') return { imgSrc: 'robot.webp', size: 120, hp: 1000, maxHp: 1000, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
         // 前半 (100〜1500フレーム): sui, rei 多め
