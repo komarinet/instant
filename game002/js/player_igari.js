@@ -43,7 +43,7 @@ class BombLaserIgari {
 
 window.PlayerControllers['igari'] = {
     draw: function(player, ctx, advManager) {
-        let img = (advManager && advManager.assets) ? advManager.assets['igari_jiki.png'] : null;
+        let img = (advManager && advManager.assets) ? advManager.assets['igari_jiki.webp’] : null;
         if (img && img.naturalHeight > 0) {
             const drawWidth = 60;
             const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
@@ -63,7 +63,7 @@ window.PlayerControllers['igari'] = {
         const bS = isClose ? 20 : 10; 
         const bColor = isClose ? '#00ffff' : '#ff3366'; // ★修正：player.colorから赤色に変更
         const pL = player.powerLevel;
-        
+       
         if (pL === 0) { player.bullets.push(this.createLaser(player.x, player.y - player.size, 0, -bS, bColor)); }
         else if (pL === 1) { player.bullets.push(this.createLaser(player.x - 5, player.y - player.size, 0, -bS, bColor)); player.bullets.push(this.createLaser(player.x + 5, player.y - player.size, 0, -bS, bColor)); }
         else if (pL === 2) {
@@ -89,7 +89,7 @@ window.PlayerControllers['igari'] = {
         else if (pL === 7) { for (let i = -3; i <= 4; i++) player.bullets.push(this.createLaser(player.x - 2.5, player.y - player.size, (i - 0.5) * 1.0, -bS, bColor)); }
         else if (pL >= 8) { for (let i = -4; i <= 4; i++) player.bullets.push(this.createLaser(player.x, player.y - player.size, i * 1.0, -bS, bColor)); }
     },
-    
+   
     createLaser: function(x, y, vx, vy, color) {
         let b = new Bullet(x, y, vx, vy, color, null, 'igari');
         b.draw = function(ctx) {
@@ -112,9 +112,9 @@ window.PlayerControllers['igari'] = {
         stg.bombState = 'ANIM_IN';
         stg.bombTimer = 0;
         stg.isTimeStopped = true; 
-        
+       
         stg.bombData = {
-            img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.png'] : null,
+            img: (stg.advManager && stg.advManager.assets) ? stg.advManager.assets['igaribomb.webp’] : null,
             laser: null
         };
         stg.enemyBullets = [];
@@ -124,7 +124,7 @@ window.PlayerControllers['igari'] = {
     updateBomb: function(player, stg, sW, sH) {
         stg.bombTimer++;
         let bd = stg.bombData;
-        
+       
         if (stg.bombState === 'ANIM_IN') {
             if (stg.bombTimer >= 70) {
                 if (!bd.laser) {
@@ -132,11 +132,11 @@ window.PlayerControllers['igari'] = {
                     stg.flashTimer = 10; stg.shakeTimer = 30;
                 }
                 bd.laser.update();
-                
+               
                 // ★修正：BEAM状態になった「最初の一瞬」だけダメージ処理とアイテムドロップを行う
                 if (bd.laser.state === 'BEAM' && !bd.laser.hasHit) {
                     bd.laser.hasHit = true; // 2回目以降はスキップ
-                    
+                   
                     stg.enemies.forEach(e => {
                         // ★修正：ボス判定をより正確に行うよう分岐を変更
                         if (!e.isDying && !(e.isBoss || e.type.includes('boss'))) {
@@ -144,11 +144,11 @@ window.PlayerControllers['igari'] = {
                             e.alive = false; 
                             stg.explosions.push(new Explosion(e.x, e.y, e.size * 2, stg.advManager));
                             if (typeof soundManager !== 'undefined') soundManager.playSE('smallb'); 
-                            
+                           
                             // アイテムドロップ
                             if (Math.random() < 0.2) stg.items.push(new Item('power', e.x, e.y)); 
                             else if (Math.random() < 0.3) stg.items.push(new Item('recover', e.x, e.y));
-                            
+                           
                         } else if (e.isBoss || e.type.includes('boss')) {
                             // ボス敵の場合：最大HPの25%か、最低150の大ダメージを与える
                             const bombDamage = Math.max(150, Math.floor(e.maxHp * 0.25));
@@ -177,13 +177,13 @@ window.PlayerControllers['igari'] = {
         if (stg.bombState === 'ANIM_IN' && stg.bombTimer < 70) {
             ctx.save(); 
             ctx.translate(-shakeX, -shakeY); 
-            
+           
             ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(0.6, stg.bombTimer / 15)})`;
             ctx.fillRect(0, 0, sW, sH);
 
             const stripH = sH * 0.35; 
             const stripY = (sH - stripH) / 2; 
-            
+           
             ctx.fillStyle = 'rgba(200, 0, 100, 0.4)';
             ctx.fillRect(0, stripY, sW, stripH);
             ctx.strokeStyle = '#fff';
@@ -220,7 +220,7 @@ window.PlayerControllers['igari'] = {
             }
             ctx.restore();
         }
-        
+       
         if (bd.laser) bd.laser.draw(ctx); 
     }
 };
