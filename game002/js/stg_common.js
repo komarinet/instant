@@ -142,7 +142,7 @@ class Item {
 class Explosion {
     constructor(x, y, targetSize, advManager) {
         this.x = x; this.y = y; this.targetSize = targetSize * 1.5; 
-        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.webp’] : null;
+        this.img = (advManager && advManager.assets) ? advManager.assets['baku01.webp'] : null;
         this.isDead = false; this.cols = 3; this.rows = 3; this.frameIndex = 0; this.totalFrames = 9; 
         this.timer = 0; this.interval = 3; 
         if (this.img && this.img.naturalWidth > 0) {
