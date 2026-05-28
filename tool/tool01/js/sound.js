@@ -1,6 +1,5 @@
 // js/sound.js
 
-// ES Modules を使用して FFmpeg をインポート
 import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
 import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
 
@@ -8,9 +7,7 @@ function logError(message, errorObj = null) {
     console.error(message, errorObj);
     const errorMsg = errorObj ? (errorObj.message || String(errorObj)) : '';
     const fullMessage = `${message}\n${errorMsg}`;
-    
     alert("【エラー発生】\n" + fullMessage);
-    
     const debugLog = document.getElementById('debug-log');
     if (debugLog) {
         debugLog.style.display = 'block';
@@ -38,6 +35,20 @@ const formatSelect = document.getElementById('formatSelect');
 const bitrateSelect = document.getElementById('bitrateSelect');
 const initOverlay = document.getElementById('init-overlay');
 
+// 外部URLのスクリプトを、同一ドメインのBlob URLに変換する関数（CORS回避の要）
+async function getBlobURL(url, mimeType) {
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const text = await response.text();
+        const blob = new Blob([text], { type: mimeType });
+        return URL.createObjectURL(blob);
+    } catch (e) {
+        logError(`Blob URL生成失敗: ${url}`, e);
+        throw e;
+    }
+}
+
 async function initFFmpeg() {
     try {
         ffmpeg = new FFmpeg();
@@ -48,9 +59,16 @@ async function initFFmpeg() {
             }
         });
 
+        // WorkerのURLと、WasmファイルのURLを両方とも同ドメイン化(Blob化)する
+        const coreURL = await getBlobURL('https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js', 'text/javascript');
+        const wasmURL = await getBlobURL('https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm', 'application/wasm');
+
+        // ※FFmpeg v0.12では worker のURLも指定可能なら指定する。
+        // もしライブラリ内部でさらに別ドメインを呼んでいたら、ここで吸収できる場合があります。
+        
         await ffmpeg.load({
-            coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
-            wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
+            coreURL: coreURL,
+            wasmURL: wasmURL
         });
 
         initOverlay.style.display = 'none';
@@ -85,9 +103,7 @@ function analyzeAudio(file) {
 }
 
 dropZone.addEventListener('click', () => fileInput.click());
-
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
