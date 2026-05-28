@@ -5,7 +5,7 @@ window.scenarios = window.scenarios || {};
 // 椎名 護 ルートのシナリオデータ
 scenarios.mamoru = {
     'opening': [
-        { bg: 'ope.webp', place: '解剖場', time: '1年前', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'こ、ここは？', delay: 60, bgm: 'dark' },
+        { bg: 'ope.webp', place: '解剖場', time: '2026.4', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'こ、ここは？', delay: 60, bgm: 'dark' },
         { bg: 'ope.webp', character: 'kagejingu.webp', spriteIndex: 2, speaker: '？？？', text: 'なんだ、麻酔が切れちまったのか？' },
         { bg: 'ope.webp', character: 'kagejingu.webp', spriteIndex: 1, speaker: '？？？', text: 'まあいい、やることは変わらない' },
         { bg: 'ope.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '何をする気だ？' },
