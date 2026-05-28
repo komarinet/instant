@@ -76,10 +76,6 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', place: 'Night Mountain', time: '2025.04', character: 'eiji.webp', spriteIndex: 0, speaker: '衛二', text: '仮面は持ってんだろ？', delay: 60, bgm: 'relax' },
             { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '一応僕も椎名の人間だからね' },
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'すまないが、部外者にもわかるように説明してもらってもいいかな' },
-            { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '護', text: 'すみません、各務さん' },
-            { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: 'うちの秘匿事項なのでそれはちょっと' },
-            { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: 'そうか・・・' },
-            { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 0, speaker: '忠重', text: 'すまないな、異世界の客人よ' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 1, speaker: '忠重', text: 'まあ要は仮面の力をより示せた方の勝利、ということだ' },
             { bg: 'nightmt.webp', character: 'eiji.webp', spriteIndex: 3, speaker: '衛二', text: 'そもそも仮面の力、使えんのかよ？　医者なんて仕事に逃げた兄貴がさ' }
         ],
@@ -88,8 +84,9 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '・・・これでいいか？', bgm: 'dark' },
             { bg: 'nightmt.webp', item: 'mask2.webp', se: 'vibration.mp3', text: '' },
             { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 3, speaker: '衛二(裏)', text: 'はっ、一応使えはすんのかよ' },
-            { bg: 'nightmt.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '悪いが負けるつもりはない', bgm: 'dark' },
-            { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 3, speaker: '衛二(裏)', text: '上等だよ、流れ弾に当たって死んでも知らねぇからな！', effect: 'shake' }
+            { bg: 'nightmt.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '悪いが負けるつもりはないぞ', bgm: 'dark' },
+            { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 1, speaker: '衛二(裏)', text: 'その程度の力で？ 笑わせんな' }
+            { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 2, speaker: '衛二(裏)', text: '家督を継いだ俺の力、見せてやるよ', effect: 'shake' }
         ],
         post_stg: [
             { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 4, speaker: '衛二(裏)', text: '何でだよ・・・何で勝てねぇんだよ！', bgm: 'stop', effect: 'shake' },
@@ -108,7 +105,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: 'わかった。でも、医者は続けたい。いいかな' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 1, speaker: '忠重', text: '好きにしろ、お前が当主だ' },
             { bg: 'nightmt.webp', character: 'eiji.webp', spriteIndex: 6, speaker: '衛二', text: '兄貴、大変だ！　UFOが攻めてきたって報告が！', effect: 'shake', bgm: 'dark' },
-            { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 2, speaker: '忠重', text: 'はっ、早速だな' },
+            { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 2, speaker: '忠重', text: 'ほっ、早速だな' },
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'UFOと戦ったことが？' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 2, speaker: '忠重', text: '日常茶飯時だ。我々にとって外来種駆除の様なものよ' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 0, speaker: '忠重', text: '護、当主としての初仕事だ。UFOを全滅させろ' },
@@ -121,8 +118,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'もはや何度時間を巻き戻しても無駄だろう' },
             { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'そんな・・・' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 1, speaker: '忠重', text: '護よ・・・落ち込むでない' },
-            { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '何だよ、父さん。僕はもう死ぬんだ' },
-            { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '放っといてくれ' },
+            { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '放っといてくれよ、父さん。僕はもう死ぬんだ' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 0, speaker: '忠重', text: '次回はもっとボムを使え' },
             { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '護', text: 'え、なに？　ボム・・・？' },
             { bg: 'nightmt.webp', character: 'tadashige.webp', spriteIndex: 0, speaker: '忠重', text: '画面上部でボムを使い続けるのだ。そうすれば衛二に勝てる' },
@@ -135,7 +131,7 @@ scenarios.mamoru = {
         stgId: 'kagami', // 敵の構成などは各務ステージを流用
         adv: [
             { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 12, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
-            { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 7, speaker: '各務', text: '・・・あれは!!', effect: 'shake' },
+            { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 7, speaker: '各務', text: '・・・あれは!!'},
             { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '各務さん？' },
             { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 10, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
             { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: 'あれはうちの迎撃装置だ' },
@@ -174,7 +170,7 @@ scenarios.mamoru = {
             { bg: 'breakufo2.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: 'ああ、やり過ぎたくらいだ' },
             { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 4, speaker: '忠重', text: '護。後始末のコストも考えて動いてもらわねば困るぞ' },
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'ご、ごめんなさい、父さん', effect: 'shake' },
-            { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 8, speaker: '忠重', text: 'とはいえ、今回はよしとするかな' },
+            { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 8, speaker: '忠重', text: 'とはいえ、今回はよしとするか' },
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'えっ！？' },
             { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 1, speaker: '忠重', text: '世に十分知らしめただろうからな、新当主の力を' },
             { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 2, speaker: '忠重', text: 'これから忙しくなるぞ。ははははっ' },
