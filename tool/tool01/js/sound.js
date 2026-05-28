@@ -1,13 +1,16 @@
-// エラー表示用のユーティリティ関数
+// js/sound.js
+
+// ES Modules を使用して FFmpeg をインポート
+import { FFmpeg } from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js';
+import { fetchFile } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+
 function logError(message, errorObj = null) {
     console.error(message, errorObj);
     const errorMsg = errorObj ? (errorObj.message || String(errorObj)) : '';
     const fullMessage = `${message}\n${errorMsg}`;
     
-    // ポップアップで表示
     alert("【エラー発生】\n" + fullMessage);
     
-    // 画面上にも表示
     const debugLog = document.getElementById('debug-log');
     if (debugLog) {
         debugLog.style.display = 'block';
@@ -15,18 +18,8 @@ function logError(message, errorObj = null) {
     }
 }
 
-// ページ読み込み時にSharedArrayBufferのチェック
 if (typeof SharedArrayBuffer === 'undefined') {
     logError("セキュリティエラー: SharedArrayBufferが利用できません。coi-serviceworkerが正しく動作していないか、ブラウザが対応していません。");
-}
-
-// FFmpeg.wasm v0.12のオブジェクトを展開
-let FFmpeg, fetchFile;
-try {
-    FFmpeg = window.FFmpegWasm.FFmpeg;
-    fetchFile = window.FFmpegUtil.fetchFile;
-} catch (e) {
-    logError("FFmpegオブジェクトの展開に失敗しました。スクリプトが正しく読み込まれていません。", e);
 }
 
 let ffmpeg = null;
@@ -45,11 +38,8 @@ const formatSelect = document.getElementById('formatSelect');
 const bitrateSelect = document.getElementById('bitrateSelect');
 const initOverlay = document.getElementById('init-overlay');
 
-// 1. FFmpeg の初期化
 async function initFFmpeg() {
     try {
-        if (!FFmpeg) throw new Error("FFmpeg is not defined.");
-        
         ffmpeg = new FFmpeg();
         
         ffmpeg.on('progress', ({ progress }) => {
@@ -58,7 +48,6 @@ async function initFFmpeg() {
             }
         });
 
-        // 必要なコアライブラリをCDNからロード
         await ffmpeg.load({
             coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.js',
             wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
@@ -94,8 +83,6 @@ function analyzeAudio(file) {
         reader.readAsArrayBuffer(file);
     });
 }
-
-// （以下、ファイルのアップロードや描画処理などの元のコードをそのまま貼り付けます）
 
 dropZone.addEventListener('click', () => fileInput.click());
 
@@ -185,17 +172,17 @@ function renderList() {
         if (item.status === 'error') { statusText = 'エラー'; statusClass = 'status-error'; }
 
         const downloadButtonHtml = item.status === 'success' 
-            ? `<button class="btn-sm btn-sm-download" onclick="downloadSingle('${item.id}')">保存</button>` 
+            ? `<button class="btn-sm btn-sm-download" onclick="window.downloadSingle('${item.id}')">保存</button>` 
             : '';
 
         const convertButtonHtml = item.status !== 'processing' && item.status !== 'success'
-            ? `<button class="btn-sm btn-sm-convert" onclick="convertSingle('${item.id}')">変換</button>`
+            ? `<button class="btn-sm btn-sm-convert" onclick="window.convertSingle('${item.id}')">変換</button>`
             : '';
 
         itemDiv.innerHTML = `
             <div class="file-main">
                 <div class="file-check-cell">
-                    <input type="checkbox" class="file-checkbox" ${item.checked ? 'checked' : ''} onchange="toggleCheck('${item.id}', this.checked)" ${item.status === 'processing' ? 'disabled' : ''}>
+                    <input type="checkbox" class="file-checkbox" ${item.checked ? 'checked' : ''} onchange="window.toggleCheck('${item.id}', this.checked)" ${item.status === 'processing' ? 'disabled' : ''}>
                 </div>
                 <div class="file-info-cell">
                     <span class="file-name" title="${item.name}">${item.name}</span>
@@ -209,7 +196,7 @@ function renderList() {
             <div class="file-actions">
                 ${convertButtonHtml}
                 ${downloadButtonHtml}
-                <button class="btn-sm btn-sm-delete" onclick="deleteFile('${item.id}')" ${item.status === 'processing' ? 'disabled' : ''}>削除</button>
+                <button class="btn-sm btn-sm-delete" onclick="window.deleteFile('${item.id}')" ${item.status === 'processing' ? 'disabled' : ''}>削除</button>
             </div>
         `;
         fileList.appendChild(itemDiv);
@@ -218,19 +205,19 @@ function renderList() {
     updateGlobalButtons();
 }
 
-function toggleCheck(id, isChecked) {
+window.toggleCheck = function(id, isChecked) {
     const index = filesArray.findIndex(f => f.id === id);
     if (index !== -1) {
         filesArray[index].checked = isChecked;
     }
     updateGlobalButtons();
-}
+};
 
-function deleteFile(id) {
+window.deleteFile = function(id) {
     filesArray = filesArray.filter(f => f.id !== id);
     if (currentProcessingId === id) currentProcessingId = null;
     renderList();
-}
+};
 
 function updateGlobalButtons() {
     const hasChecked = filesArray.some(f => f.checked && f.status !== 'success' && f.status !== 'processing');
@@ -294,9 +281,9 @@ async function processCore(id) {
     }
 }
 
-async function convertSingle(id) {
+window.convertSingle = async function(id) {
     await processCore(id);
-}
+};
 
 btnConvertAll.addEventListener('click', async () => {
     btnConvertAll.disabled = true;
@@ -307,7 +294,7 @@ btnConvertAll.addEventListener('click', async () => {
     }
 });
 
-function downloadSingle(id) {
+window.downloadSingle = function(id) {
     const item = filesArray.find(f => f.id === id);
     if (!item || !item.resultBlob) return;
 
@@ -319,7 +306,7 @@ function downloadSingle(id) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-}
+};
 
 btnDownloadZip.addEventListener('click', async () => {
     const zip = new JSZip();
@@ -355,5 +342,4 @@ btnDownloadZip.addEventListener('click', async () => {
     }
 });
 
-// ページ読み込み時にFFmpegをロード
 initFFmpeg();
