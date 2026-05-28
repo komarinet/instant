@@ -1,13 +1,39 @@
+// エラー表示用のユーティリティ関数
+function logError(message, errorObj = null) {
+    console.error(message, errorObj);
+    const errorMsg = errorObj ? (errorObj.message || String(errorObj)) : '';
+    const fullMessage = `${message}\n${errorMsg}`;
+    
+    // ポップアップで表示
+    alert("【エラー発生】\n" + fullMessage);
+    
+    // 画面上にも表示
+    const debugLog = document.getElementById('debug-log');
+    if (debugLog) {
+        debugLog.style.display = 'block';
+        debugLog.innerHTML += `<div>${new Date().toLocaleTimeString()} - ${message}<br>${errorMsg}</div><hr>`;
+    }
+}
+
+// ページ読み込み時にSharedArrayBufferのチェック
+if (typeof SharedArrayBuffer === 'undefined') {
+    logError("セキュリティエラー: SharedArrayBufferが利用できません。coi-serviceworkerが正しく動作していないか、ブラウザが対応していません。");
+}
+
 // FFmpeg.wasm v0.12のオブジェクトを展開
-const { FFmpeg } = window.FFmpegWasm;
-const { fetchFile } = window.FFmpegUtil;
+let FFmpeg, fetchFile;
+try {
+    FFmpeg = window.FFmpegWasm.FFmpeg;
+    fetchFile = window.FFmpegUtil.fetchFile;
+} catch (e) {
+    logError("FFmpegオブジェクトの展開に失敗しました。スクリプトが正しく読み込まれていません。", e);
+}
 
 let ffmpeg = null;
-let filesArray = []; // アップロードされたファイルを管理する配列
+let filesArray = [];
 const MAX_FILES = 20;
-let currentProcessingId = null; // 現在変換中のファイルID
+let currentProcessingId = null;
 
-// DOM要素の取得
 const dropZone = document.getElementById('dropZone');
 const fileInput = document.getElementById('fileInput');
 const fileList = document.getElementById('fileList');
@@ -22,9 +48,10 @@ const initOverlay = document.getElementById('init-overlay');
 // 1. FFmpeg の初期化
 async function initFFmpeg() {
     try {
+        if (!FFmpeg) throw new Error("FFmpeg is not defined.");
+        
         ffmpeg = new FFmpeg();
         
-        // 変換進捗の監視
         ffmpeg.on('progress', ({ progress }) => {
             if (currentProcessingId !== null) {
                 updateProgressBar(currentProcessingId, progress);
@@ -37,44 +64,43 @@ async function initFFmpeg() {
             wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/esm/ffmpeg-core.wasm'
         });
 
-        // 読み込み完了後に画面を表示
         initOverlay.style.display = 'none';
+        
     } catch (error) {
-        console.error('FFmpegの読み込みに失敗しました:', error);
-        document.getElementById('init-text').innerHTML = '<span style="color:#dc2626;">エンジンの初期化に失敗しました。<br>ブラウザの設定やネットワーク環境をご確認ください。</span>';
+        logError('FFmpegの読み込み・初期化に失敗しました。', error);
+        document.getElementById('init-text').innerHTML = '<span style="color:#dc2626;">エンジンの初期化に失敗しました。</span>';
     }
 }
 
-// 2. 音声メタデータ（再生時間・ビットレート）の解析（Web Audio APIを使用）
 function analyzeAudio(file) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             try {
-                // 音声データをデコードして再生時間を取得
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 const buffer = await audioCtx.decodeAudioData(e.target.result);
                 const duration = buffer.duration;
-                // ファイルサイズと再生時間から正確なkbpsを逆算
                 const bitrate = Math.round((file.size * 8) / duration / 1000);
                 resolve({ duration, bitrate });
             } catch (err) {
-                // 万が一デコードできない場合は初期値
+                console.warn("Audio analysis failed:", err);
                 resolve({ duration: null, bitrate: null });
-            } finally {
-                audioCtx.close();
             }
+        };
+        reader.onerror = (e) => {
+             console.error("FileReader error:", e);
+             resolve({ duration: null, bitrate: null });
         };
         reader.readAsArrayBuffer(file);
     });
 }
 
-// 3. アップロードイベント処理
+// （以下、ファイルのアップロードや描画処理などの元のコードをそのまま貼り付けます）
+
 dropZone.addEventListener('click', () => fileInput.click());
 
 fileInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
-// ドラッグ＆ドロップ対応
 dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
     dropZone.classList.add('dragover');
@@ -103,7 +129,6 @@ async function handleFiles(files) {
 
         const id = Date.now() + Math.random().toString(36).substr(2, 5);
         
-        // 暫定データで追加
         const fileObj = {
             id: id,
             file: file,
@@ -111,7 +136,7 @@ async function handleFiles(files) {
             size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
             duration: '解析中...',
             bitrate: '解析中...',
-            status: 'waiting', // waiting, processing, success, error
+            status: 'waiting', 
             checked: true,
             resultBlob: null,
             resultName: null
@@ -120,7 +145,6 @@ async function handleFiles(files) {
         filesArray.push(fileObj);
         renderList();
 
-        // バックグラウンドでメタデータを詳細判定
         const info = await analyzeAudio(file);
         const index = filesArray.findIndex(f => f.id === id);
         if (index !== -1) {
@@ -136,10 +160,9 @@ async function handleFiles(files) {
             renderList();
         }
     }
-    fileInput.value = ''; // 連続選択を可能にするためにリセット
+    fileInput.value = ''; 
 }
 
-// 4. ファイルリストの描画
 function renderList() {
     if (filesArray.length > 0) {
         listHeader.style.display = 'block';
@@ -161,12 +184,10 @@ function renderList() {
         if (item.status === 'success') { statusText = '変換完了'; statusClass = 'status-success'; }
         if (item.status === 'error') { statusText = 'エラー'; statusClass = 'status-error'; }
 
-        // 個別ダウンロードボタンの出し分け
         const downloadButtonHtml = item.status === 'success' 
             ? `<button class="btn-sm btn-sm-download" onclick="downloadSingle('${item.id}')">保存</button>` 
             : '';
 
-        // 個別変換ボタン（処理中以外は表示）
         const convertButtonHtml = item.status !== 'processing' && item.status !== 'success'
             ? `<button class="btn-sm btn-sm-convert" onclick="convertSingle('${item.id}')">変換</button>`
             : '';
@@ -197,7 +218,6 @@ function renderList() {
     updateGlobalButtons();
 }
 
-// 5. 各種状態コントロール
 function toggleCheck(id, isChecked) {
     const index = filesArray.findIndex(f => f.id === id);
     if (index !== -1) {
@@ -230,7 +250,6 @@ function updateProgressBar(id, progress) {
     }
 }
 
-// 6. コアロジック：音声変換処理 (単一ファイル)
 async function processCore(id) {
     const index = filesArray.findIndex(f => f.id === id);
     if (index === -1) return;
@@ -245,36 +264,29 @@ async function processCore(id) {
 
     try {
         const inputName = 'input.mp3';
-        // 変換元のファイル名と一致させ、拡張子だけ変更
         const baseName = item.name.substring(0, item.name.lastIndexOf('.')) || item.name;
         const outputName = `${baseName}.${targetFormat}`;
 
-        // FFmpeg上の仮想環境にファイルを配置
         await ffmpeg.writeFile(inputName, await fetchFile(item.file));
 
-        // FFmpeg コマンド組み立て
-        // 例: ffmpeg -i input.mp3 -b:a 192k output.m4a
         await ffmpeg.exec([
             '-i', inputName,
             '-b:a', `${targetKbps}k`,
             outputName
         ]);
 
-        // 変換された成果物を読込
         const data = await ffmpeg.readFile(outputName);
         const outBlob = new Blob([data.buffer], { type: `audio/${targetFormat}` });
 
-        // 結果を配列に保存
         filesArray[index].status = 'success';
         filesArray[index].resultBlob = outBlob;
         filesArray[index].resultName = outputName;
 
-        // 仮想ファイルシステムをクリーンアップ
         await ffmpeg.deleteFile(inputName);
         await ffmpeg.deleteFile(outputName);
 
     } catch (err) {
-        console.error(err);
+        logError("変換中にエラーが発生しました。", err);
         filesArray[index].status = 'error';
     } finally {
         if (currentProcessingId === id) currentProcessingId = null;
@@ -282,16 +294,12 @@ async function processCore(id) {
     }
 }
 
-// 個別変換呼び出し
 async function convertSingle(id) {
     await processCore(id);
 }
 
-// 選択ファイルの一括変換
 btnConvertAll.addEventListener('click', async () => {
     btnConvertAll.disabled = true;
-    
-    // 選択されていて、まだ成功していないファイルを順次処理
     for (let item of filesArray) {
         if (item.checked && item.status !== 'success' && item.status !== 'processing') {
             await processCore(item.id);
@@ -299,7 +307,6 @@ btnConvertAll.addEventListener('click', async () => {
     }
 });
 
-// 7. ダウンロード処理
 function downloadSingle(id) {
     const item = filesArray.find(f => f.id === id);
     if (!item || !item.resultBlob) return;
@@ -314,7 +321,6 @@ function downloadSingle(id) {
     URL.revokeObjectURL(url);
 }
 
-// ZIP一括圧縮ダウンロード
 btnDownloadZip.addEventListener('click', async () => {
     const zip = new JSZip();
     let count = 0;
@@ -342,8 +348,7 @@ btnDownloadZip.addEventListener('click', async () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     } catch (err) {
-        console.error('ZIP生成に失敗しました:', err);
-        alert('ZIPファイルの生成に失敗しました。');
+        logError('ZIP生成に失敗しました:', err);
     } finally {
         btnDownloadZip.textContent = 'ZIP形式で一括保存';
         updateGlobalButtons();
