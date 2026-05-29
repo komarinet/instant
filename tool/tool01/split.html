@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASM分割ツール</title>
+</head>
+<body style="padding: 20px; font-family: sans-serif;">
+    <h3>32MBのファイルを分割するツール</h3>
+    <p>ダウンロードした ffmpeg-core.wasm を選択してください</p>
+    <input type="file" id="fileInput">
+    <div id="log" style="margin-top:20px; color:blue; font-weight:bold;"></div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const log = document.getElementById('log');
+            log.innerHTML = "分割中...（スマホのスペックによっては数秒かかります）";
+            
+            const buffer = await file.arrayBuffer();
+            const chunkSize = 12 * 1024 * 1024; // 12MBごとに分割
+            let offset = 0;
+            let part = 1;
+            
+            while (offset < buffer.byteLength) {
+                const chunk = buffer.slice(offset, offset + chunkSize);
+                const blob = new Blob([chunk]);
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `ffmpeg-core.wasm.part${part}`;
+                a.click();
+                log.innerHTML += `<br>part${part} をダウンロードしました`;
+                offset += chunkSize;
+                part++;
+                // スマホブラウザの連続ダウンロードフリーズ防止
+                await new Promise(r => setTimeout(r, 600));
+            }
+            log.innerHTML += "<br><span style='color:green;'>分割完了！この3つのファイルをGitHubにアップロードしてください。</span>";
+        });
+    </script>
+</body>
+</html>
