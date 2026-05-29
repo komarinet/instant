@@ -2,17 +2,6 @@
 const { FFmpeg } = window.FFmpegWasm;
 const { fetchFile } = window.FFmpegUtil;
 
-// 公式のtoBlobURLがサイレントエラーを起こすので、安全なものを自作
-async function safeToBlobURL(url, mimeType) {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`ファイルが見つかりません (HTTP ${response.status}): ${url}`);
-    }
-    const buffer = await response.arrayBuffer();
-    const blob = new Blob([buffer], { type: mimeType });
-    return URL.createObjectURL(blob);
-}
-
 function logError(message, errorObj = null) {
     console.error(message, errorObj);
     const errorMsg = errorObj ? (errorObj.message || String(errorObj)) : '';
@@ -58,25 +47,37 @@ async function initFFmpeg() {
             }
         });
 
-        // バージョンを正確に指定（Coreは0.12.6が最新）
-        const coreURLBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-        const ffmpegURLBase = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd';
-        
-        initText.innerHTML = '1/3: 必須システムをダウンロード中...';
-        const coreURL = await safeToBlobURL(`${coreURLBase}/ffmpeg-core.js`, 'text/javascript');
+        // 1. 分割されたWASMファイル（part1〜3）を自サーバーから取得
+        // スマホで付与された .txt 拡張子に対応
+        initText.innerHTML = '1/4: 分割エンジン(1/3)を読込中...';
+        const res1 = await fetch('./ffmpeg-core.wasm.part1.txt');
+        const buf1 = await res1.arrayBuffer();
 
-        initText.innerHTML = '2/3: 変換エンジン(約30MB)をダウンロード中...<br><span style="font-size:11px;">※ここが数秒かかります</span>';
-        const wasmURL = await safeToBlobURL(`${coreURLBase}/ffmpeg-core.wasm`, 'application/wasm');
+        initText.innerHTML = '2/4: 分割エンジン(2/3)を読込中...';
+        const res2 = await fetch('./ffmpeg-core.wasm.part2.txt');
+        const buf2 = await res2.arrayBuffer();
 
-        initText.innerHTML = '3/3: ワーカースクリプトをダウンロード中...';
-        // UMD版のWorkerファイル名
-        const workerURL = await safeToBlobURL(`${ffmpegURLBase}/814.ffmpeg.js`, 'text/javascript');
+        initText.innerHTML = '3/4: 分割エンジン(3/3)を読込中...';
+        const res3 = await fetch('./ffmpeg-core.wasm.part3.txt');
+        const buf3 = await res3.arrayBuffer();
 
-        initText.innerHTML = 'エンジンを起動中...';
+        // 2. ブラウザのメモリ上で1つのWASMデータに結合する
+        initText.innerHTML = '4/4: エンジンを結合・起動中...';
+        const totalLen = buf1.byteLength + buf2.byteLength + buf3.byteLength;
+        const combined = new Uint8Array(totalLen);
+        combined.set(new Uint8Array(buf1), 0);
+        combined.set(new Uint8Array(buf2), buf1.byteLength);
+        combined.set(new Uint8Array(buf3), buf1.byteLength + buf2.byteLength);
+
+        // 結合したデータをBlob化してURLを生成
+        const wasmBlob = new Blob([combined], { type: 'application/wasm' });
+        const wasmURL = URL.createObjectURL(wasmBlob);
+
+        // 3. 同じドメイン(GitHub)にあるJSと、結合したWASMを読み込ませる
         await ffmpeg.load({
-            coreURL: coreURL,
+            coreURL: './ffmpeg-core.js',
             wasmURL: wasmURL,
-            workerURL: workerURL
+            workerURL: './worker.js'
         });
 
         initOverlay.style.display = 'none';
@@ -331,4 +332,42 @@ window.downloadSingle = function(id) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL
+    URL.revokeObjectURL(url);
+};
+
+btnDownloadZip.addEventListener('click', async () => {
+    const zip = new JSZip();
+    let count = 0;
+
+    filesArray.forEach(item => {
+        if (item.resultBlob && item.resultName) {
+            zip.file(item.resultName, item.resultBlob);
+            count++;
+        }
+    });
+
+    if (count === 0) return;
+
+    btnDownloadZip.textContent = '圧縮中...';
+    btnDownloadZip.disabled = true;
+
+    try {
+        const content = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `converted_audio_${Date.now()}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        logError('ZIP生成に失敗しました:', err);
+    } finally {
+        btnDownloadZip.textContent = 'ZIP形式で一括保存';
+        updateGlobalButtons();
+    }
+});
+
+// 初期化スタート
+initFFmpeg();
