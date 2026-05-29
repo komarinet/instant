@@ -1,6 +1,17 @@
 // UMD版のグローバルオブジェクトを展開
 const { FFmpeg } = window.FFmpegWasm;
-const { fetchFile, toBlobURL } = window.FFmpegUtil;
+const { fetchFile } = window.FFmpegUtil;
+
+// 公式のtoBlobURLがサイレントエラーを起こすので、安全なものを自作
+async function safeToBlobURL(url, mimeType) {
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`ファイルが見つかりません (HTTP ${response.status}): ${url}`);
+    }
+    const buffer = await response.arrayBuffer();
+    const blob = new Blob([buffer], { type: mimeType });
+    return URL.createObjectURL(blob);
+}
 
 function logError(message, errorObj = null) {
     console.error(message, errorObj);
@@ -17,7 +28,7 @@ function logError(message, errorObj = null) {
 }
 
 if (typeof SharedArrayBuffer === 'undefined') {
-    logError("セキュリティエラー: SharedArrayBufferが利用できません。coi-serviceworkerが正しく動作していないか、ブラウザが対応していません。");
+    logError("セキュリティエラー: SharedArrayBufferが利用できません。coi-serviceworkerが効いていません。");
 }
 
 let ffmpeg = null;
@@ -35,6 +46,7 @@ const btnDownloadZip = document.getElementById('btnDownloadZip');
 const formatSelect = document.getElementById('formatSelect');
 const bitrateSelect = document.getElementById('bitrateSelect');
 const initOverlay = document.getElementById('init-overlay');
+const initText = document.getElementById('init-text');
 
 async function initFFmpeg() {
     try {
@@ -46,24 +58,32 @@ async function initFFmpeg() {
             }
         });
 
-        // ==========================================
-        // 【最重要ポイント】GitHub制限＆CORSエラー突破
-        // ==========================================
-        const baseURLCore = 'https://unpkg.com/@ffmpeg/core@0.12.10/dist/umd';
-        const baseURLFFmpeg = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd';
+        // バージョンを正確に指定（Coreは0.12.6が最新）
+        const coreURLBase = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+        const ffmpegURLBase = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd';
         
-        // toBlobURLが外部ファイルを直接ブラウザメモリに保存し、CORSの壁を越えます
+        initText.innerHTML = '1/3: 必須システムをダウンロード中...';
+        const coreURL = await safeToBlobURL(`${coreURLBase}/ffmpeg-core.js`, 'text/javascript');
+
+        initText.innerHTML = '2/3: 変換エンジン(約30MB)をダウンロード中...<br><span style="font-size:11px;">※ここが数秒かかります</span>';
+        const wasmURL = await safeToBlobURL(`${coreURLBase}/ffmpeg-core.wasm`, 'application/wasm');
+
+        initText.innerHTML = '3/3: ワーカースクリプトをダウンロード中...';
+        // UMD版のWorkerファイル名
+        const workerURL = await safeToBlobURL(`${ffmpegURLBase}/814.ffmpeg.js`, 'text/javascript');
+
+        initText.innerHTML = 'エンジンを起動中...';
         await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURLCore}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURLCore}/ffmpeg-core.wasm`, 'application/wasm'),
-            workerURL: await toBlobURL(`${baseURLFFmpeg}/814.ffmpeg.js`, 'text/javascript')
+            coreURL: coreURL,
+            wasmURL: wasmURL,
+            workerURL: workerURL
         });
 
         initOverlay.style.display = 'none';
         
     } catch (error) {
         logError('FFmpegの読み込み・初期化に失敗しました。', error);
-        document.getElementById('init-text').innerHTML = '<span style="color:#dc2626;">エンジンの初期化に失敗しました。</span>';
+        initText.innerHTML = '<span style="color:#dc2626;">エンジンの初期化に失敗しました。</span>';
     }
 }
 
@@ -311,42 +331,4 @@ window.downloadSingle = function(id) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-};
-
-btnDownloadZip.addEventListener('click', async () => {
-    const zip = new JSZip();
-    let count = 0;
-
-    filesArray.forEach(item => {
-        if (item.resultBlob && item.resultName) {
-            zip.file(item.resultName, item.resultBlob);
-            count++;
-        }
-    });
-
-    if (count === 0) return;
-
-    btnDownloadZip.textContent = '圧縮中...';
-    btnDownloadZip.disabled = true;
-
-    try {
-        const content = await zip.generateAsync({ type: 'blob' });
-        const url = URL.createObjectURL(content);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `converted_audio_${Date.now()}.zip`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    } catch (err) {
-        logError('ZIP生成に失敗しました:', err);
-    } finally {
-        btnDownloadZip.textContent = 'ZIP形式で一括保存';
-        updateGlobalButtons();
-    }
-});
-
-// 初期化スタート
-initFFmpeg();
+    URL
