@@ -181,7 +181,7 @@ scenarios.mamoru = {
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: 'ところで各務さん。これで僕は一年後、死なずに済むのでしょうか' },
             { bg: 'breakufo2.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: 'いや。もちろん、力を得た上で元凶となる相手を倒さなくてはならない' },
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 12, speaker: '護', text: '元凶、ですか・・・？' },
-            { bg: 'breakufo2.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'すまない、規定上ここから先の介入はできないんだ' },
+            { bg: 'breakufo2.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'すまない、我々も君が何者かに殺されたという情報しかないんだ' },
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '護', text: '自分で探すしかない、か' }
         ]
     },
