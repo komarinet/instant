@@ -9,6 +9,7 @@
     
     <script src="https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.umd.js"></script>
     <script src="https://unpkg.com/@ffmpeg/util@0.12.1/dist/umd/index.js"></script>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     
     <style>
@@ -84,13 +85,14 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #init-text { font-size: 14px; color: var(--text); }
         
+        /* エラーがポップアップに加えて画面にも残るようにする表示領域 */
         #debug-log { background-color: #fee2e2; color: #991b1b; padding: 10px; margin: 10px 0; border-radius: 8px; font-family: monospace; font-size: 12px; display: none; word-break: break-all; }
     </style>
 </head>
 <body>
     <div id="init-overlay">
         <div class="spinner"></div>
-        <div id="init-text">音声変換エンジン(FFmpeg)を読込中...<br><span style="font-size:11px; color:#64748b; font-weight:normal;">(初回のみ30MBほどの通信が発生します)</span></div>
+        <div id="init-text">音声変換エンジン(FFmpeg)を読込中...<br><span style="font-size:11px; color:#64748b; font-weight:normal;">(初回のみ数十MBの通信が発生します)</span></div>
     </div>
 
     <div id="debug-log"></div>
