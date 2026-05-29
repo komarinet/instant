@@ -3,7 +3,7 @@ export const VER_CONFIG = "0.1.2"; // 3D用の月テクスチャ追加
 export const imagesToPreload = [
     'airport.webp', 'igari02.webp', 'hiragi01.webp', 'kagami.webp', 'room.webp', 'igni.webp', 'breakufo.webp',
     'breakplane.webp', 'citysky.webp','city.webp','citypanic.webp','breakufo2.webp','calendar.webp',
-    'typea.webp', 'typeb.webp', 'typec.webp', 'typeboss.webp','shiinabomb.webp','meeting.webp',
+    'typea.webp', 'typeb.webp', 'typec.webp', 'typeboss.webp','shiinabomb.webp','meeting.webp','monban.webp',
     '2typea.webp', '2typeb.webp', '2typec.webp', '2typeboss.webp', 'cityboss.webp','casino01.webp','casino02.webp',
     'darkcandle.webp','hospital.webp', 'mountain.webp','sanrin.webp', 'yakerin.webp', 
     'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp',
