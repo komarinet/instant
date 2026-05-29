@@ -8,7 +8,7 @@ export const imagesToPreload = [
     'darkcandle.webp','hospital.webp', 'mountain.webp','sanrin.webp', 'yakerin.webp', 
     'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp',
     // --- ステージ3追加分 ---
-    'shiinaboss.webp','shiki.webp','sans.webp',
+    'shiinaboss.webp','shiki.webp','sans.webp','invader.webp',
     // --- 新規追加分 ---
     'advsnow.webp','jingu.webp','robot.webp','boro.webp',
     'rei.webp','renji.webp','snow.webp','sui.webp','mask.webp',
