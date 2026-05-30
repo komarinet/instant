@@ -85,7 +85,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', item: 'mask2.webp', se: 'vibration.mp3', text: '' },
             { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 3, speaker: '衛二(裏)', text: 'はっ、一応使えはすんのかよ' },
             { bg: 'nightmt.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '悪いが負けるつもりはないぞ', bgm: 'dark' },
-            { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 1, speaker: '衛二(裏)', text: 'その程度の力で？ 笑わせんな' }
+            { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 1, speaker: '衛二(裏)', text: 'その程度の力で？ 笑わせんな' },
             { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 2, speaker: '衛二(裏)', text: '家督を継いだ俺の力、見せてやるよ', effect: 'shake' }
         ],
         post_stg: [
