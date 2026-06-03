@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.31"; // バージョン更新（kagami.pngを4行4列に戻し、スケール0.85倍を適用）
+const VER_ADV = "0.4.32"; // バージョン更新（monbanとcasinobossの画像分割指定を追加）
 
 class ADVManager {
     constructor() {
@@ -276,16 +276,17 @@ class ADVManager {
         ctx.globalAlpha = charAlpha; 
 
         const getRows = (key) => {
-            if (key === 'urashiina.webp' || key === 'nurse.webp' || key === 'uraeiji.webp') return 2; 
-            // ★修正: kagami.png を3行のリストから削除しました（デフォルトの4行で処理されます）
-            if (key === 'igari01.webp' || key === 'godai.webp' || key === 'godaimo.webp' || key === 'eiji.webp' || key === 'tadashige.webp') return 3; 
+            // ★修正：monban.webp (2行) と casinoboss.webp (3行) の指定を追記
+            if (key === 'urashiina.webp' || key === 'nurse.webp' || key === 'uraeiji.webp' || key === 'monban.webp') return 2; 
+            if (key === 'igari01.webp' || key === 'godai.webp' || key === 'godaimo.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'casinoboss.webp') return 3; 
             if (key === 'shiina.webp' || key === 'cap.webp' || key === 'jingu.webp' || key === 'kagejingu.webp') return 4; 
             return 4; 
         };
 
         const getCols = (key) => {
+            // ★修正：monban.webp と casinoboss.webp は4列なのでデフォルトでも動作しますが、念のため明示的に追記
             if (key === 'nurse.webp') return 5; 
-            if (key === 'jingu.webp' || key === 'kagejingu.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'uraeiji.webp') return 4; 
+            if (key === 'jingu.webp' || key === 'kagejingu.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'uraeiji.webp' || key === 'monban.webp' || key === 'casinoboss.webp') return 4; 
             return 4; 
         };
 
@@ -570,4 +571,3 @@ class ADVManager {
         ctx.fillText(line, x, y);
     }
 }
-
