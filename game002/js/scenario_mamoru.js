@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.4.0"; // バージョン更新（ステージ2：各務システムの暴走とUFO戦のシナリオを追加）
+const VER_SCENARIO_MAMORU = "0.5.0"; // バージョン更新（ステージ3：カジノでのインベーダーゲーム戦シナリオを追加）
  
 window.scenarios = window.scenarios || {};
  
@@ -112,7 +112,7 @@ scenarios.mamoru = {
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '就任早々慌ただしいな' },
             { bg: 'nightmt.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: '大丈夫です。忙しいのには慣れてますから' }
         ],
-        loss_adv: [ // 負けパターン（STG内で呼び出される）
+        loss_adv: [ 
             { bg: 'nightmt.webp', character: 'uraeiji.webp', spriteIndex: 2, speaker: '衛二(裏)', text: 'ははははっ！　勝った！　兄貴に勝った！', effect: 'shake', bgm: 'stop' },
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '椎名くん、残念だが君の運命は確定してしまった', bgm: 'dark' },
             { bg: 'nightmt.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'もはや何度時間を巻き戻しても無駄だろう' },
@@ -128,7 +128,7 @@ scenarios.mamoru = {
         ]
     },
     2: {
-        stgId: 'kagami', // 敵の構成などは各務ステージを流用
+        stgId: 'kagami',
         adv: [
             { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 12, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
             { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 7, speaker: '各務', text: '・・・あれは!!'},
@@ -185,7 +185,73 @@ scenarios.mamoru = {
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '護', text: '自分で探すしかない、か' }
         ]
     },
-    3: { adv: [], pre_stg: [], post_stg: [] },
+    3: { 
+        stgId: 'invader',
+        adv: [
+            { bg: 'casino01.webp', place: 'Casino', time: '2025.05', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: 'カジノ？', delay: 60, bgm: 'relax' },
+            { bg: 'casino01.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'うちの情報部が掴みました' },
+            { bg: 'casino01.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '椎名家を狙う男がここに出入りしていると' },
+            { bg: 'casino01.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '大丈夫なのか？　こういう所はその、ヤバい人たちが・・・' },
+            { bg: 'casino01.webp', character: 'monban.webp', spriteIndex: 0, speaker: '門番', text: 'ご紹介は？', isRight: false },
+            { bg: 'casino01.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: 'ほら、言った側から' },
+            { bg: 'casino01.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '僕はこういう者です' },
+            { bg: 'casino01.webp', item: 'mask.webp', text: '', se: 'vibration.mp3' },
+            { bg: 'casino01.webp', character: 'monban.webp', spriteIndex: 0, speaker: '門番', text: '椎名家のッ・・・失礼しました', isRight: false, effect: 'shake' },
+            { bg: 'casino01.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '凄いな' },
+            { bg: 'casino01.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '椎名', text: '残念ながら後ろ暗い組織には名が知れているんです' },
+            
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '噂は聞いてますよ、椎名の新当主', isRight: false, bgm: 'dark' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '我々に何の御用で？', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '我々を狙っている者がいると聞いている。何か知らないか' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'まあ、椎名家ですからねぇ', isRight: false },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '狙う者は山程いるでしょうな', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: 'そうか・・・邪魔したね' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '・・・いや、一つ思い当たる節があります', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '思い当たる節？' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'ええ、ですがここはカジノ。私と賭けをしませんか', isRight: false },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '駄目だ、椎名くん。相手のステージで戦っては' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '話だけは聞く。妙な賭けならお断りだ' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '一般的なインベーダーゲームをしてもらいたいだけです', isRight: false },
+            { bg: 'casino02.webp', item: 'invader.webp', text: '' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '三面までクリアできたら勝ちでいい', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: 'わかった' },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: '待つんだ、椎名くん！　何か細工でもされてたら', effect: 'shake' },
+            { bg: 'casino02.webp', item: 'invader.webp', text: '' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '構いません。僕が勝ったら情報はもらいます' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'ただし負けた場合、その仮面を頂く。構いませんかな', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: 'いいですよ' },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: '椎名くん！', effect: 'shake' }
+        ],
+        pre_stg: [
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '一見普通のインベーダーゲームだが', bgm: 'stop' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '心配ありません。これでも昔は結構ゲームしてましたから' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'では、スタートです', isRight: false }
+        ],
+        event_adv: [
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '椎名', text: 'あれ？　これは・・・', bgm: 'dark' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'いい忘れました', isRight: false },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'このゲームはうち用にカスタマイズされてましてな', isRight: false },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 13, speaker: '各務', text: '敵が無数に・・・これはイカサマだ！', effect: 'shake' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '私がいつ普通のインベーダーゲームと言いましたかな？', isRight: false },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'ギャンブル仕様になってるとも説明はしませんでしたがね', isRight: false },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: 'こんな賭けは無効だ、椎名くん！', effect: 'shake' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '椎名', text: '各務さん、大丈夫ですよ' },
+            { bg: 'casino02.webp', item: 'mask.webp', text: '', se: 'vibration.mp3' },
+            { bg: 'casino02.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'どーせそんなことだろうと思ってたからなぁ' }
+        ],
+        post_stg: [
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'ば、バカな・・・', isRight: false, effect: 'shake', bgm: 'stop' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '約束だ、情報を話してもらうぞ', bgm: 'relax' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '・・・三日くれないか', isRight: false },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 3, speaker: '各務', text: 'おい！　椎名くんは貴様のイカサマゲームに勝ったんだぞ', effect: 'shake' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'や、約束は守る。だが私も言えば命がないんだ', isRight: false },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '高跳びする時間をくれ。２日でいい', isRight: false },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: '・・・わかった' },
+            { bg: 'casino02.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: 'いいのか？' },
+            { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '椎名', text: '我が家から逃げられるとは思えませんから' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: 'あ、ありがとう', isRight: false }
+        ]
+    },
     4: { adv: [], pre_stg: [], post_stg: [] },
     5: { adv: [], pre_stg: [], post_stg: [] },
     6: { adv: [], pre_stg: [], post_stg: [] }
