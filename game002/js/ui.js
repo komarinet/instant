@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.23"; // バージョン更新（レスポンシブ対応のローディングプログレスバーUIを追加）
+export const VER_UI = "0.3.24"; // バージョン更新（護ルートのStage 3の名称を「裏カジノ」に変更）
  
 let demoAnimId = null;
 let demoFrame = 0;
@@ -546,7 +546,7 @@ export function initStageListTexts(selectedCharId) {
         let stageTexts = [];
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
-                "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: ？？？",
+                "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: 裏カジノ",
                 "Stage 4: ？？？", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
