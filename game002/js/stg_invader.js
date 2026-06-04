@@ -1,4 +1,4 @@
-const VER_STG_INVADER = "0.5.0"; // 更新：見切れ対応（動的スケール）、ボムボタン強制非表示、スコア位置修正、3面バグ修正
+const VER_STG_INVADER = "0.6.0"; // 更新：UI隠蔽時の黒塗り領域の調整、自機消失と枠線途切れバグの修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -84,12 +84,18 @@ window.StageConfigs['invader'] = {
                 const sW = c.width / dpr;
                 const sH = c.height / dpr;
                 
-                // 下部のHP/PW UI、右上のSCOREを黒で塗りつぶす
                 ctx.fillStyle = '#050510';
-                ctx.fillRect(0, sH - 70, sW, 70);
-                ctx.fillRect(sW - 220, 0, 220, 50);
+                // ★修正：自機の下端（sH - 50）から下だけを塗り潰すことで自機を消さない
+                ctx.fillRect(0, sH - 50, sW, 50);
+                // ★修正：右上のSCOREの塗り潰し範囲を調整
+                ctx.fillRect(sW - 220, 0, 220, 45);
                 
-                // カモフラージュ用のレトロなスコア表示（ミュートボタンを避けて右上に配置）
+                // ★修正：塗り潰されたネオン枠を一番上で再描画して欠けを防ぐ
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(5, 5, sW - 10, sH - 10);
+                
+                // カモフラージュ用のレトロなスコア表示
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 20px "Courier New"';
                 ctx.textAlign = 'right';
@@ -180,7 +186,7 @@ window.StageConfigs['invader'] = {
             let hitEdge = false;
             let currentSpeed = 0;
             
-            // フェーズごとの速度計算（バグ修正：3面開始前のマイナス速度を防ぐ）
+            // フェーズごとの速度計算
             if (stg.invaderPhase < 3) {
                 currentSpeed = 0.3 + Math.max(0, (1 - (stg.enemies.length / 24)) * 1.5);
             } else if (stg.isRealShiina) {
