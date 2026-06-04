@@ -1,4 +1,4 @@
-const VER_STG_INVADER = "0.7.0"; // 更新：3面絶望タイム(15秒)、死亡時強制ADVインターセプト、20行配置対応
+const VER_STG_INVADER = "0.8.0"; // 更新：ボムボタン再表示時にFlexboxレイアウトが崩れるバグを修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -69,7 +69,7 @@ window.StageConfigs['invader'] = {
                 stg.forceGameOverFlag = false;
             }
             
-            // ★追加：3面の絶望タイム中の死亡（弾被弾・侵略）をキャンセルしてADVへ強制移行
+            // 3面の絶望タイム中の死亡（弾被弾・侵略）をキャンセルしてADVへ強制移行
             if (result === 'GAMEOVER' && stg.invaderPhase === 3 && !stg.isRealShiina && !stg.advTriggeredPhase3) {
                 stg.player.hp = 1; // 死亡をキャンセル
                 stg.forceTriggerAdv = true; // 次のフレームでADV起動
@@ -85,7 +85,8 @@ window.StageConfigs['invader'] = {
                 if (bombBtn) bombBtn.style.display = 'none'; // ボム隠蔽
             } else {
                 if (bombBtn && bombBtn.style.display === 'none') {
-                    bombBtn.style.display = ''; 
+                    // ★修正：元に戻す際に 'flex' を明示的に指定してレイアウト崩れを防止
+                    bombBtn.style.display = 'flex'; 
                 }
             }
             return result;
