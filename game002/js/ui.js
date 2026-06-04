@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.24"; // バージョン更新（護ルートのStage 3の名称を「裏カジノ」に変更）
+export const VER_UI = "0.3.25"; // バージョン更新（バージョンチェックリストにInvaderを追加）
  
 let demoAnimId = null;
 let demoFrame = 0;
@@ -453,6 +453,7 @@ export function showVersions(moduleVersions) {
     const stgGodai = getV('VER_STG_GODAI');
     const stgCap = getV('VER_STG_CAP');
     const stgEiji = getV('VER_STG_EIJI');
+    const stgInvader = getV('VER_STG_INVADER'); // ★追加
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -484,7 +485,8 @@ export function showVersions(moduleVersions) {
             s_jin:v${stgJingu}<br>
             s_god:v${stgGodai}<br>
             s_cap:v${stgCap}<br>
-            s_eiji:v${stgEiji}
+            s_eiji:v${stgEiji}<br>
+            s_inv:v${stgInvader}
         </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
