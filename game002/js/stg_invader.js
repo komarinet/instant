@@ -1,4 +1,4 @@
-const VER_STG_INVADER = "0.6.0"; // 更新：UI隠蔽時の黒塗り領域の調整、自機消失と枠線途切れバグの修正
+const VER_STG_INVADER = "0.7.0"; // 更新：3面絶望タイム(15秒)、死亡時強制ADVインターセプト、20行配置対応
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -7,6 +7,11 @@ window.StageConfigs['invader'] = {
         stg.invaderPhase = 1;      // 1面, 2面, 3面
         stg.invaderDir = 1;        // 進行方向
         stg.isRealShiina = false;  // 演出終了後に本来の姿に戻ったか
+        
+        stg.phase3Timer = 0;
+        stg.advTriggeredPhase3 = false;
+        stg.forceTriggerAdv = false;
+        stg.forceGameOverFlag = false;
         
         // 元のステータスを退避し、1発アウトの残機1(HP1)に設定
         stg.origPlayerHp = 5;
@@ -53,21 +58,34 @@ window.StageConfigs['invader'] = {
             }
         };
         
-        // アイテム無効化とボムボタン隠蔽
+        // アイテム無効化、ボムボタン隠蔽、死亡インターセプト
         stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
         stg.updateGameplay = function() {
             let result = this.origUpdateGameplay();
             
+            // 侵略判定による強制ゲームオーバーフラグの回収
+            if (stg.forceGameOverFlag) {
+                result = 'GAMEOVER';
+                stg.forceGameOverFlag = false;
+            }
+            
+            // ★追加：3面の絶望タイム中の死亡（弾被弾・侵略）をキャンセルしてADVへ強制移行
+            if (result === 'GAMEOVER' && stg.invaderPhase === 3 && !stg.isRealShiina && !stg.advTriggeredPhase3) {
+                stg.player.hp = 1; // 死亡をキャンセル
+                stg.forceTriggerAdv = true; // 次のフレームでADV起動
+                result = 'PLAYING';
+            }
+            
             let bombBtn = document.getElementById('bomb-btn');
             
             if (!stg.isRealShiina) {
-                this.items = []; // アイテムを強制的に消去
+                this.items = []; // アイテム消去
                 this.player.powerLevel = 0; 
                 this.player.bombs = 0; 
-                if (bombBtn) bombBtn.style.display = 'none'; // UI.jsを無視して強制非表示
+                if (bombBtn) bombBtn.style.display = 'none'; // ボム隠蔽
             } else {
                 if (bombBtn && bombBtn.style.display === 'none') {
-                    bombBtn.style.display = ''; // 本来の姿に戻ったら再表示
+                    bombBtn.style.display = ''; 
                 }
             }
             return result;
@@ -84,18 +102,17 @@ window.StageConfigs['invader'] = {
                 const sW = c.width / dpr;
                 const sH = c.height / dpr;
                 
+                // UI黒塗り
                 ctx.fillStyle = '#050510';
-                // ★修正：自機の下端（sH - 50）から下だけを塗り潰すことで自機を消さない
                 ctx.fillRect(0, sH - 50, sW, 50);
-                // ★修正：右上のSCOREの塗り潰し範囲を調整
                 ctx.fillRect(sW - 220, 0, 220, 45);
                 
-                // ★修正：塗り潰されたネオン枠を一番上で再描画して欠けを防ぐ
+                // ネオン枠再描画
                 ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
                 ctx.lineWidth = 2;
                 ctx.strokeRect(5, 5, sW - 10, sH - 10);
                 
-                // カモフラージュ用のレトロなスコア表示
+                // カモフラージュ用レトロスコア
                 ctx.fillStyle = '#fff';
                 ctx.font = 'bold 20px "Courier New"';
                 ctx.textAlign = 'right';
@@ -142,43 +159,54 @@ window.StageConfigs['invader'] = {
             this.spawnInvaders(stg, 4, 7, sW, 'invader_b');
         }
         
-        // 【3面への移行とイベント】
+        // 【3面への移行：敵の配置開始】
         if (stg.invaderPhase === 2 && timer > 100 && stg.enemies.length === 0) {
             stg.invaderPhase = 3;
+            stg.phase3Timer = 0;
+            stg.advTriggeredPhase3 = false;
             
-            // 30行×8列の敵を敷き詰める
-            this.spawnInvaders(stg, 30, 8, sW, 'invader_c');
+            // 20行×8列の敵を画面半分まで敷き詰める（画面内に見える位置からスタート）
+            this.spawnInvaders(stg, 20, 8, sW, 'invader_c');
+        }
 
-            let midAdvData = [];
-            try {
-                if (window.scenarios && window.scenarios['mamoru']) {
-                    let stgData = window.scenarios['mamoru'][3]; 
-                    if (stgData && stgData.event_adv) {
-                        midAdvData = stgData.event_adv;
-                    }
-                }
-            } catch (e) { console.error("ADV読み込みエラー", e); }
+        // 【3面：絶望タイム（約15秒）＆ ADV起動判定】
+        if (stg.invaderPhase === 3 && !stg.isRealShiina) {
+            stg.phase3Timer++;
             
-            const onAdvEnd = () => {
-                // 本来の姿を解禁・ステータス復帰
-                stg.isRealShiina = true; 
-                stg.player.hp = stg.origPlayerHp;
-                stg.player.maxHp = stg.origPlayerMaxHp;
-                stg.player.bombs = stg.origBombs;
+            // 15秒（900フレーム）経過、または自機が被弾して強制フックされたらADV起動
+            if ((stg.phase3Timer > 900 || stg.forceTriggerAdv) && !stg.advTriggeredPhase3) {
+                stg.advTriggeredPhase3 = true;
                 
-                if (typeof window.soundManager !== 'undefined') {
-                    window.soundManager.playBGM('boss_shiina');
-                }
-            };
-            
-            // 敵を描画してからADVを開始
-            setTimeout(() => {
+                let midAdvData = [];
+                try {
+                    if (window.scenarios && window.scenarios['mamoru']) {
+                        let stgData = window.scenarios['mamoru'][3]; 
+                        if (stgData && stgData.event_adv) {
+                            midAdvData = stgData.event_adv;
+                        }
+                    }
+                } catch (e) { console.error("ADV読み込みエラー", e); }
+                
+                const onAdvEnd = () => {
+                    stg.isRealShiina = true; 
+                    stg.player.hp = stg.origPlayerHp;
+                    stg.player.maxHp = stg.origPlayerMaxHp;
+                    stg.player.bombs = stg.origBombs;
+                    
+                    // 理不尽弾幕をクリアしてフェアな状態からリスタート
+                    stg.enemyBullets = [];
+                    
+                    if (typeof window.soundManager !== 'undefined') {
+                        window.soundManager.playBGM('boss_shiina');
+                    }
+                };
+                
                 if (midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
                     window.startMidStgADV(midAdvData, onAdvEnd);
                 } else {
                     onAdvEnd();
                 }
-            }, 1000);
+            }
         }
         
         // 【インベーダー全体の移動＆接触判定】
@@ -186,13 +214,12 @@ window.StageConfigs['invader'] = {
             let hitEdge = false;
             let currentSpeed = 0;
             
-            // フェーズごとの速度計算
             if (stg.invaderPhase < 3) {
                 currentSpeed = 0.3 + Math.max(0, (1 - (stg.enemies.length / 24)) * 1.5);
             } else if (stg.isRealShiina) {
-                currentSpeed = 0.8; // 3面の戦闘中は一定速度
+                currentSpeed = 0.8; 
             } else {
-                currentSpeed = 0; // 3面出現直後（ADV中）は動かさない
+                currentSpeed = 0.4; // 絶望タイム中はじわじわと迫らせる
             }
             
             if (currentSpeed > 0) {
@@ -201,13 +228,12 @@ window.StageConfigs['invader'] = {
                     if (e.x < e.size + 15) { hitEdge = true; stg.invaderDir = 1; }
                     if (e.x > sW - e.size - 15) { hitEdge = true; stg.invaderDir = -1; }
                     
-                    // 侵略判定（インベーダーが自機にタッチしたら即ゲームオーバー）
+                    // 侵略判定（インベーダーが自機にタッチしたら即ゲームオーバーフラグを立てる）
                     if (!stg.isRealShiina && e.y + e.size > stg.player.y - 15) {
-                        stg.player.hp = 0; 
+                        stg.forceGameOverFlag = true; 
                     }
                 });
                 
-                // 画面端到達で全体が一段下がる
                 if (hitEdge) {
                     stg.enemies.forEach(e => {
                         e.x += stg.invaderDir * currentSpeed * 2;
@@ -226,26 +252,22 @@ window.StageConfigs['invader'] = {
     spawnInvaders: function(stg, rows, cols, sW, type) {
         stg.invaderDir = 1;
         
-        // スマホ画面幅に合わせてサイズと間隔を動的にスケール
-        let screenRatio = Math.min(1.0, sW / 400); // 400pxを基準に縮小
+        let screenRatio = Math.min(1.0, sW / 400); 
         let spacingX = (type === 'invader_c' ? 32 : 38) * screenRatio;
         let spacingY = (type === 'invader_c' ? 28 : 35) * screenRatio;
         let startX = (sW - ((cols - 1) * spacingX)) / 2;
         let enemySize = (type === 'invader_c' ? 12 : 14) * screenRatio;
         
-        // 行ごとの色分け設定
         const rowColors = ['#ff3366', '#ffcc00', '#00ffff', '#33ff33', '#cc33ff', '#ff6600', '#ffffff', '#00aaff'];
         
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                // 3面（30行）の場合は画面外の上部から敷き詰める
-                let spawnY = type === 'invader_c' ? -650 + r * spacingY : 60 + r * spacingY;
+                let spawnY = 60 + r * spacingY; // 常に画面上部から敷き詰める
                 
                 let e = new Enemy(type, startX + c * spacingX, spawnY, stg.player.charData, stg.advManager, stg.stgId);
                 e.color = rowColors[r % rowColors.length]; 
                 e.size = enemySize;
                 
-                // ドット絵インベーダーの描画上書き
                 e.draw = function(ctx) {
                     ctx.save();
                     ctx.translate(this.x, this.y);
@@ -253,7 +275,6 @@ window.StageConfigs['invader'] = {
                         ctx.globalAlpha = Math.max(0, 1.0 - (this.deathTimer - 60) / 120);
                     }
                     
-                    // パラパラアニメーション用のドット配列（1:塗る、0:塗らない）
                     const frame1 = [
                         [0,0,1,0,0,0,0,0,1,0,0],
                         [0,0,0,1,0,0,0,1,0,0,0],
@@ -280,7 +301,6 @@ window.StageConfigs['invader'] = {
                     
                     ctx.fillStyle = this.color;
                     
-                    // ドットを描画
                     for (let r2 = 0; r2 < 8; r2++) {
                         for (let c2 = 0; c2 < 11; c2++) {
                             if (pixels[r2][c2]) {
@@ -289,7 +309,6 @@ window.StageConfigs['invader'] = {
                         }
                     }
                     
-                    // HPゲージ（3面でHPが減った時のみ表示）
                     if (this.hp < this.maxHp && this.hp > 0 && !this.isDying) {
                         ctx.fillStyle = '#fff';
                         ctx.fillRect(-this.size, this.size + 4, this.size * 2 * (this.hp / this.maxHp), 2);
@@ -304,12 +323,19 @@ window.StageConfigs['invader'] = {
     updateEnemy: function(e, canvas, player) {},
     
     shootEnemy: function(e, stg) {
-        // 通常モードでの攻撃（確率は非常に低く、弾の速度も遅い）
-        if (!stg.isRealShiina && Math.random() < 0.0005) { 
-            stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 2.5, '#ffffff'));
+        if (!stg.isRealShiina) {
+            if (stg.invaderPhase === 3) {
+                // 絶望タイム：そこそこの確率で弾を落としてくる
+                if (Math.random() < 0.005) {
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 3.5, '#ffffff'));
+                }
+            } else {
+                if (Math.random() < 0.0005) { 
+                    stg.enemyBullets.push(new Bullet(e.x, e.y, 0, 2.5, '#ffffff'));
+                }
+            }
         }
         
-        // 椎名の本気モード（3面）では自機狙いの弾幕を撃ってくる
         if (stg.isRealShiina && e.y > 0 && Math.random() < 0.003) {
             const ang = Math.atan2(stg.player.y - e.y, stg.player.x - e.x);
             stg.enemyBullets.push(new Bullet(e.x, e.y, Math.cos(ang)*2.5, Math.sin(ang)*2.5, e.color));
