@@ -1,4 +1,4 @@
-const VER_STG_INVADER = "0.3.0"; // 更新：ドット絵化、列ごとの色分け、速度低下、一撃死・接触死、ボム隠蔽、3面240体事前出現
+const VER_STG_INVADER = "0.4.0"; // 更新：ドット絵インベーダーの色分けを「列」から「行」ごとに修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -210,8 +210,8 @@ window.StageConfigs['invader'] = {
         const spacingY = type === 'invader_c' ? 28 : 35;
         let startX = (sW - (cols * spacingX)) / 2 + 15;
         
-        // 列ごとの色分け設定（赤、黄、青、緑、マゼンタなど）
-        const columnColors = ['#ff3366', '#ffcc00', '#00ffff', '#33ff33', '#cc33ff', '#ff6600', '#ffffff', '#00aaff'];
+        // 行ごとの色分け設定（赤、黄、青、緑、マゼンタなど）
+        const rowColors = ['#ff3366', '#ffcc00', '#00ffff', '#33ff33', '#cc33ff', '#ff6600', '#ffffff', '#00aaff'];
         
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
@@ -219,7 +219,7 @@ window.StageConfigs['invader'] = {
                 let spawnY = type === 'invader_c' ? -650 + r * spacingY : 60 + r * spacingY;
                 
                 let e = new Enemy(type, startX + c * spacingX, spawnY, stg.player.charData, stg.advManager, stg.stgId);
-                e.color = columnColors[c % columnColors.length]; // 列ごとに色を設定
+                e.color = rowColors[r % rowColors.length]; // ★修正：列ではなく行(r)ごとに色を設定
                 
                 // ドット絵インベーダーの描画上書き
                 e.draw = function(ctx) {
@@ -257,10 +257,10 @@ window.StageConfigs['invader'] = {
                     ctx.fillStyle = this.color;
                     
                     // ドットを描画
-                    for (let r = 0; r < 8; r++) {
-                        for (let c = 0; c < 11; c++) {
-                            if (pixels[r][c]) {
-                                ctx.fillRect(-this.size + c * pSize, -this.size * 0.8 + r * pSize, pSize, pSize);
+                    for (let r2 = 0; r2 < 8; r2++) {
+                        for (let c2 = 0; c2 < 11; c2++) {
+                            if (pixels[r2][c2]) {
+                                ctx.fillRect(-this.size + c2 * pSize, -this.size * 0.8 + r2 * pSize, pSize, pSize);
                             }
                         }
                     }
