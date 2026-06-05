@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.4.2"; // バージョン更新（衛二ステージBGMを追加）
+export const VER_AUDIO = "0.5.0"; // バージョン更新（全てoggに変更、stage_invaderを追加）
 
 export const soundManager = {
     bgm: {},
@@ -8,93 +8,98 @@ export const soundManager = {
 
     init: function() {
         // --- UI・システム系 BGM ---
-        this.bgm['title'] = new Audio('bgm/title.mp3');
+        this.bgm['title'] = new Audio('bgm/title.ogg');
         this.bgm['title'].loop = true;
         this.bgm['title'].volume = 0.4;
 
-        this.bgm['gameover'] = new Audio('bgm/gameover.mp3');
+        this.bgm['gameover'] = new Audio('bgm/gameover.ogg');
         this.bgm['gameover'].loop = true;
         this.bgm['gameover'].volume = 0.4;
 
-        this.bgm['clear'] = new Audio('bgm/clear.mp3');
+        this.bgm['clear'] = new Audio('bgm/clear.ogg');
         this.bgm['clear'].loop = true;
         this.bgm['clear'].volume = 0.4;
 
-        // ★追加：エンディング BGM
-        this.bgm['ending'] = new Audio('bgm/ending.mp3');
+        // エンディング BGM
+        this.bgm['ending'] = new Audio('bgm/ending.ogg');
         this.bgm['ending'].loop = true;
         this.bgm['ending'].volume = 0.4;
 
         // --- ADV（会話）パート用 BGM ---
-        this.bgm['relax'] = new Audio('bgm/relax.mp3');
+        this.bgm['relax'] = new Audio('bgm/relax.ogg');
         this.bgm['relax'].loop = true;
         this.bgm['relax'].volume = 0.4;
 
-        this.bgm['dark'] = new Audio('bgm/dark.mp3');
+        this.bgm['dark'] = new Audio('bgm/dark.ogg');
         this.bgm['dark'].loop = true;
         this.bgm['dark'].volume = 0.4;
 
         // --- STAGE 1: 各務 栞 ---
-        this.bgm['stage_kagami'] = new Audio('bgm/stage_kagami.mp3');
+        this.bgm['stage_kagami'] = new Audio('bgm/stage_kagami.ogg');
         this.bgm['stage_kagami'].loop = true;
         this.bgm['stage_kagami'].volume = 0.4;
 
-        this.bgm['boss_kagami'] = new Audio('bgm/boss_kagami.mp3');
+        this.bgm['boss_kagami'] = new Audio('bgm/boss_kagami.ogg');
         this.bgm['boss_kagami'].loop = true;
         this.bgm['boss_kagami'].volume = 0.4;
 
         // --- STAGE 2: 柊 千華 ---
-        this.bgm['stage_hiragi'] = new Audio('bgm/stage_hiragi.mp3');
+        this.bgm['stage_hiragi'] = new Audio('bgm/stage_hiragi.ogg');
         this.bgm['stage_hiragi'].loop = true;
         this.bgm['stage_hiragi'].volume = 0.4;
 
-        this.bgm['boss_hiragi'] = new Audio('bgm/boss_hiragi.mp3');
+        this.bgm['boss_hiragi'] = new Audio('bgm/boss_hiragi.ogg');
         this.bgm['boss_hiragi'].loop = true;
         this.bgm['boss_hiragi'].volume = 0.4;
 
         // --- STAGE 3: 椎名 護 ---
-        this.bgm['stage_shiina'] = new Audio('bgm/stage_shiina.mp3');
+        this.bgm['stage_shiina'] = new Audio('bgm/stage_shiina.ogg');
         this.bgm['stage_shiina'].loop = true;
         this.bgm['stage_shiina'].volume = 0.4;
 
-        this.bgm['boss_shiina'] = new Audio('bgm/boss_shiina.mp3');
+        this.bgm['boss_shiina'] = new Audio('bgm/boss_shiina.ogg');
         this.bgm['boss_shiina'].loop = true;
         this.bgm['boss_shiina'].volume = 0.4;
 
         // --- STAGE 4: 神宮寺 恒成 ---
-        this.bgm['stage_jingu'] = new Audio('bgm/stage_jingu.mp3');
+        this.bgm['stage_jingu'] = new Audio('bgm/stage_jingu.ogg');
         this.bgm['stage_jingu'].loop = true;
         this.bgm['stage_jingu'].volume = 0.4;
 
-        this.bgm['boss_jingu'] = new Audio('bgm/boss_jingu.mp3');
+        this.bgm['boss_jingu'] = new Audio('bgm/boss_jingu.ogg');
         this.bgm['boss_jingu'].loop = true;
         this.bgm['boss_jingu'].volume = 0.4;
 
         // --- STAGE 5: G・O・D・A・I ---
-        this.bgm['stage_godai'] = new Audio('bgm/stage_godai.mp3');
+        this.bgm['stage_godai'] = new Audio('bgm/stage_godai.ogg');
         this.bgm['stage_godai'].loop = true;
         this.bgm['stage_godai'].volume = 0.4;
 
-        this.bgm['boss_godai'] = new Audio('bgm/boss_godai.mp3');
+        this.bgm['boss_godai'] = new Audio('bgm/boss_godai.ogg');
         this.bgm['boss_godai'].loop = true;
         this.bgm['boss_godai'].volume = 0.4;
 
         // --- STAGE 6: FINAL ---
-        this.bgm['stage_final'] = new Audio('bgm/stage_cap.mp3');
+        this.bgm['stage_final'] = new Audio('bgm/stage_cap.ogg');
         this.bgm['stage_final'].loop = true;
         this.bgm['stage_final'].volume = 0.4;
 
-        this.bgm['boss_final'] = new Audio('bgm/boss_cap.mp3');
+        this.bgm['boss_final'] = new Audio('bgm/boss_cap.ogg');
         this.bgm['boss_final'].loop = true;
         this.bgm['boss_final'].volume = 0.4;
 
-        // ★追加：衛二ステージ BGM
-        this.bgm['eiji'] = new Audio('bgm/eiji.mp3');
+        // 衛二ステージ BGM
+        this.bgm['eiji'] = new Audio('bgm/eiji.ogg');
         this.bgm['eiji'].loop = true;
         this.bgm['eiji'].volume = 0.4;
+        
+        // ★追加：インベーダーステージ BGM
+        this.bgm['stage_invader'] = new Audio('bgm/stage_invader.ogg');
+        this.bgm['stage_invader'].loop = true;
+        this.bgm['stage_invader'].volume = 0.4;
 
         // --- SE（効果音） ---
-        this.se['smallb'] = new Audio('se/smallb.mp3');
+        this.se['smallb'] = new Audio('se/smallb.ogg');
         this.se['smallb'].volume = 0.6;
     },
     
