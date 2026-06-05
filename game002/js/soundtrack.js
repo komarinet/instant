@@ -1,26 +1,27 @@
-export const VER_SOUNDTRACK = "0.1.4"; // バージョン更新（衛二BGMをリストに追加）
+export const VER_SOUNDTRACK = "0.2.0"; // バージョン更新（全てoggに変更、stage_invaderをリストに追加）
 
 // サントラに表示する曲のリスト
 const trackList = [
-    { id: 'title', name: '01. Title Theme', src: 'bgm/title.mp3' },
-    { id: 'relax', name: '02. Daily Life (Relax)', src: 'bgm/relax.mp3' },
-    { id: 'dark', name: '03. Tension (Dark)', src: 'bgm/dark.mp3' },
-    { id: 'stage_kagami', name: '04. Stage 1 - Reboot', src: 'bgm/stage_kagami.mp3' },
-    { id: 'boss_kagami', name: '05. Boss - Kagami', src: 'bgm/boss_kagami.mp3' },
-    { id: 'stage_hiragi', name: '06. Stage 2 - Jealous Witch', src: 'bgm/stage_hiragi.mp3' },
-    { id: 'boss_hiragi', name: '07. Boss - Hiragi', src: 'bgm/boss_hiragi.mp3' },
-    { id: 'stage_shiina', name: '08. Stage 3 - Chronos Mask', src: 'bgm/stage_shiina.mp3' },
-    { id: 'boss_shiina', name: '09. Boss - Shiina', src: 'bgm/boss_shiina.mp3' },
-    { id: 'stage_jingu', name: '10. Stage 4 - ZINN Company', src: 'bgm/stage_jingu.mp3' },
-    { id: 'boss_jingu', name: '11. Boss - Jingu', src: 'bgm/boss_jingu.mp3' },
-    { id: 'stage_godai', name: '12. Stage 5 - Dark Side of the Moon', src: 'bgm/stage_godai.mp3' },
-    { id: 'boss_godai', name: '13. Boss - G.O.D.A.I.', src: 'bgm/boss_godai.mp3' },
-    { id: 'stage_cap', name: '14. Stage 6 - Final', src: 'bgm/stage_cap.mp3' },
-    { id: 'boss_cap', name: '15. Boss - Final', src: 'bgm/boss_cap.mp3' },
-    { id: 'clear', name: '16. Stage Clear', src: 'bgm/clear.mp3' },
-    { id: 'ending', name: '17. Ending Theme', src: 'bgm/ending.mp3' }, 
-    { id: 'eiji', name: '18. Stage - Eiji', src: 'bgm/eiji.mp3' }, // ★追加
-    { id: 'gameover', name: '19. Game Over', src: 'bgm/gameover.mp3' }
+    { id: 'title', name: '01. Title Theme', src: 'bgm/title.ogg' },
+    { id: 'relax', name: '02. Daily Life (Relax)', src: 'bgm/relax.ogg' },
+    { id: 'dark', name: '03. Tension (Dark)', src: 'bgm/dark.ogg' },
+    { id: 'stage_kagami', name: '04. Stage 1 - Reboot', src: 'bgm/stage_kagami.ogg' },
+    { id: 'boss_kagami', name: '05. Boss - Kagami', src: 'bgm/boss_kagami.ogg' },
+    { id: 'stage_hiragi', name: '06. Stage 2 - Jealous Witch', src: 'bgm/stage_hiragi.ogg' },
+    { id: 'boss_hiragi', name: '07. Boss - Hiragi', src: 'bgm/boss_hiragi.ogg' },
+    { id: 'stage_shiina', name: '08. Stage 3 - Chronos Mask', src: 'bgm/stage_shiina.ogg' },
+    { id: 'boss_shiina', name: '09. Boss - Shiina', src: 'bgm/boss_shiina.ogg' },
+    { id: 'stage_jingu', name: '10. Stage 4 - ZINN Company', src: 'bgm/stage_jingu.ogg' },
+    { id: 'boss_jingu', name: '11. Boss - Jingu', src: 'bgm/boss_jingu.ogg' },
+    { id: 'stage_godai', name: '12. Stage 5 - Dark Side of the Moon', src: 'bgm/stage_godai.ogg' },
+    { id: 'boss_godai', name: '13. Boss - G.O.D.A.I.', src: 'bgm/boss_godai.ogg' },
+    { id: 'stage_cap', name: '14. Stage 6 - Final', src: 'bgm/stage_cap.ogg' },
+    { id: 'boss_cap', name: '15. Boss - Final', src: 'bgm/boss_cap.ogg' },
+    { id: 'clear', name: '16. Stage Clear', src: 'bgm/clear.ogg' },
+    { id: 'ending', name: '17. Ending Theme', src: 'bgm/ending.ogg' }, 
+    { id: 'eiji', name: '18. Stage - Eiji', src: 'bgm/eiji.ogg' }, 
+    { id: 'stage_invader', name: '19. Stage - Invader', src: 'bgm/stage_invader.ogg' }, // ★追加
+    { id: 'gameover', name: '20. Game Over', src: 'bgm/gameover.ogg' }
 ];
 
 let currentAudio = null;
