@@ -1,4 +1,4 @@
-const VER_STG_INVADER = "0.8.0"; // 更新：ボムボタン再表示時にFlexboxレイアウトが崩れるバグを修正
+const VER_STG_INVADER = "0.9.0"; // 更新：開始BGMをstage_invaderに修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -85,7 +85,6 @@ window.StageConfigs['invader'] = {
                 if (bombBtn) bombBtn.style.display = 'none'; // ボム隠蔽
             } else {
                 if (bombBtn && bombBtn.style.display === 'none') {
-                    // ★修正：元に戻す際に 'flex' を明示的に指定してレイアウト崩れを防止
                     bombBtn.style.display = 'flex'; 
                 }
             }
@@ -123,7 +122,8 @@ window.StageConfigs['invader'] = {
         };
         
         if (typeof window.soundManager !== 'undefined') {
-            window.soundManager.playBGM('stage_jingu');
+            // ★修正：スタート時のBGMを stage_invader に変更
+            window.soundManager.playBGM('stage_invader');
         }
     },
     
@@ -198,6 +198,7 @@ window.StageConfigs['invader'] = {
                     stg.enemyBullets = [];
                     
                     if (typeof window.soundManager !== 'undefined') {
+                        // ★中間ADV終了直後に boss_shiina に切り替わる（既存のまま機能します）
                         window.soundManager.playBGM('boss_shiina');
                     }
                 };
