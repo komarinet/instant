@@ -1,4 +1,5 @@
-const VER_STG_INVADER = "0.9.0"; // 更新：開始BGMをstage_invaderに修正
+const VER_STG_INVADER = "0.9.1"; // 更新：バージョン情報がUIから読み取れるようにグローバルに登録
+window.VER_STG_INVADER = VER_STG_INVADER; // ★追加：これでUI側から追跡できるようになります
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['invader'] = {
@@ -122,7 +123,6 @@ window.StageConfigs['invader'] = {
         };
         
         if (typeof window.soundManager !== 'undefined') {
-            // ★修正：スタート時のBGMを stage_invader に変更
             window.soundManager.playBGM('stage_invader');
         }
     },
@@ -198,7 +198,6 @@ window.StageConfigs['invader'] = {
                     stg.enemyBullets = [];
                     
                     if (typeof window.soundManager !== 'undefined') {
-                        // ★中間ADV終了直後に boss_shiina に切り替わる（既存のまま機能します）
                         window.soundManager.playBGM('boss_shiina');
                     }
                 };
