@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.6.0"; // 更新：毎フレームの強制非表示（力技）を廃止し、init時の1回のみのスマートな処理に最適化
+const VER_STG_MIND = "0.7.0"; // 自機画像の縮退（歪み）修正、「変な太陽」問題（ボス画像のフォールバック）を修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -9,7 +9,6 @@ window.StageConfigs['mind'] = {
         }
 
         if (window._bgManagerInstance) {
-            // ★修正：初期化のタイミングで「1回だけ」非表示を明示的にセットする（負荷対策）
             window._bgManagerInstance.buildings.forEach(b => b.visible = false);
             window._bgManagerInstance.clouds.forEach(c => c.visible = false);
             if (window._bgManagerInstance.ground) window._bgManagerInstance.ground.visible = false;
@@ -25,13 +24,16 @@ window.StageConfigs['mind'] = {
         stg.player.draw = function(ctx, advManager) {
             const img = advManager.assets['jikishiina01.webp'];
             if (img && img.naturalWidth > 0) {
-                ctx.drawImage(img, this.x - 25, this.y - 25, 50, 50);
+                // ★修正：50x50の正方形に潰さず、縦横比を維持して描画
+                const drawW = 60;
+                const drawH = drawW * (img.naturalHeight / img.naturalWidth);
+                ctx.drawImage(img, this.x - drawW/2, this.y - drawH/2, drawW, drawH);
             } else {
                 const fallbackImg = advManager.assets['jikishi.webp'];
                 if (fallbackImg && fallbackImg.naturalWidth > 0) {
-                    const sw = fallbackImg.width / 5;
-                    const sh = fallbackImg.height / 2;
-                    ctx.drawImage(fallbackImg, 0, 0, sw, sh, this.x - 20, this.y - 30, 40, 60);
+                    const drawW = 40;
+                    const drawH = drawW * (fallbackImg.naturalHeight / fallbackImg.naturalWidth);
+                    ctx.drawImage(fallbackImg, this.x - drawW/2, this.y - drawH/2, drawW, drawH);
                 } else {
                     ctx.fillStyle = '#33ccff';
                     ctx.beginPath(); ctx.arc(this.x, this.y, 15, 0, Math.PI*2); ctx.fill();
@@ -71,26 +73,47 @@ window.StageConfigs['mind'] = {
                         ctx.translate(cx + (e.x - cx) * scale, cy + (e.y - cy) * scale);
                         ctx.scale(scale, scale);
                         
-                        const bossImg = stg.advManager.assets['shiinaboss.webp'];
-                        if (bossImg && bossImg.naturalWidth > 0) {
-                            e.animTimer = (e.animTimer || 0) + 1;
-                            const speed = 5;
-                            const t = Math.floor(e.animTimer / speed) % 30;
-                            const frame = t < 16 ? t : 30 - t;
-                           
-                            const col = frame % 4; 
-                            const row = Math.floor(frame / 4);
-                            const sw = bossImg.width / 4; 
-                            const sh = bossImg.height / 4;
-                            const drawW = e.size * 2; 
-                            const drawH = drawW * (sh / sw);
+                        // ★修正：「変な太陽」防止。画像がない場合は立ち絵を代用
+                        let bossImg = stg.advManager.assets['shiinaboss.webp'];
+                        let isFallback = false;
+                        if (!bossImg || bossImg.naturalWidth === 0) {
+                            bossImg = stg.advManager.assets['urashiina.webp']; // フォールバック
+                            isFallback = true;
+                        }
 
+                        if (bossImg && bossImg.naturalWidth > 0) {
                             ctx.shadowColor = 'rgba(0,0,0,0.8)'; 
                             ctx.shadowBlur = 10;
-                            ctx.drawImage(bossImg, col * sw, row * sh, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
+                            
+                            if (!isFallback) {
+                                // 本来の shiinaboss.webp (4x4)
+                                e.animTimer = (e.animTimer || 0) + 1;
+                                const speed = 5;
+                                const t = Math.floor(e.animTimer / speed) % 30;
+                                const frame = t < 16 ? t : 30 - t;
+                               
+                                const col = frame % 4; 
+                                const row = Math.floor(frame / 4);
+                                const sw = bossImg.width / 4; 
+                                const sh = bossImg.height / 4;
+                                const drawW = e.size * 2; 
+                                const drawH = drawW * (sh / sw);
+
+                                ctx.drawImage(bossImg, col * sw, row * sh, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
+                            } else {
+                                // 読み込めなかった場合の裏椎名立ち絵
+                                const sw = bossImg.width / 4; 
+                                const sh = bossImg.height / 2;
+                                const drawW = e.size * 2; 
+                                const drawH = drawW * (sh / sw);
+                                ctx.drawImage(bossImg, 0, 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
+                            }
                         } else {
-                            ctx.fillStyle = '#ff00ff';
-                            ctx.beginPath(); ctx.arc(0, 0, e.size, 0, Math.PI*2); ctx.fill();
+                            // 画像が全滅した場合でも丸ではなく文字を描画（太陽には見えないように）
+                            ctx.fillStyle = '#ff0055';
+                            ctx.font = "bold 30px sans-serif";
+                            ctx.textAlign = "center";
+                            ctx.fillText("BOSS", 0, 0);
                         }
                         
                         if (e.hp < e.maxHp) {
@@ -169,8 +192,6 @@ window.StageConfigs['mind'] = {
 
         stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
         stg.updateGameplay = function() {
-            // ★修正：毎フレーム実行していた不細工な強制非表示処理を完全に削除しました
-
             if (window.BGMindManager) window.BGMindManager.update(1/60);
 
             stg.enemyBullets.forEach(b => {
