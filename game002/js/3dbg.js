@@ -1,4 +1,4 @@
-const VER_3DBG = "0.7.7"; // バージョン更新（0.6.3のCanvasフックとループ構造を完全復元。既存のプログラム構造を1行も壊さずに、stages配列による自由な背景切り替えと2D軽量化を完璧に組み込み）
+const VER_3DBG = "0.8.0"; // バージョン更新（ステージ 'mind' への完全対応。既存の背景と競合しないようクリア処理を追加）
 
 class BGManager3D {
     constructor(canvasId) {
@@ -50,7 +50,7 @@ class BGManager3D {
         this.isLoaded = false;
         
         this.currentStage = 1;
-        this.stageKey = 'kagami'; // 追加：内部判定用のキー
+        this.stageKey = 'kagami'; 
         this.flameMaterial = null;
         this.lastTime = 0;
 
@@ -163,12 +163,10 @@ class BGManager3D {
         this.currentStage = stageNum;
         if (!this.ground || !this.ground.material) return;
         
-        // --- ★ NEW: stages配列からの文字割り出しと、3D描画用数値（visualMode）への変換 ---
         let stageKey = 'kagami';
         let charId = window.selectedCharId || 'igari';
         if (charId === 'shiina') charId = 'mamoru';
 
-        // 配列から現在のステージキー（'kagami', 'eiji' 等）を逆算
         if (typeof characters !== 'undefined' && Array.isArray(characters)) {
             const foundChar = characters.find(c => c.id === charId);
             if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
@@ -176,27 +174,23 @@ class BGManager3D {
             }
         }
         
-        // stgManagerが存在すれば確実にそちらを正とする
         if (window.stgManager && window.stgManager.stgId) {
             stageKey = window.stgManager.stgId;
         }
 
         this.stageKey = stageKey;
 
-        // キーから0.6.3基準の描画モード数値にすり替える
         let visualMode = stageNum;
         if (stageKey === 'kagami' || stageKey === 'stage1') visualMode = 1;
         else if (stageKey === 'hiragi' || stageKey === 'stage2') visualMode = 2;
         else if (stageKey === 'godai' || stageKey === 'stage5') visualMode = 5;
         else if (stageKey === 'final' || stageKey === 'stage6') visualMode = 6;
-        else if (stageKey === 'eiji') visualMode = 99; // 2D専用ステージ
-
-        // --------------------------------------------------------------------
+        else if (stageKey === 'eiji') visualMode = 99; 
+        else if (stageKey === 'mind') visualMode = 98; // ★精神世界用の識別を追加
         
         this.ground.visible = false;
         this.buildings.forEach(b => b.visible = false);
         this.candles.forEach(c => c.visible = false);
-        // 雲はステージ1（kagami）などのみ表示
         this.clouds.forEach(c => c.visible = (visualMode === 1 || visualMode === 3 || visualMode === 4));
         if (this.starField) this.starField.visible = false;
         if (this.moon) this.moon.visible = false;
@@ -207,12 +201,15 @@ class BGManager3D {
         
         const aspectFactor = Math.min(1, this.camera.aspect);
 
-        // ★追加：eijiなど（2D背景）の場合は完全に黒クリアして3Dを表示しない
         if (visualMode === 99) {
             this.scene.fog.near = 9999999;
             this.scene.fog.far = 10000000;
             this.renderer.setClearColor(0x000000, 1);
-            if (this.ground) this.ground.visible = false;
+        }
+        else if (visualMode === 98) { 
+            // ★追加：精神世界の時は背景の地面を絶対に出さず、赤黒い霧を設定する
+            this.scene.fog = new THREE.FogExp2(0x1a0505, 0.002);
+            this.renderer.setClearColor(0x000000, 0);
         }
         else if (visualMode === 6) { 
             this.scene.fog.near = 100;
@@ -233,10 +230,7 @@ class BGManager3D {
             if (this.coreGroup) {
                 this.coreGroup.visible = true;
                 this.coreGroup.position.y = 0; 
-                
-                if (this.coreReactor) {
-                    this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
-                }
+                if (this.coreReactor) this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
             }
         } 
         else if (visualMode === 5) {
@@ -284,7 +278,6 @@ class BGManager3D {
                 this.ground.material.needsUpdate = true;
             }
             
-            // visualMode 3, 4（雲だけのステージ）の場合はビルを消す
             if (visualMode === 3 || visualMode === 4) {
                 this.buildings.forEach(b => b.visible = false);
             } else {
@@ -306,7 +299,6 @@ class BGManager3D {
             }
         }
 
-        // ★追加：eijiなどの2D背景時は、描画をパスしつつ「次のループへ繋ぐ」ことでフリーズを完全に防ぐ
         if (this.stageKey === 'eiji') {
             requestAnimationFrame((ts) => this.loop(ts));
             return;
@@ -317,8 +309,6 @@ class BGManager3D {
         }
 
         this.renderer.render(this.scene, this.camera);
-        
-        // 0.6.3に存在した命綱となるループ呼び出し
         requestAnimationFrame((ts) => this.loop(ts));
     }
 }
