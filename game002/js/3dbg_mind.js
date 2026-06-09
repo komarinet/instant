@@ -1,46 +1,55 @@
-const VER_3DBG_MIND = "0.1.0"; // 新設：精神世界専用の3D背景マネージャー
+const VER_3DBG_MIND = "0.3.0"; // カメラ角度を前方に修正（海と鳥居が映るように）、自動クリーンアップ追加
 
 window.BGMindManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 400, // 鳥居が迫ってくる速度
+    scrollSpeed: 800, // スピード感アップ
     toriis: [],
     
     init: function(bgManager) {
         this.bgManager = bgManager;
         if (!bgManager || !bgManager.scene) return;
+        
+        // 既に起動中なら一度リセット
+        if (this.isActive) this.dispose();
 
         this.sceneGroup = new THREE.Group();
         bgManager.scene.add(this.sceneGroup);
         
-        // 精神世界っぽい赤黒い霧に変更
+        // ★超重要：カメラが下を向きすぎていたので、前を向かせる
+        this.origCamY = bgManager.camera.position.y;
+        this.origCamRotX = bgManager.camera.rotation.x;
         this.origFog = bgManager.scene.fog;
-        bgManager.scene.fog = new THREE.FogExp2(0x1a0505, 0.002);
+
+        bgManager.camera.position.y = 15; // 海面に近づける
+        bgManager.camera.rotation.x = -0.1; // ほぼ真っ直ぐ前を向く
         
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        bgManager.scene.fog = new THREE.FogExp2(0x1a0505, 0.0015); // 少し奥まで見えるように
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.sceneGroup.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffaaaa, 1.0);
+        const dirLight = new THREE.DirectionalLight(0xffaaaa, 1.2);
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // 海の作成 (sea.webp)
+        // 海の作成
         let seaTex = null;
         if (window.advManager && window.advManager.assets['sea.webp']) {
             seaTex = new THREE.CanvasTexture(window.advManager.assets['sea.webp']);
             seaTex.wrapS = THREE.RepeatWrapping;
             seaTex.wrapT = THREE.RepeatWrapping;
-            seaTex.repeat.set(10, 10);
+            seaTex.repeat.set(20, 20);
         }
-        const seaGeo = new THREE.PlaneGeometry(3000, 3000);
+        const seaGeo = new THREE.PlaneGeometry(4000, 4000);
         const seaMat = new THREE.MeshStandardMaterial({ 
-            map: seaTex, color: 0x330000, roughness: 0.1, metalness: 0.5 
+            map: seaTex, color: 0x440000, roughness: 0.2, metalness: 0.8 
         });
         this.sea = new THREE.Mesh(seaGeo, seaMat);
         this.sea.rotation.x = -Math.PI / 2;
-        this.sea.position.y = -30;
+        this.sea.position.y = -10; // カメラ(y=15)のすぐ下
         this.sceneGroup.add(this.sea);
 
-        // 鳥居の作成 (torii.webp)
+        // 鳥居の作成
         let toriiTex = null;
         if (window.advManager && window.advManager.assets['torii.webp']) {
             toriiTex = new THREE.CanvasTexture(window.advManager.assets['torii.webp']);
@@ -49,28 +58,28 @@ window.BGMindManager = {
         
         const createTorii = () => {
             const group = new THREE.Group();
-            const pillarGeo = new THREE.CylinderGeometry(4, 4, 100, 16);
+            const pillarGeo = new THREE.CylinderGeometry(3, 3, 80, 16);
             const leftP = new THREE.Mesh(pillarGeo, toriiMat);
-            leftP.position.set(-60, 20, 0);
+            leftP.position.set(-40, 30, 0);
             const rightP = new THREE.Mesh(pillarGeo, toriiMat);
-            rightP.position.set(60, 20, 0);
+            rightP.position.set(40, 30, 0);
             
-            const topGeo = new THREE.BoxGeometry(160, 8, 8);
+            const topGeo = new THREE.BoxGeometry(110, 6, 6);
             const topBar = new THREE.Mesh(topGeo, toriiMat);
-            topBar.position.set(0, 65, 0);
+            topBar.position.set(0, 67, 0);
             
-            const subGeo = new THREE.BoxGeometry(140, 6, 6);
+            const subGeo = new THREE.BoxGeometry(95, 4, 4);
             const subBar = new THREE.Mesh(subGeo, toriiMat);
-            subBar.position.set(0, 50, 0);
+            subBar.position.set(0, 55, 0);
             
             group.add(leftP); group.add(rightP); group.add(topBar); group.add(subBar);
             return group;
         };
 
-        // 鳥居を等間隔で奥へズラッと並べる
-        for (let i = 0; i < 20; i++) {
+        this.toriis = [];
+        for (let i = 0; i < 15; i++) {
             let t = createTorii();
-            t.position.z = -i * 150 + 100; 
+            t.position.z = -i * 200 + 100; 
             this.sceneGroup.add(t);
             this.toriis.push(t);
         }
@@ -80,23 +89,32 @@ window.BGMindManager = {
 
     update: function(delta) {
         if (!this.isActive) return;
+
+        // ステージが変わったら自動でクリーンアップしてカメラを元に戻す
+        if (window.currentStage !== 4 || (window.stgManager && window.stgManager.stgId !== 'mind')) {
+            this.dispose();
+            return;
+        }
         
         if (this.sea && this.sea.material.map) {
-            this.sea.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
+            this.sea.material.map.offset.y -= (this.scrollSpeed / 1500) * delta;
         }
 
         this.toriis.forEach(t => {
             t.position.z += this.scrollSpeed * delta;
-            // 手前を通り過ぎたら一番奥へループさせる
             if (t.position.z > 200) {
-                t.position.z -= 150 * 20; 
+                t.position.z -= 200 * 15; 
             }
         });
     },
 
     dispose: function() {
+        if (!this.isActive) return;
         if (this.sceneGroup && this.bgManager) {
             this.bgManager.scene.remove(this.sceneGroup);
+            // カメラとフォグを元の状態に戻す
+            this.bgManager.camera.position.y = this.origCamY;
+            this.bgManager.camera.rotation.x = this.origCamRotX;
             this.bgManager.scene.fog = this.origFog;
         }
         this.isActive = false;
