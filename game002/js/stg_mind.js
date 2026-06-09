@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.5.0"; // 更新：ボスの描画を urashiina の立ち絵から、stg_shiina と同じ shiinaboss.webp のアニメーションに修正
+const VER_STG_MIND = "0.6.0"; // 更新：毎フレームの強制非表示（力技）を廃止し、init時の1回のみのスマートな処理に最適化
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -9,7 +9,9 @@ window.StageConfigs['mind'] = {
         }
 
         if (window._bgManagerInstance) {
+            // ★修正：初期化のタイミングで「1回だけ」非表示を明示的にセットする（負荷対策）
             window._bgManagerInstance.buildings.forEach(b => b.visible = false);
+            window._bgManagerInstance.clouds.forEach(c => c.visible = false);
             if (window._bgManagerInstance.ground) window._bgManagerInstance.ground.visible = false;
             
             if (window.BGMindManager) {
@@ -69,7 +71,6 @@ window.StageConfigs['mind'] = {
                         ctx.translate(cx + (e.x - cx) * scale, cy + (e.y - cy) * scale);
                         ctx.scale(scale, scale);
                         
-                        // ★修正：stg_shiina と同じ shiinaboss.webp のアニメーション処理を適用
                         const bossImg = stg.advManager.assets['shiinaboss.webp'];
                         if (bossImg && bossImg.naturalWidth > 0) {
                             e.animTimer = (e.animTimer || 0) + 1;
@@ -168,11 +169,7 @@ window.StageConfigs['mind'] = {
 
         stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
         stg.updateGameplay = function() {
-            if (window._bgManagerInstance) {
-                window._bgManagerInstance.buildings.forEach(b => b.visible = false);
-                window._bgManagerInstance.clouds.forEach(c => c.visible = false);
-                if (window._bgManagerInstance.ground) window._bgManagerInstance.ground.visible = false;
-            }
+            // ★修正：毎フレーム実行していた不細工な強制非表示処理を完全に削除しました
 
             if (window.BGMindManager) window.BGMindManager.update(1/60);
 
@@ -220,7 +217,6 @@ window.StageConfigs['mind'] = {
     drawBackground: function() {},
     
     getEnemyData: function(type) {
-        // ★修正：画像ソースを shiinaboss.webp に指定
         if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 80, hp: 800, maxHp: 800, isBoss: true };
     },
     
