@@ -1,4 +1,4 @@
-const VER_3DBG_MIND = "0.3.1"; // 海のテクスチャ表示修正
+const VER_3DBG_MIND = "0.3.2"; // 海のテクスチャを正しく表示
 
 window.BGMindManager = {
     isActive: false,
@@ -30,18 +30,18 @@ window.BGMindManager = {
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // ★修正：CanvasTextureをTextureに変更し、needsUpdateを追加
+        // ★修正: CanvasTextureを確実に反映させ、色を純白にしてテクスチャの色味を出す
         let seaTex = null;
         if (window.advManager && window.advManager.assets['sea.webp']) {
-            seaTex = new THREE.Texture(window.advManager.assets['sea.webp']);
-            seaTex.needsUpdate = true; // これがないと画像が反映されず真っ暗になります
+            seaTex = new THREE.CanvasTexture(window.advManager.assets['sea.webp']);
+            seaTex.needsUpdate = true; // 必須
             seaTex.wrapS = THREE.RepeatWrapping;
             seaTex.wrapT = THREE.RepeatWrapping;
             seaTex.repeat.set(20, 20);
         }
         const seaGeo = new THREE.PlaneGeometry(4000, 4000);
         const seaMat = new THREE.MeshStandardMaterial({ 
-            map: seaTex, color: 0x440000, roughness: 0.2, metalness: 0.8 
+            map: seaTex, color: 0xffffff, roughness: 0.2, metalness: 0.8 
         });
         this.sea = new THREE.Mesh(seaGeo, seaMat);
         this.sea.rotation.x = -Math.PI / 2;
@@ -50,7 +50,7 @@ window.BGMindManager = {
 
         let toriiTex = null;
         if (window.advManager && window.advManager.assets['torii.webp']) {
-            toriiTex = new THREE.Texture(window.advManager.assets['torii.webp']);
+            toriiTex = new THREE.CanvasTexture(window.advManager.assets['torii.webp']);
             toriiTex.needsUpdate = true;
         }
         const toriiMat = new THREE.MeshStandardMaterial({ map: toriiTex, color: 0xaa0000 });
