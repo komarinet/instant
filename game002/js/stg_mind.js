@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.0"; // 自機画像の縮退（歪み）修正、「変な太陽」問題（ボス画像のフォールバック）を修正
+const VER_STG_MIND = "0.7.1"; // ボスサイズ拡大、shiki.webpへの修正、文字弾撃破時の爆発エフェクト追加
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -24,7 +24,7 @@ window.StageConfigs['mind'] = {
         stg.player.draw = function(ctx, advManager) {
             const img = advManager.assets['jikishiina01.webp'];
             if (img && img.naturalWidth > 0) {
-                // ★修正：50x50の正方形に潰さず、縦横比を維持して描画
+                // 50x50の正方形に潰さず、縦横比を維持して描画
                 const drawW = 60;
                 const drawH = drawW * (img.naturalHeight / img.naturalWidth);
                 ctx.drawImage(img, this.x - drawW/2, this.y - drawH/2, drawW, drawH);
@@ -41,7 +41,7 @@ window.StageConfigs['mind'] = {
             }
         };
 
-        // 自機の弾を shikiw.webp に変更して奥へ発射
+        // 自機の弾を shiki.webp に変更して奥へ発射
         stg.origPlayerShoot = stg.player.shoot;
         stg.player.shoot = function() {
             if (stg.frame % 5 === 0) { 
@@ -73,7 +73,6 @@ window.StageConfigs['mind'] = {
                         ctx.translate(cx + (e.x - cx) * scale, cy + (e.y - cy) * scale);
                         ctx.scale(scale, scale);
                         
-                        // ★修正：「変な太陽」防止。画像がない場合は立ち絵を代用
                         let bossImg = stg.advManager.assets['shiinaboss.webp'];
                         let isFallback = false;
                         if (!bossImg || bossImg.naturalWidth === 0) {
@@ -109,7 +108,6 @@ window.StageConfigs['mind'] = {
                                 ctx.drawImage(bossImg, 0, 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
                             }
                         } else {
-                            // 画像が全滅した場合でも丸ではなく文字を描画（太陽には見えないように）
                             ctx.fillStyle = '#ff0055';
                             ctx.font = "bold 30px sans-serif";
                             ctx.textAlign = "center";
@@ -152,7 +150,7 @@ window.StageConfigs['mind'] = {
                 });
             });
 
-            // 自機弾 (shikiw.webp)
+            // 自機弾 (shiki.webp)
             stg.player.bullets.forEach(b => {
                 if (b.z === undefined) b.z = 0;
                 const scale = stg.fov / (Math.max(1, stg.fov + b.z));
@@ -162,7 +160,8 @@ window.StageConfigs['mind'] = {
                         ctx.save();
                         ctx.translate(cx + (b.x - cx) * scale, cy + (b.y - cy) * scale);
                         ctx.scale(scale, scale);
-                        const shikiImg = stg.advManager.assets['shikiw.webp'];
+                        // ★修正: shikiw.webp を shiki.webp に変更
+                        const shikiImg = stg.advManager.assets['shiki.webp'];
                         if (shikiImg && shikiImg.naturalWidth > 0) {
                             const sw = shikiImg.width / 4;
                             const sh = shikiImg.height;
@@ -171,6 +170,26 @@ window.StageConfigs['mind'] = {
                         } else {
                             ctx.fillStyle = '#00ffff';
                             ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
+                        }
+                        ctx.restore();
+                    }
+                });
+            });
+
+            // ★追加: 爆発エフェクトの描画（3D空間に合わせてスケーリング）
+            stg.explosions.forEach(exp => {
+                if (exp.z === undefined) exp.z = 1000;
+                const scale = stg.fov / (Math.max(1, stg.fov + exp.z));
+                renderList.push({
+                    z: exp.z,
+                    draw: () => {
+                        ctx.save();
+                        ctx.translate(cx + (exp.x - cx) * scale, cy + (exp.y - cy) * scale);
+                        ctx.scale(scale, scale);
+                        if (exp.img && exp.img.naturalWidth > 0) {
+                            const sx = (exp.frameIndex % exp.cols) * exp.sw;
+                            const sy = Math.floor(exp.frameIndex / exp.cols) * exp.sh;
+                            ctx.drawImage(exp.img, sx, sy, exp.sw, exp.sh, -exp.targetSize/2, -exp.targetSize/2, exp.targetSize, exp.targetSize);
                         }
                         ctx.restore();
                     }
@@ -226,6 +245,12 @@ window.StageConfigs['mind'] = {
                         pb.alive = false;
                         eb.alive = false;
                         stg.player.score += 50; 
+                        
+                        // ★追加: 敵の文字弾を撃ち落とした時に爆発エフェクトを発生させ、Z座標（奥行き）を同期させる
+                        let exp = new Explosion(eb.x, eb.y, 30, stg.advManager);
+                        exp.z = eb.z; 
+                        stg.explosions.push(exp);
+                        if (typeof window.soundManager !== 'undefined') window.soundManager.playSE('smallb');
                     }
                 });
             });
@@ -238,7 +263,8 @@ window.StageConfigs['mind'] = {
     drawBackground: function() {},
     
     getEnemyData: function(type) {
-        if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 80, hp: 800, maxHp: 800, isBoss: true };
+        // ★修正: ボスのサイズを80から130に拡大し、迫力をアップ
+        if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 130, hp: 800, maxHp: 800, isBoss: true };
     },
     
     updateWaves: function(stg, timer, sW, sH) {
