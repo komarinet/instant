@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.3"; // 自機弾の速度向上・種類固定、被弾時の赤点滅と無敵時間、ゲージUI追加
+const VER_STG_MIND = "0.7.4"; // 当たり判定の極小化、アイテム吸い込み、ホーミング強化、UIの2段化、ボス巨大化
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -26,7 +26,6 @@ window.StageConfigs['mind'] = {
             const img = advManager.assets['jikishiina01.webp'];
             let isBlinking = false;
             
-            // 無敵時間中の赤点滅処理
             if (this.invincibleTimer > 0 && Math.floor(this.invincibleTimer / 4) % 2 === 0) {
                 isBlinking = true;
             }
@@ -36,12 +35,16 @@ window.StageConfigs['mind'] = {
                 const drawH = drawW * (img.naturalHeight / img.naturalWidth);
                 ctx.drawImage(img, this.x - drawW/2, this.y - drawH/2, drawW, drawH);
                 
-                // 赤く点滅させるオーバーレイ
                 if (isBlinking) {
                     ctx.globalCompositeOperation = 'source-atop';
                     ctx.fillStyle = 'rgba(255, 0, 0, 0.6)';
                     ctx.fillRect(this.x - drawW/2, this.y - drawH/2, drawW, drawH);
                 }
+                
+                // ★追加：当たり判定の可視化（無敵状態でない時のみうっすら中心を表示、デバッグ用兼ねる）
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath(); ctx.arc(this.x, this.y, 8, 0, Math.PI*2); ctx.fill();
             } else {
                 const fallbackImg = advManager.assets['jikishi.webp'];
                 if (fallbackImg && fallbackImg.naturalWidth > 0) {
@@ -67,11 +70,10 @@ window.StageConfigs['mind'] = {
                     let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 8;
                     let b = new Bullet(this.x + offset, this.y, 0, 0, '#00ffff', null, this.id);
                     b.z = 0;   
-                    b.vz = 60; // ★弾速を35から60へ大幅アップ
+                    b.vz = 60; 
                     b.vx = offset * 0.5; 
                     b.isHoming = true;
                     b.baseSize = 10;
-                    // ★4種類のうちどれか1つを固定で割り当て（アニメーションさせない）
                     b.shikiType = Math.floor(Math.random() * 4);
                     this.bullets.push(b);
                 }
@@ -197,7 +199,6 @@ window.StageConfigs['mind'] = {
                         if (shikiImg && shikiImg.naturalWidth > 0) {
                             const sw = shikiImg.width / 4;
                             const sh = shikiImg.height;
-                            // 発射時に割り当てられた画像をそのまま描画（アニメーションさせない）
                             const typeIdx = b.shikiType !== undefined ? b.shikiType : 0;
                             ctx.drawImage(shikiImg, typeIdx * sw, 0, sw, sh, -ds*2, -ds*2, ds*4, ds*4);
                         } else {
@@ -274,26 +275,44 @@ window.StageConfigs['mind'] = {
                 ctx.fillText('UNKNOWN', barX, barY - 5);
             }
 
-            // ★修正：パワーレベルとボム数を明記したUIパネル
+            // ★修正：スマホ対応のため、高さに余裕をもたせた2段組のUIパネル
             const pHP = Math.max(0, stg.player.hp);
-            ctx.fillStyle = 'rgba(10, 10, 25, 0.8)'; ctx.fillRect(10, sH - 50, sW - 20, 40); 
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, sW - 20, 40);
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 14px sans-serif'; 
-            ctx.fillText(`HP: ${pHP}/${stg.player.maxHp}   PWR: ${stg.player.powerLevel}/8   BOMB: ${stg.player.bombs}`, 20, sH - 25);
-            ctx.fillText(`SCORE: ${String(stg.player.score).padStart(4, '0')}`, sW - 140, sH - 25);
+            ctx.fillStyle = 'rgba(10, 10, 25, 0.8)'; 
+            ctx.fillRect(10, sH - 60, sW - 20, 50); 
+            ctx.strokeStyle = '#fff'; 
+            ctx.lineWidth = 2; 
+            ctx.strokeRect(10, sH - 60, sW - 20, 50);
+            ctx.fillStyle = '#fff'; 
+            
+            ctx.font = 'bold clamp(10px, 3.5vw, 14px) sans-serif'; 
+            ctx.textAlign = 'left';
+            ctx.fillText(`HP: ${pHP}/${stg.player.maxHp}   PWR: ${stg.player.powerLevel}/8   BOMB: ${stg.player.bombs}`, 20, sH - 35);
+            ctx.fillText(`SCORE: ${String(stg.player.score).padStart(6, '0')}`, 20, sH - 16);
         };
 
         stg.origUpdateGameplay = stg.updateGameplay.bind(stg);
         stg.updateGameplay = function() {
             if (window.BGMindManager) window.BGMindManager.update(1/60);
 
-            // 無敵時間の減少処理（他で処理されていない場合への安全策）
             if (stg.player.invincibleTimer > 0) stg.player.invincibleTimer--;
 
-            // アイテムのZ更新と回収判定
+            // アイテムのZ更新と回収・★吸い込み判定
             stg.items.forEach(it => {
                 if (it.z !== undefined) {
                     it.z += it.vz;
+                    
+                    // ★追加：アイテムが手前に来たら自機に吸い込まれる（ホーミング）処理
+                    if (it.z < 600) { 
+                        let dx = stg.player.x - it.x;
+                        let dy = stg.player.y - it.y;
+                        let dist = Math.hypot(dx, dy);
+                        if (dist < 300) { 
+                            it.x += (dx / dist) * 12; 
+                            it.y += (dy / dist) * 12;
+                            it.z -= 5; 
+                        }
+                    }
+
                     if (it.z < 50 && it.z > -50 && Math.hypot(it.x - stg.player.x, it.y - stg.player.y) < 60) {
                         it.alive = false;
                         if (it.type === 'power') {
@@ -319,10 +338,11 @@ window.StageConfigs['mind'] = {
                 b.z -= 15; 
                 if (b.z < -50) b.alive = false;
 
-                if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - b.x, stg.player.y - b.y) < 20) {
+                // ★修正：当たり判定を20から「8」に極小化。理不尽な被弾をなくす
+                if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - b.x, stg.player.y - b.y) < 8) {
                     if (stg.player.invincibleTimer <= 0) {
                         stg.player.hp--;
-                        stg.player.invincibleTimer = 90; // ★被弾時に90フレーム(約1.5秒)の無敵時間を付与
+                        stg.player.invincibleTimer = 90; 
                         b.alive = false;
                     }
                 }
@@ -331,19 +351,36 @@ window.StageConfigs['mind'] = {
             stg.player.bullets.forEach(pb => {
                 if (pb.z === undefined) pb.z = 0;
                 
-                let target = stg.enemies.find(e => e.type === 'boss');
-                if (target && pb.isHoming) {
-                    let dx = target.x - pb.x;
-                    let dy = target.y - pb.y;
-                    pb.x += dx * 0.05;
-                    pb.y += dy * 0.05;
+                // ★修正：敵弾を積極的に狙うようにホーミングのターゲット設定を強化
+                let homingTarget = stg.enemies.find(e => e.type === 'boss');
+                let closestDist = Infinity;
+                
+                if (homingTarget) {
+                    closestDist = Math.sqrt((homingTarget.x - pb.x)**2 + (homingTarget.y - pb.y)**2 + (homingTarget.z - pb.z)**2);
+                }
+
+                stg.enemyBullets.forEach(eb => {
+                    if (eb.alive && eb.z > pb.z) { // 自分より奥にある敵弾のみ
+                        let dist = Math.sqrt((eb.x - pb.x)**2 + (eb.y - pb.y)**2 + (eb.z - pb.z)**2);
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            homingTarget = eb; // 一番近い敵弾をターゲットに切り替え
+                        }
+                    }
+                });
+
+                if (homingTarget && pb.isHoming) {
+                    let dx = homingTarget.x - pb.x;
+                    let dy = homingTarget.y - pb.y;
+                    pb.x += dx * 0.15;
+                    pb.y += dy * 0.15;
                 }
 
                 pb.currentSize = pb.baseSize;
                 stg.enemyBullets.forEach(eb => {
                     if (eb.alive) {
                         let dist = Math.sqrt((pb.x - eb.x)**2 + (pb.y - eb.y)**2 + (pb.z - eb.z)**2);
-                        if (dist < 150) pb.currentSize = pb.baseSize * 3; // 敵弾に近づくと巨大化
+                        if (dist < 150) pb.currentSize = pb.baseSize * 3; 
                     }
                 });
 
@@ -370,8 +407,8 @@ window.StageConfigs['mind'] = {
                         stg.explosions.push(exp);
                         if (typeof window.soundManager !== 'undefined') window.soundManager.playSE('smallb');
 
-                        // 敵弾撃ち落とし時、20%の確率でアイテムドロップ
-                        if (Math.random() < 0.20) { 
+                        // ★修正：敵弾撃破時のアイテムドロップ率を45%に超アップ
+                        if (Math.random() < 0.45) { 
                             let type = 'power';
                             let r = Math.random();
                             if (r < 0.1) type = 'bomb';
@@ -379,7 +416,7 @@ window.StageConfigs['mind'] = {
                             
                             let item = new Item(type, eb.x, eb.y);
                             item.z = eb.z;
-                            item.vz = -15; // 手前へ
+                            item.vz = -15; 
                             stg.items.push(item);
                         }
                     }
@@ -394,7 +431,8 @@ window.StageConfigs['mind'] = {
     drawBackground: function() {},
     
     getEnemyData: function(type) {
-        if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 130, hp: 800, maxHp: 800, isBoss: true };
+        // ★修正：ボスの基準サイズをさらに巨大化(220)
+        if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 220, hp: 800, maxHp: 800, isBoss: true };
     },
     
     updateWaves: function(stg, timer, sW, sH) {
