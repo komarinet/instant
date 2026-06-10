@@ -1,10 +1,11 @@
-const VER_3DBG_MIND = "0.3.2"; // 海のテクスチャを正しく表示
+const VER_3DBG_MIND = "0.3.3"; // 背景明度アップ、奥に紫の回転するワームホールを追加
 
 window.BGMindManager = {
     isActive: false,
     sceneGroup: null,
     scrollSpeed: 800, 
     toriis: [],
+    wormhole: null,
     
     init: function(bgManager) {
         this.bgManager = bgManager;
@@ -22,19 +23,58 @@ window.BGMindManager = {
         bgManager.camera.position.y = 15; 
         bgManager.camera.rotation.x = -0.1; 
         
-        bgManager.scene.fog = new THREE.FogExp2(0x1a0505, 0.0015); 
+        // 背景を少し明るく、紫色っぽく調整
+        bgManager.scene.fog = new THREE.FogExp2(0x2a0a2a, 0.001); 
         
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
         this.sceneGroup.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xffaaaa, 1.2);
+        const dirLight = new THREE.DirectionalLight(0xffccff, 1.5);
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // ★修正: CanvasTextureを確実に反映させ、色を純白にしてテクスチャの色味を出す
+        // 紫色のワームホールを動的に生成して最奥に配置
+        const whCanvas = document.createElement('canvas');
+        whCanvas.width = 1024; whCanvas.height = 1024;
+        const wCtx = whCanvas.getContext('2d');
+        const cx = 512, cy = 512;
+        
+        const grd = wCtx.createRadialGradient(cx, cy, 50, cx, cy, 512);
+        grd.addColorStop(0, 'rgba(200, 0, 255, 1)');
+        grd.addColorStop(0.3, 'rgba(100, 0, 200, 0.8)');
+        grd.addColorStop(0.8, 'rgba(30, 0, 80, 0.3)');
+        grd.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        wCtx.fillStyle = grd;
+        wCtx.fillRect(0, 0, 1024, 1024);
+        
+        wCtx.lineWidth = 15;
+        wCtx.lineCap = 'round';
+        for (let i = 0; i < 8; i++) {
+            wCtx.beginPath();
+            for (let j = 0; j < 60; j++) {
+                let r = j * 8.5;
+                let theta = i * (Math.PI * 2 / 8) + (j * 0.1);
+                let x = cx + r * Math.cos(theta);
+                let y = cy + r * Math.sin(theta);
+                if (j === 0) wCtx.moveTo(x, y);
+                else wCtx.lineTo(x, y);
+            }
+            wCtx.strokeStyle = `rgba(255, 150, 255, ${0.8 - (i % 2) * 0.3})`;
+            wCtx.stroke();
+        }
+        
+        const whTex = new THREE.CanvasTexture(whCanvas);
+        whTex.needsUpdate = true;
+        const whMat = new THREE.MeshBasicMaterial({ 
+            map: whTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false 
+        });
+        this.wormhole = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), whMat);
+        this.wormhole.position.set(0, 800, -2500); // 海の奥の空に配置
+        this.sceneGroup.add(this.wormhole);
+
         let seaTex = null;
         if (window.advManager && window.advManager.assets['sea.webp']) {
             seaTex = new THREE.CanvasTexture(window.advManager.assets['sea.webp']);
-            seaTex.needsUpdate = true; // 必須
+            seaTex.needsUpdate = true; 
             seaTex.wrapS = THREE.RepeatWrapping;
             seaTex.wrapT = THREE.RepeatWrapping;
             seaTex.repeat.set(20, 20);
@@ -94,6 +134,10 @@ window.BGMindManager = {
             return;
         }
         
+        if (this.wormhole) {
+            this.wormhole.rotation.z -= 0.2 * delta; // ワームホールを回転させる
+        }
+
         if (this.sea && this.sea.material.map) {
             this.sea.material.map.offset.y -= (this.scrollSpeed / 1500) * delta;
         }
