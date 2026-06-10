@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.26"; // バージョン更新（バージョンチェックリストに 3dbg_mind と stg_mind を追加）
+export const VER_UI = "0.3.27"; // バージョン更新（プレビューの自機画像をjikishiに戻し、アニメーション処理を復旧）
  
 let demoAnimId = null;
 let demoFrame = 0;
@@ -238,19 +238,27 @@ function startDemoLoop(char) {
        
         let imgName = null;
         if (char.id === 'igari') imgName = 'igari_jiki.webp';
-        else if (char.id === 'shiina' || char.id === 'mamoru') imgName = 'jikishiina01.webp';
+        else if (char.id === 'shiina' || char.id === 'mamoru') imgName = 'jikishi.webp';
        
         let img = null;
         if (window.advManager && window.advManager.assets) img = window.advManager.assets[imgName];
        
         if (img && img.naturalHeight > 0) {
             if (char.id === 'shiina' || char.id === 'mamoru') {
-                // jikishiina01.webpの表示 (そのまま描画)
+                const animSpeed = 4;
+                const cycle = 18;
+                const t = Math.floor(demoFrame / animSpeed) % cycle;
+                const frame = t < 10 ? t : cycle - t;
+                const col = frame % 5;
+                const row = Math.floor(frame / 5);
+                const sw = img.width / 5;
+                const sh = img.height / 2;
                 const drawWidth = 36;
-                const drawHeight = drawWidth * (img.naturalHeight / img.naturalWidth);
+                const drawHeight = drawWidth * (sh / sw);
+               
                 ctx.shadowColor = 'rgba(51, 204, 255, 0.8)';
                 ctx.shadowBlur = 10;
-                ctx.drawImage(img, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
+                ctx.drawImage(img, col * sw, row * sh, sw, sh, playerX - drawWidth/2, playerY - drawHeight/2 + 5, drawWidth, drawHeight);
                 ctx.shadowBlur = 0;
             } else {
                 const drawWidth = 36;
