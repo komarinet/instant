@@ -288,15 +288,15 @@ scenarios.mamoru = {
         ],
         mid_stg: [
             { bg: 'mind.webp', place: 'Mind World', time: 'UNKNOWN', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'やっぱりこうなったか', delay: 60, bgm: 'dark' },
-            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '見てろ護。あいつら、ボッコボコにしてやっから' },
+            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '見てろ護。あいつら、ボッコボコにしてやっから', isRight: false },
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'それでいいのか？　彼らと協力しないと僕も、君も' },
-            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '仮にも椎名家の人間を誘拐できるほどの人間' },
-            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '弱ぇ奴と組んで助かると思うか？' },
+            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '仮にも椎名家の人間を誘拐できるほどの人間', isRight: false},
+            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '弱ぇ奴と組んで助かると思うか？', isRight: false },
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '護', text: 'だからって・・・君は彼らを全力で潰す気だろ？' },
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '自分だからそのくらいわかるよ' },
-            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'だったらどうする気だ？' },
+            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'だったらどうする気だ？', isRight: false },
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '君を止める' },
-            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'おもしれー。やってみろ', effect: 'shake' }
+            { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'おもしれー。やってみろ', effect: 'shake', isRight: false }
         ],
         // ★追加：シナリオ指定に基づき、igariルートのshiinaステージのpost_stgを完全移植しました[span_2](start_span)[span_2](end_span)
         post_stg: [
@@ -312,9 +312,13 @@ scenarios.mamoru = {
             { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '終わったらぶっ潰してやんぞゴルァ', isRight: false },
             { bg: 'yakerin.webp', character: 'hiragi01.webp', spriteIndex: 14, speaker: '柊', text: '情緒どうなってんのよ', isRight: true },
             { bg: 'yakerin.webp', item: 'phone2.webp', text: '', se: 'vibration.mp3', isRight: false },
-            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: 'はい、椎名・・・ああ、分かった', isRight: false },
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: 'はい、椎名', isRight: false },
+            { bg: 'yakerin.webp', speaker: 'カジノオーナー', text: '私だ。お前を狙ってる首謀者の名を教える。そいつは・・・', isRight: false },
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: 'なるほど・・・そんな奴だったか', isRight: false },
+            { bg: 'yakerin.webp', speaker: 'カジノオーナー', text: 'これでもう私は無関係だからな！', isRight: false },
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: 'ああ、分かった', isRight: false },
             { bg: 'yakerin.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: 'どうした？', isRight: true },
-            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '僕を１年後に殺そうとしている首謀者が分かった', isRight: false },
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '僕を１年後に殺そうとしている奴が分かった', isRight: false },
             { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'これからそいつを潰しに行く', isRight: false },
             { bg: 'yakerin.webp', character: 'hiragi01.webp', spriteIndex: 1, speaker: '柊', text: 'そ。頑張ってねー', isRight: true },
             { bg: 'yakerin.webp', character: 'kagami.webp', spriteIndex: 2, speaker: '各務', text: '何言ってるんだ。君らも行くんだぞ', isRight: true },
@@ -323,8 +327,8 @@ scenarios.mamoru = {
             { bg: 'yakerin.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: 'バタフライエフェクトってやつだ', isRight: true },
             { bg: 'yakerin.webp', character: 'hiragi01.webp', spriteIndex: 11, speaker: '柊', text: 'うわ、だるっ！', isRight: true },
             { bg: 'yakerin.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '場所は？', isRight: true },
-            { bg: 'yakerin.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '北極だ', isRight: true }
-        ]
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '北極だ', isRight: false },
+         ]
     },
     5: { adv: [], pre_stg: [], post_stg: [] },
     6: { adv: [], pre_stg: [], post_stg: [] }
