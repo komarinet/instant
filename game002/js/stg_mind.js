@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.1"; // ボスサイズ拡大、shiki.webpへの修正、文字弾撃破時の爆発エフェクト追加
+const VER_STG_MIND = "0.7.2"; // ボス上部HPバー、弾のホーミングと巨大化、撃破ドロップ追加
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -24,7 +24,6 @@ window.StageConfigs['mind'] = {
         stg.player.draw = function(ctx, advManager) {
             const img = advManager.assets['jikishiina01.webp'];
             if (img && img.naturalWidth > 0) {
-                // 50x50の正方形に潰さず、縦横比を維持して描画
                 const drawW = 60;
                 const drawH = drawW * (img.naturalHeight / img.naturalWidth);
                 ctx.drawImage(img, this.x - drawW/2, this.y - drawH/2, drawW, drawH);
@@ -41,14 +40,24 @@ window.StageConfigs['mind'] = {
             }
         };
 
-        // 自機の弾を shiki.webp に変更して奥へ発射
+        // ★修正: PWに応じて発射数を増やし、ホーミング属性を持たせる
         stg.origPlayerShoot = stg.player.shoot;
         stg.player.shoot = function() {
             if (stg.frame % 5 === 0) { 
-                let b = new Bullet(this.x, this.y, 0, 0, '#00ffff', null, this.id);
-                b.z = 0;   
-                b.vz = 35; 
-                this.bullets.push(b);
+                const pL = Math.min(8, this.powerLevel);
+                const countUp = Math.floor(pL / 2);
+                const shotCount = 1 + countUp;
+                
+                for (let i = 0; i < shotCount; i++) {
+                    let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 8;
+                    let b = new Bullet(this.x + offset, this.y, 0, 0, '#00ffff', null, this.id);
+                    b.z = 0;   
+                    b.vz = 35; 
+                    b.vx = offset * 0.5; // 横の広がり
+                    b.isHoming = true;
+                    b.baseSize = 10;
+                    this.bullets.push(b);
+                }
             }
         };
 
@@ -62,7 +71,7 @@ window.StageConfigs['mind'] = {
 
             let renderList = [];
 
-            // ボス(裏椎名)の登録
+            // ボス
             stg.enemies.forEach(e => {
                 if (e.z === undefined) e.z = 1000;
                 const scale = stg.fov / (Math.max(1, stg.fov + e.z)); 
@@ -76,7 +85,7 @@ window.StageConfigs['mind'] = {
                         let bossImg = stg.advManager.assets['shiinaboss.webp'];
                         let isFallback = false;
                         if (!bossImg || bossImg.naturalWidth === 0) {
-                            bossImg = stg.advManager.assets['urashiina.webp']; // フォールバック
+                            bossImg = stg.advManager.assets['urashiina.webp'];
                             isFallback = true;
                         }
 
@@ -85,7 +94,6 @@ window.StageConfigs['mind'] = {
                             ctx.shadowBlur = 10;
                             
                             if (!isFallback) {
-                                // 本来の shiinaboss.webp (4x4)
                                 e.animTimer = (e.animTimer || 0) + 1;
                                 const speed = 5;
                                 const t = Math.floor(e.animTimer / speed) % 30;
@@ -100,7 +108,6 @@ window.StageConfigs['mind'] = {
 
                                 ctx.drawImage(bossImg, col * sw, row * sh, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
                             } else {
-                                // 読み込めなかった場合の裏椎名立ち絵
                                 const sw = bossImg.width / 4; 
                                 const sh = bossImg.height / 2;
                                 const drawW = e.size * 2; 
@@ -113,11 +120,7 @@ window.StageConfigs['mind'] = {
                             ctx.textAlign = "center";
                             ctx.fillText("BOSS", 0, 0);
                         }
-                        
-                        if (e.hp < e.maxHp) {
-                            ctx.fillStyle = '#fff';
-                            ctx.fillRect(-e.size, e.size + 20, e.size*2 * (e.hp/e.maxHp), 8);
-                        }
+                        // 足元のHPバーは削除（画面上部に移動するため）
                         ctx.restore();
                     }
                 });
@@ -133,6 +136,19 @@ window.StageConfigs['mind'] = {
                         ctx.save();
                         ctx.translate(cx + (b.x - cx) * scale, cy + (b.y - cy) * scale);
                         ctx.scale(scale, scale);
+                        
+                        // ★追加: 距離感をつかむためのターゲット枠（手前に来るほど赤くなる）
+                        const distAlpha = Math.min(1, Math.max(0.1, (1000 - b.z) / 1000));
+                        ctx.strokeStyle = `rgba(255, 0, 85, ${distAlpha})`;
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(-20, -20, 40, 40);
+                        ctx.beginPath();
+                        ctx.moveTo(-25, 0); ctx.lineTo(-15, 0);
+                        ctx.moveTo(15, 0); ctx.lineTo(25, 0);
+                        ctx.moveTo(0, -25); ctx.lineTo(0, -15);
+                        ctx.moveTo(0, 15); ctx.lineTo(0, 25);
+                        ctx.stroke();
+
                         const sansImg = stg.advManager.assets['sans.webp'];
                         if (sansImg && sansImg.naturalWidth > 0) {
                             const charIdx = (stg.frame + b.idOffset) % 10;
@@ -160,23 +176,43 @@ window.StageConfigs['mind'] = {
                         ctx.save();
                         ctx.translate(cx + (b.x - cx) * scale, cy + (b.y - cy) * scale);
                         ctx.scale(scale, scale);
-                        // ★修正: shikiw.webp を shiki.webp に変更
+                        
                         const shikiImg = stg.advManager.assets['shiki.webp'];
+                        const ds = b.currentSize || 10;
                         if (shikiImg && shikiImg.naturalWidth > 0) {
                             const sw = shikiImg.width / 4;
                             const sh = shikiImg.height;
                             const frame = Math.floor(stg.frame / 4) % 4;
-                            ctx.drawImage(shikiImg, frame * sw, 0, sw, sh, -20, -20, 40, 40);
+                            ctx.drawImage(shikiImg, frame * sw, 0, sw, sh, -ds*2, -ds*2, ds*4, ds*4);
                         } else {
                             ctx.fillStyle = '#00ffff';
-                            ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(0, 0, ds, 0, Math.PI*2); ctx.fill();
                         }
                         ctx.restore();
                     }
                 });
             });
 
-            // ★追加: 爆発エフェクトの描画（3D空間に合わせてスケーリング）
+            // アイテムの描画
+            stg.items.forEach(it => {
+                if (it.z === undefined) return;
+                const scale = stg.fov / (Math.max(1, stg.fov + it.z));
+                renderList.push({
+                    z: it.z,
+                    draw: () => {
+                        ctx.save();
+                        ctx.translate(cx + (it.x - cx) * scale, cy + (it.y - cy) * scale);
+                        ctx.scale(scale, scale);
+                        const origX = it.x, origY = it.y;
+                        it.x = 0; it.y = 0;
+                        it.draw(ctx);
+                        it.x = origX; it.y = origY;
+                        ctx.restore();
+                    }
+                });
+            });
+
+            // 爆発エフェクト
             stg.explosions.forEach(exp => {
                 if (exp.z === undefined) exp.z = 1000;
                 const scale = stg.fov / (Math.max(1, stg.fov + exp.z));
@@ -201,6 +237,27 @@ window.StageConfigs['mind'] = {
 
             stg.player.draw(ctx, stg.advManager);
 
+            // ★追加: 画面上部ボスHPバー
+            const boss = stg.enemies.find(e => e.type === 'boss');
+            if (boss && boss.hp > 0 && !boss.isDying) {
+                const barW = sW * 0.8;
+                const barH = 15;
+                const barX = sW * 0.1;
+                const barY = 20;
+                
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(barX, barY, barW, barH);
+                ctx.fillStyle = '#ff0055';
+                ctx.fillRect(barX, barY, barW * (boss.hp / boss.maxHp), barH);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(barX, barY, barW, barH);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 14px sans-serif';
+                ctx.fillText('UNKNOWN', barX, barY - 5);
+            }
+
             const pHP = Math.max(0, stg.player.hp);
             ctx.fillStyle = 'rgba(10, 10, 25, 0.7)'; ctx.fillRect(10, sH - 50, 310, 40); 
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.strokeRect(10, sH - 50, 310, 40);
@@ -213,9 +270,32 @@ window.StageConfigs['mind'] = {
         stg.updateGameplay = function() {
             if (window.BGMindManager) window.BGMindManager.update(1/60);
 
+            // アイテムのZ更新と回収判定
+            stg.items.forEach(it => {
+                if (it.z !== undefined) {
+                    it.z += it.vz;
+                    if (it.z < 50 && it.z > -50 && Math.hypot(it.x - stg.player.x, it.y - stg.player.y) < 60) {
+                        it.alive = false;
+                        if (it.type === 'power') {
+                            stg.player.score += (stg.player.powerLevel >= 8) ? 1000 : 100;
+                            stg.player.powerLevel = Math.min(8, stg.player.powerLevel + 1);
+                        }
+                        if (it.type === 'recover') {
+                            stg.player.score += (stg.player.hp >= stg.player.maxHp) ? 1000 : 100;
+                            stg.player.hp = Math.min(stg.player.maxHp, stg.player.hp + 1);
+                        }
+                        if (it.type === 'bomb') {
+                            stg.player.score += (stg.player.bombs >= 5) ? 1000 : 100;
+                            stg.player.bombs = Math.min(5, stg.player.bombs + 1);
+                        }
+                    }
+                    if (it.z < -200) it.alive = false;
+                }
+            });
+
             stg.enemyBullets.forEach(b => {
                 if (b.z === undefined) b.z = 1000;
-                b.z -= 18; 
+                b.z -= 15; 
                 if (b.z < -50) b.alive = false;
 
                 if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - b.x, stg.player.y - b.y) < 20) {
@@ -229,7 +309,25 @@ window.StageConfigs['mind'] = {
 
             stg.player.bullets.forEach(pb => {
                 if (pb.z === undefined) pb.z = 0;
+                
+                let target = stg.enemies.find(e => e.type === 'boss');
+                if (target && pb.isHoming) {
+                    let dx = target.x - pb.x;
+                    let dy = target.y - pb.y;
+                    pb.x += dx * 0.05;
+                    pb.y += dy * 0.05;
+                }
+
+                pb.currentSize = pb.baseSize;
+                stg.enemyBullets.forEach(eb => {
+                    if (eb.alive) {
+                        let dist = Math.sqrt((pb.x - eb.x)**2 + (pb.y - eb.y)**2 + (pb.z - eb.z)**2);
+                        if (dist < 150) pb.currentSize = pb.baseSize * 3; // 敵弾に近づくと巨大化
+                    }
+                });
+
                 pb.z += pb.vz;
+                pb.x += pb.vx || 0;
                 if (pb.z > 1200) pb.alive = false;
 
                 stg.enemies.forEach(e => {
@@ -246,11 +344,23 @@ window.StageConfigs['mind'] = {
                         eb.alive = false;
                         stg.player.score += 50; 
                         
-                        // ★追加: 敵の文字弾を撃ち落とした時に爆発エフェクトを発生させ、Z座標（奥行き）を同期させる
                         let exp = new Explosion(eb.x, eb.y, 30, stg.advManager);
                         exp.z = eb.z; 
                         stg.explosions.push(exp);
                         if (typeof window.soundManager !== 'undefined') window.soundManager.playSE('smallb');
+
+                        // ★追加: 15%の確率でアイテムドロップ
+                        if (Math.random() < 0.15) { 
+                            let type = 'power';
+                            let r = Math.random();
+                            if (r < 0.1) type = 'bomb';
+                            else if (r < 0.3) type = 'recover';
+                            
+                            let item = new Item(type, eb.x, eb.y);
+                            item.z = eb.z;
+                            item.vz = -15; // 手前へ
+                            stg.items.push(item);
+                        }
                     }
                 });
             });
@@ -263,7 +373,6 @@ window.StageConfigs['mind'] = {
     drawBackground: function() {},
     
     getEnemyData: function(type) {
-        // ★修正: ボスのサイズを80から130に拡大し、迫力をアップ
         if (type === 'boss') return { imgSrc: 'shiinaboss.webp', size: 130, hp: 800, maxHp: 800, isBoss: true };
     },
     
