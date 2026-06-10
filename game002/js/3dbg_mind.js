@@ -1,30 +1,28 @@
-const VER_3DBG_MIND = "0.3.0"; // カメラ角度を前方に修正（海と鳥居が映るように）、自動クリーンアップ追加
+const VER_3DBG_MIND = "0.3.1"; // 海のテクスチャ表示修正
 
 window.BGMindManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 800, // スピード感アップ
+    scrollSpeed: 800, 
     toriis: [],
     
     init: function(bgManager) {
         this.bgManager = bgManager;
         if (!bgManager || !bgManager.scene) return;
         
-        // 既に起動中なら一度リセット
         if (this.isActive) this.dispose();
 
         this.sceneGroup = new THREE.Group();
         bgManager.scene.add(this.sceneGroup);
         
-        // ★超重要：カメラが下を向きすぎていたので、前を向かせる
         this.origCamY = bgManager.camera.position.y;
         this.origCamRotX = bgManager.camera.rotation.x;
         this.origFog = bgManager.scene.fog;
 
-        bgManager.camera.position.y = 15; // 海面に近づける
-        bgManager.camera.rotation.x = -0.1; // ほぼ真っ直ぐ前を向く
+        bgManager.camera.position.y = 15; 
+        bgManager.camera.rotation.x = -0.1; 
         
-        bgManager.scene.fog = new THREE.FogExp2(0x1a0505, 0.0015); // 少し奥まで見えるように
+        bgManager.scene.fog = new THREE.FogExp2(0x1a0505, 0.0015); 
         
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.sceneGroup.add(ambientLight);
@@ -32,10 +30,11 @@ window.BGMindManager = {
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // 海の作成
+        // ★修正：CanvasTextureをTextureに変更し、needsUpdateを追加
         let seaTex = null;
         if (window.advManager && window.advManager.assets['sea.webp']) {
-            seaTex = new THREE.CanvasTexture(window.advManager.assets['sea.webp']);
+            seaTex = new THREE.Texture(window.advManager.assets['sea.webp']);
+            seaTex.needsUpdate = true; // これがないと画像が反映されず真っ暗になります
             seaTex.wrapS = THREE.RepeatWrapping;
             seaTex.wrapT = THREE.RepeatWrapping;
             seaTex.repeat.set(20, 20);
@@ -46,13 +45,13 @@ window.BGMindManager = {
         });
         this.sea = new THREE.Mesh(seaGeo, seaMat);
         this.sea.rotation.x = -Math.PI / 2;
-        this.sea.position.y = -10; // カメラ(y=15)のすぐ下
+        this.sea.position.y = -10; 
         this.sceneGroup.add(this.sea);
 
-        // 鳥居の作成
         let toriiTex = null;
         if (window.advManager && window.advManager.assets['torii.webp']) {
-            toriiTex = new THREE.CanvasTexture(window.advManager.assets['torii.webp']);
+            toriiTex = new THREE.Texture(window.advManager.assets['torii.webp']);
+            toriiTex.needsUpdate = true;
         }
         const toriiMat = new THREE.MeshStandardMaterial({ map: toriiTex, color: 0xaa0000 });
         
@@ -90,7 +89,6 @@ window.BGMindManager = {
     update: function(delta) {
         if (!this.isActive) return;
 
-        // ステージが変わったら自動でクリーンアップしてカメラを元に戻す
         if (window.currentStage !== 4 || (window.stgManager && window.stgManager.stgId !== 'mind')) {
             this.dispose();
             return;
@@ -112,7 +110,6 @@ window.BGMindManager = {
         if (!this.isActive) return;
         if (this.sceneGroup && this.bgManager) {
             this.bgManager.scene.remove(this.sceneGroup);
-            // カメラとフォグを元の状態に戻す
             this.bgManager.camera.position.y = this.origCamY;
             this.bgManager.camera.rotation.x = this.origCamRotX;
             this.bgManager.scene.fog = this.origFog;
