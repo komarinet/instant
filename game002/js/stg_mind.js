@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.5"; // 弾丸の視認性アップ、撃ち落とし判定の大幅緩和、ホーミングボムの実装
+const VER_STG_MIND = "0.7.6"; // アイテム飛来速度の緩和、ボム発動時に拡散してからホーミングするよう変更
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -58,14 +58,13 @@ window.StageConfigs['mind'] = {
             ctx.restore();
         };
 
-        // ★追加：精神世界ステージ専用のド派手なホーミングボム処理
         stg.origPlayerTriggerBomb = stg.player.triggerBomb;
         stg.player.triggerBomb = function(player, stg_ref) {
             if (this.bombs <= 0 || stg.bombState === 'ACTIVE') return;
             this.bombs--;
             stg.bombState = 'ACTIVE';
             stg.bombTimer = 0;
-            this.invincibleTimer = 180; // ボム中は無敵
+            this.invincibleTimer = 180; 
             if (typeof window.soundManager !== 'undefined') window.soundManager.playSE('smallb');
         };
 
@@ -165,7 +164,6 @@ window.StageConfigs['mind'] = {
                         ctx.translate(cx + (b.x - cx) * scale, cy + (b.y - cy) * scale);
                         ctx.scale(scale, scale);
                         
-                        // ★修正：敵弾をより大きく、白く発光させて視認性をアップ
                         const distAlpha = Math.min(1, Math.max(0.2, (1000 - b.z) / 1000));
                         ctx.shadowColor = '#ff0055';
                         ctx.shadowBlur = 15;
@@ -208,7 +206,6 @@ window.StageConfigs['mind'] = {
                             const sh = shikiImg.height;
                             const typeIdx = b.shikiType !== undefined ? b.shikiType : 0;
                             
-                            // ★修正：自機弾の描画サイズを大きくし、光彩を追加
                             ctx.shadowColor = b.isBomb ? '#ff00ff' : '#00ffff';
                             ctx.shadowBlur = 15;
                             ctx.drawImage(shikiImg, typeIdx * sw, 0, sw, sh, -ds*3, -ds*3, ds*6, ds*6);
@@ -306,19 +303,19 @@ window.StageConfigs['mind'] = {
 
             if (stg.player.invincibleTimer > 0) stg.player.invincibleTimer--;
 
-            // ★追加：ボム（奥義）発動中の弾幕生成
+            // ★修正：ボム（奥義）発動時の動作。一斉に散らばってからホーミングする
             if (stg.bombState === 'ACTIVE') {
                 stg.bombTimer++;
-                // 100フレーム（約1.5秒）に渡って大量のshikiを乱れ撃ち
                 if (stg.bombTimer < 100 && stg.bombTimer % 2 === 0) {
                     for(let i=0; i<4; i++) {
-                        let b = new Bullet(stg.player.x + (Math.random()-0.5)*150, stg.player.y + (Math.random()-0.5)*150, 0, 0, '#ff00ff', null, stg.player.id);
+                        let b = new Bullet(stg.player.x, stg.player.y, 0, 0, '#ff00ff', null, stg.player.id);
                         b.z = 0;   
-                        b.vz = 50 + Math.random()*20; 
-                        b.vx = (Math.random()-0.5)*40; 
-                        b.vy = (Math.random()-0.5)*20; 
-                        b.isHoming = true;
-                        b.isBomb = true; // ボムフラグ
+                        b.vz = 5 + Math.random()*5; // 最初はほとんど手前に留まる
+                        b.vx = (Math.random()-0.5)*70; // 画面全体に大きく散る
+                        b.vy = (Math.random()-0.5)*70; 
+                        b.isHoming = false; // 最初はホーミングしない
+                        b.isBomb = true; 
+                        b.bombTimer = 0; // ボム弾独自のタイマー
                         b.baseSize = 15;
                         b.shikiType = Math.floor(Math.random() * 4);
                         stg.player.bullets.push(b);
@@ -327,20 +324,19 @@ window.StageConfigs['mind'] = {
                 if (stg.bombTimer > 180) stg.bombState = 'READY';
             }
 
-            // アイテムの吸い込み判定強化
+            // ★修正：アイテムの吸い込み速度と飛来速度をマイルドに
             stg.items.forEach(it => {
                 if (it.z !== undefined) {
                     it.z += it.vz;
                     
-                    // ★修正：吸い込みの距離と速度をさらに強化
                     if (it.z < 800) { 
                         let dx = stg.player.x - it.x;
                         let dy = stg.player.y - it.y;
                         let dist = Math.hypot(dx, dy);
                         if (dist < 500) { 
-                            it.x += (dx / dist) * 20; 
-                            it.y += (dy / dist) * 20;
-                            it.z -= 10; 
+                            it.x += (dx / dist) * 7; 
+                            it.y += (dy / dist) * 7;
+                            it.z -= 2; // 手前への吸い込み速度をゆっくりに
                         }
                     }
 
@@ -380,6 +376,18 @@ window.StageConfigs['mind'] = {
 
             stg.player.bullets.forEach(pb => {
                 if (pb.z === undefined) pb.z = 0;
+
+                // ★修正：ボム弾は一定時間散らばった後、ホーミングを開始して加速する
+                if (pb.isBomb) {
+                    pb.bombTimer = (pb.bombTimer || 0) + 1;
+                    if (pb.bombTimer <= 20) {
+                        pb.vx *= 0.85; // 散らばる勢いを摩擦で減速
+                        pb.vy *= 0.85;
+                    } else {
+                        pb.isHoming = true;
+                        if (pb.vz < 60) pb.vz += 3; // ホーミング開始とともに奥へ急加速
+                    }
+                }
                 
                 let homingTarget = stg.enemies.find(e => e.type === 'boss');
                 let closestDist = Infinity;
@@ -401,7 +409,6 @@ window.StageConfigs['mind'] = {
                 if (homingTarget && pb.isHoming) {
                     let dx = homingTarget.x - pb.x;
                     let dy = homingTarget.y - pb.y;
-                    // ★修正：ホーミングの旋回性能を大幅にアップ（ボム弾はさらに強烈にホーミング）
                     let turnSpeed = pb.isBomb ? 0.4 : 0.3;
                     pb.x += dx * turnSpeed;
                     pb.y += dy * turnSpeed;
@@ -421,7 +428,7 @@ window.StageConfigs['mind'] = {
 
                 stg.enemies.forEach(e => {
                     if (pb.z > e.z - 50 && pb.z < e.z + 50 && Math.hypot(e.x - pb.x, e.y - pb.y) < e.size) {
-                        e.hp -= pb.isBomb ? 3 : 1; // ボム弾はダメージ3倍
+                        e.hp -= pb.isBomb ? 3 : 1;
                         pb.alive = false;
                     }
                 });
@@ -429,7 +436,6 @@ window.StageConfigs['mind'] = {
                 stg.enemyBullets.forEach(eb => {
                     if (!eb.alive || !pb.alive) return;
                     
-                    // ★修正：敵弾撃破の当たり判定を2倍以上に超拡大し、適当に撃っても当たりやすくする
                     if (Math.abs(pb.z - eb.z) < 150 && Math.hypot(pb.x - eb.x, pb.y - eb.y) < 100) {
                         pb.alive = false;
                         eb.alive = false;
@@ -448,7 +454,7 @@ window.StageConfigs['mind'] = {
                             
                             let item = new Item(type, eb.x, eb.y);
                             item.z = eb.z;
-                            item.vz = -15; 
+                            item.vz = -8; // ★修正：アイテムが手前に飛んでくる基本速度をゆっくりに
                             stg.items.push(item);
                         }
                     }
