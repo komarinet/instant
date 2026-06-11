@@ -15,7 +15,7 @@ const characters = [
         color: '#33ccff',
         desc: "裏社会の治安維持を生業とする椎名家長男\nWeapon: 真言を具現化して敵に向かって放つ(ホーミング)\nPower Up: 射線、速度の増加\nTarget Close: 真言サイズの増加\nBomb: 真言展開",
         // ★修正：4番目のステージ（元jinguの部分）を 'mind' に変更
-        stages: ['eiji', 'kagami', 'invader', 'mind', 'godai', 'final']
+        stages: ['eiji', 'kagami', 'invader', 'mind', 'jingu', 'final']
     },
     {
         id: 'hiragi',
