@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.7.1"; // バージョン更新（ステージ4：精神世界シナリオと、igariルートからのpost_stg流用を追加）
+const VER_SCENARIO_MAMORU = "0.7.2"; // バージョン更新（ステージ5：神宮寺戦のシナリオと追加ADVを実装）
  
 window.scenarios = window.scenarios || {};
  
@@ -252,7 +252,6 @@ scenarios.mamoru = {
             { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 6, speaker: 'カジノオーナー', text: 'あ、ありがとう', isRight: false }
         ]
     },
-    // ★追加：ステージ4のシナリオデータと、stgId: 'mind' を登録[span_1](start_span)[span_1](end_span)
     4: {
         stgId: 'mind',
         adv: [
@@ -271,7 +270,7 @@ scenarios.mamoru = {
             { bg: 'hospital.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '護', text: '勤務先で変なこと言わないでくださいよ！' },
             { bg: 'hospital.webp', character: 'igari02.webp', spriteIndex: 5, speaker: '猪狩', text: '頼む、俺はもう千華を失いたくないんだ' },
             { bg: 'hospital.webp', character: 'hiragi01.webp', spriteIndex: 6, speaker: '柊', text: '俊基ーーーー！' },
-            { bg: 'hospital.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '条件があります。一緒に来てもらえますか' }
+            { bg: 'hospital.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '条件があります。一緒に来てもらえますか' },
             { bg: 'sanrin.webp', place: 'Sanrin', time: '2025.05', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: 'ここで、何を', delay: 60, bgm: 'dark' },
             { bg: 'sanrin.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: 'テストです。あなた方が、こいつに認められるための、ね' },
             { bg: 'sanrin.webp', item: 'mask.webp', text: '', se: 'vibration.mp3' },
@@ -296,7 +295,6 @@ scenarios.mamoru = {
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '君を止める' },
             { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'おもしれー。やってみろ', effect: 'shake', isRight: false }
         ],
-        // ★追加：シナリオ指定に基づき、igariルートのshiinaステージのpost_stgを完全移植しました[span_2](start_span)[span_2](end_span)
         post_stg: [
             { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はぁ、はぁ・・・大丈夫かい、君たち？', isRight: false, bgm: 'relax' },
             { bg: 'yakerin.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: '戻った・・・のか？', isRight: true },
@@ -325,9 +323,97 @@ scenarios.mamoru = {
             { bg: 'yakerin.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: 'バタフライエフェクトってやつだ', isRight: true },
             { bg: 'yakerin.webp', character: 'hiragi01.webp', spriteIndex: 11, speaker: '柊', text: 'うわ、だるっ！', isRight: true },
             { bg: 'yakerin.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '場所は？', isRight: true },
-            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '北極だ', isRight: false },
-         ]
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '北極だ', isRight: false }
+        ]
     },
-    5: { adv: [], pre_stg: [], post_stg: [] },
+    5: {
+        stgId: 'jingu',
+        adv: [
+            { bg: 'advsnow.webp', place: 'North Pole', time: '2025.06', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: 'さ、寒っ。暖風装置生成！', isRight: true, bgm: 'relax' },
+            { bg: 'advsnow.webp', character: 'igari02.webp', spriteIndex: 13, speaker: '猪狩', text: 'あー、死ぬかと思った', isRight: true },
+            { bg: 'advsnow.webp', character: 'hiragi01.webp', spriteIndex: 1, speaker: '柊', text: '北極だもんねぇ', isRight: true },
+            { bg: 'advsnow.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '君はそんな格好で寒くないのか？', isRight: true },
+            { bg: 'advsnow.webp', character: 'hiragi01.webp', spriteIndex: 9, speaker: '柊', text: 'これでも私、魔女だから', isRight: true, effect: 'flashRed' },
+            { bg: 'advsnow.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '周囲の温度を魔法で温めてるのか!?', isRight: true },
+            { bg: 'advsnow.webp', character: 'hiragi01.webp', spriteIndex: 1, speaker: '柊', text: '炎の出力を弱めればいいだけだしね', isRight: true },
+            { bg: 'advsnow.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '（魔法の出力を自在にコントロールするか）', isRight: true },
+            { bg: 'advsnow.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '（彼女の死が世界のバランスを崩すわけだ）', isRight: true },
+            { bg: 'advsnow.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '椎名', text: '見つけた。あいつだ', isRight: true, bgm: 'stop' },
+            { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 2, speaker: '神宮寺', text: 'ここほれワンワン♪　石油がじゃんじゃん♪', isRight: false, bgm: 'dark' },
+            { bg: 'advsnow.webp', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: '・・・半袖？', isRight: true },
+            { bg: 'advsnow.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '椎名', text: 'ZINNカンパニー代表の神宮寺恒成だな？', isRight: true },
+            { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 3, speaker: '神宮寺', text: '誰だてめぇ', isRight: false },
+            { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 3, speaker: 'AI', item: 'potable.webp', text: '椎名護。あなたが狙うべき相手です', isRight: false },
+            { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 0, speaker: '神宮寺', text: 'そうか、貴様が死をコントロールできるという血肉を持つ一族か', isRight: false },
+            { bg: 'advsnow.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '椎名', text: '・・・なんだと？', isRight: true },
+            { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 4, speaker: '神宮寺', text: '死んでもらうぞ、娘のためにな', isRight: false }
+        ],
+        pre_stg: [
+            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark' },
+            { bg: 'advrocket.webp', character: 'hiragi01.webp', spriteIndex: 15, speaker: '柊', text: '冷蔵庫が飛んでる・・・', isRight: true },
+            { bg: 'advrocket.webp', character: 'jingu.webp', spriteIndex: 11, speaker: '神宮寺', text: 'んはーっはっは。こんなこともあろうかと武器を用意していたのだ', isRight: false },
+            { bg: 'advrocket.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '普通にミサイルで良くないか？', isRight: true },
+            { bg: 'advrocket.webp', character: 'jingu.webp', spriteIndex: 8, speaker: '神宮寺', text: 'ちっちっちっ。これだから凡人は', isRight: false },
+            { bg: 'advrocket.webp', character: 'jingu.webp', spriteIndex: 4, speaker: '神宮寺', text: 'AIが言ったんだよ！　家電にロケット付けたら敵を撃退できるってな！', isRight: false },
+            { bg: 'advrocket.webp', character: 'igari02.webp', spriteIndex: 12, speaker: '猪狩', text: 'それ信じるか、普通', isRight: true },
+            { bg: 'advrocket.webp', character: 'jingu.webp', spriteIndex: 11, speaker: '神宮寺', text: 'AIが言った事だぜ?　信じるだろ、フツーはよ！', isRight: false, effect: 'shake' },
+            { bg: 'advrocket.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '椎名', text: '哀れな男だ。ハルシネーションを知らんらしい', isRight: true },
+            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: '神宮寺はAIで巨万の富を得た資産家だ', isRight: true },
+            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '成功体験が積み重なり、盲信するに至ったのだろう', isRight: true },
+            { bg: 'advrocket.webp', character: 'hiragi01.webp', spriteIndex: 11, speaker: '柊', text: '家電ロケット、凄い数だよ！', isRight: true },
+            { bg: 'advrocket.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'やることは至極単純だ。奴のロケットを全部ぶち壊せばいい', isRight: true },
+            { bg: 'advrocket.webp', character: 'hiragi01.webp', spriteIndex: 14, speaker: '柊', text: 'あの数を？　本気なの？', isRight: true },
+            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: 'やらなければ、君の１年後は・・・', isRight: true },
+            { bg: 'advrocket.webp', character: 'hiragi01.webp', spriteIndex: 2, speaker: '柊', text: 'わーったわよ！　やればいいんでしょ、やれば！', isRight: true },
+            { bg: 'advrocket.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
+        ],
+        mid_stg: [
+            { bg: 'robodon.webp', character: 'jingu.webp', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false },
+            { bg: 'robodon.webp', character: 'hiragi01.webp', spriteIndex: 15, speaker: '柊', text: 'え？　なに？　家電が合体して・・・', isRight: true },
+            { bg: 'robodon.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: 'ロボになったな', isRight: true },
+            { bg: 'robodon.webp', character: 'jingu.webp', spriteIndex: 2, speaker: '神宮寺', text: 'うはははっ、どうだ！　これで貴様らは一巻の終わりだ', isRight: false },
+            { bg: 'robodon.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: 'さて、どう思う？', isRight: true },
+            { bg: 'robodon.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '椎名', text: '的がデカくて当てやすそうだ', isRight: true },
+            { bg: 'robodon.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '同感だ', isRight: true }
+        ],
+        post_stg: [
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop' },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: 'あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5, speaker: '神宮寺', text: 'だってAIがよ・・・', isRight: false },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5,speaker: 'AI', item: 'potable.webp', text: '大丈夫だ、神宮寺', isRight: false },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5, speaker: 'AI', item: 'potable.webp', text: '石油が出れば、資産は取り戻せる', isRight: false },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'ちょっとその端末、見て良いか？', isRight: true },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5, speaker: '神宮寺', text: '好きにしろよ・・・', isRight: false },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', item: 'potable.webp', text: '・・・これ、ただの受信機だぞ', isRight: true },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 7, speaker: '神宮寺', text: 'どういうことだ？', isRight: false },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: 'つまりお前はAIではなく、誰かと通信していただけってことだ', isRight: true },
+            { bg: 'boro.webp', character: 'hiragi01.webp', spriteIndex: 14, speaker: '柊', text: 'えっ!?　誰と？', isRight: true },
+            { bg: 'boro.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '椎名', text: '決まってる。黒幕だ', isRight: true, bgm: 'stop' },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'システムを組み替えて逆探知させよう', isRight: true },
+            { bg: 'boro.webp', item: 'potable2.webp', text: '', isRight: true },     
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 7, speaker: '猪狩', text: 'ちっ、なんてこった', isRight: true, bgm: 'dark' },
+            { bg: 'boro.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '椎名', text: 'どこだ？　地球のどこにいようと追い詰めてやる', isRight: true },
+            { bg: 'boro.webp', character: 'urashiina.webp', spriteIndex: 1, speaker: '椎名', text: 'ん？　なんだ、上？', isRight: true },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: '・・・月だ', isRight: true },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 4, speaker: '猪狩', text: 'AIを装い、神宮寺を操った首謀者は、月にいる', isRight: true, effect: 'shake' },
+            { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'よし、行くか。月に', isRight: true },
+            { bg: 'boro.webp', character: 'hiragi01.webp', spriteIndex: 1, speaker: '柊', text: 'レッツゴー', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: '・・・', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '・・・椎名くん', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: 'いいんです、各務さん。彼らには助けてもらいましたから', isRight: false },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '次は僕が彼らを助ける番です', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '気づいていたのか', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '神宮寺を倒した時点で僕が死ぬ運命は回避できたんですよね', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'ああ・・・そうだ', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'それに、各務さんの仕事は半分しか終わってないわけでしょう？', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 0, speaker: '各務', text: '私の都合だ。君が気にする必要はない', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '椎名', text: '気にしますよ。各務さんにも助けて頂きましたから', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 9, speaker: '各務', text: 'これからの戦いで君が死ねば、それこそ本末転倒だろう', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '運命には揺り戻しがあるときいたことがあります', isRight: false },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: 'ここで逃げればいつかやっぱり僕はやられてしまう、そんな気がするんです', isRight: false },
+            { bg: 'boro.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '君は、損をする性格をしているな', isRight: true },
+            { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'よく言われます', isRight: false }
+        ]
+    },
     6: { adv: [], pre_stg: [], post_stg: [] }
 };
