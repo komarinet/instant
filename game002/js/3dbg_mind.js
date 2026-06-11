@@ -1,4 +1,4 @@
-const VER_3DBG_MIND = "0.3.4"; // ワームホールが霧に隠れないように修正
+const VER_3DBG_MIND = "0.3.5"; // ワームホールを少し暗く透過させるように修正
 
 window.BGMindManager = {
     isActive: false,
@@ -31,7 +31,6 @@ window.BGMindManager = {
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // ★修正：ワームホールを霧(fog)の影響を受けないようにし、少し手前に配置
         const whCanvas = document.createElement('canvas');
         whCanvas.width = 1024; whCanvas.height = 1024;
         const wCtx = whCanvas.getContext('2d');
@@ -63,9 +62,9 @@ window.BGMindManager = {
         
         const whTex = new THREE.CanvasTexture(whCanvas);
         whTex.needsUpdate = true;
-        // fog: false を追加して奥でもくっきり見えるようにする
+        // ★修正：opacity: 0.4 を追加して、50%前後の透過率で薄暗く表示する
         const whMat = new THREE.MeshBasicMaterial({ 
-            map: whTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
+            map: whTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, opacity: 0.4
         });
         this.wormhole = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), whMat);
         this.wormhole.position.set(0, 500, -1500); 
