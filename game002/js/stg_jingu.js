@@ -1,4 +1,4 @@
-const VER_STG_JINGU = "0.2.4"; // バージョン更新（ボス（robotboss）のHPを元の4倍の1000に大幅強化）
+const VER_STG_JINGU = "0.2.5"; // バージョン更新（椎名ルート時にザコ敵を2倍に増量）
  
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['jingu'] = {
@@ -8,7 +8,6 @@ window.StageConfigs['jingu'] = {
     },
     updateBackground: function(stg, sW, sH) {
         stg.bgScrollY += 1.5;
-        // 通常→反転の2枚セットでループ
         if (stg.bgScrollY >= sH * 2) {
             stg.bgScrollY -= sH * 2;
         }
@@ -18,17 +17,14 @@ window.StageConfigs['jingu'] = {
         if (bgImg && bgImg.naturalWidth > 0) {
             const y = stg.bgScrollY;
  
-            // 1枚目（通常）
             ctx.drawImage(bgImg, 0, y, sW, sH);
  
-            // 2枚目（上下反転・鏡像）
             ctx.save();
             ctx.translate(0, (y - sH) + sH / 2);
             ctx.scale(1, -1);
             ctx.drawImage(bgImg, 0, -sH / 2, sW, sH);
             ctx.restore();
  
-            // 3枚目（通常）
             ctx.drawImage(bgImg, 0, y - sH * 2, sW, sH);
  
         } else {
@@ -37,37 +33,51 @@ window.StageConfigs['jingu'] = {
         }
     },
     getEnemyData: function(type) {
-        // ステージ毎に定義されたデータ。ここから画像名を取得する
         if (type === 'rei') return { imgSrc: 'rei.webp', size: 45, hp: 12, maxHp: 12 };
         if (type === 'renji') return { imgSrc: 'renji.webp', size: 38, hp: 8, maxHp: 8 };
         if (type === 'sui') return { imgSrc: 'sui.webp', size: 23, hp: 3, maxHp: 3 };
         if (type === 'tv') return { imgSrc: 'tv.webp', size: 38, hp: 6, maxHp: 6 };
        
-        // ★修正：ボス（robotboss）のHPを元の250の4倍（1000）に大幅強化！
         if (type === 'robotboss') return { imgSrc: 'robot.webp', size: 120, hp: 1000, maxHp: 1000, isBoss: true };
     },
     updateWaves: function(stg, timer, sW, sH) {
-        // 前半 (100〜1500フレーム): sui, rei 多め
+        // ★追加：自機が椎名（護）かどうかを判定し、出現数倍率を設定
+        const isShiina = (stg.player.id === 'shiina' || stg.player.id === 'mamoru');
+        const multiplier = isShiina ? 2 : 1;
+
         if (timer > 100 && timer < 1500) {
-            if (timer % 60 === 0) stg.enemies.push(new Enemy('sui', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 200 === 0) stg.enemies.push(new Enemy('rei', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 60 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('sui', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (timer % 200 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('rei', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
         }
        
-        // 中盤 (1500〜3000フレーム): tv, renji 多め
         if (timer > 1500 && timer < 3000) {
-            if (timer % 100 === 0) stg.enemies.push(new Enemy('renji', sW * 0.1 + Math.random() * sW * 0.8, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 150 === 0) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 100 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('renji', sW * 0.1 + Math.random() * sW * 0.8, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (timer % 150 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
         }
        
-        // 後半 (3000〜4500フレーム): 全家電ミックス
         if (timer > 3000 && timer < 4500) {
-            if (timer % 90 === 0) stg.enemies.push(new Enemy('sui', sW * 0.2 + Math.random() * sW * 0.6, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 120 === 0) stg.enemies.push(new Enemy('renji', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 180 === 0) stg.enemies.push(new Enemy('rei', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
-            if (timer % 250 === 0) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50, stg.player.charData, stg.advManager, stg.stgId));
+            if (timer % 90 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('sui', sW * 0.2 + Math.random() * sW * 0.6, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (timer % 120 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('renji', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (timer % 180 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('rei', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
+            if (timer % 250 === 0) {
+                for (let i = 0; i < multiplier; i++) stg.enemies.push(new Enemy('tv', Math.random() * sW, -50 - i*30, stg.player.charData, stg.advManager, stg.stgId));
+            }
         }
        
-        // ★修正：ザコ全滅トリガー。コアに任せるため、ただボスを出現させるだけの超シンプルな記述に！
         if (timer > 4500 && stg.enemies.length === 0 && !stg.bossSpawned) {
             stg.bossSpawned = true;
             stg.enemies.push(new Enemy('robotboss', sW / 2, -150, stg.player.charData, stg.advManager, stg.stgId));
@@ -93,7 +103,6 @@ window.StageConfigs['jingu'] = {
                 e.y += 3;
             } else {
                 e.moveTimer++;
-                // 放置されたテレビが画面上に残り続けて全滅トリガーが引かれない（詰み）のを防ぐ処理
                 if (e.moveTimer > 400) {
                     e.y += 3;
                 }
