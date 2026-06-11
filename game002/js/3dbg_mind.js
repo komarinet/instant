@@ -1,4 +1,4 @@
-const VER_3DBG_MIND = "0.3.3"; // 背景明度アップ、奥に紫の回転するワームホールを追加
+const VER_3DBG_MIND = "0.3.4"; // ワームホールが霧に隠れないように修正
 
 window.BGMindManager = {
     isActive: false,
@@ -23,7 +23,6 @@ window.BGMindManager = {
         bgManager.camera.position.y = 15; 
         bgManager.camera.rotation.x = -0.1; 
         
-        // 背景を少し明るく、紫色っぽく調整
         bgManager.scene.fog = new THREE.FogExp2(0x2a0a2a, 0.001); 
         
         const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
@@ -32,7 +31,7 @@ window.BGMindManager = {
         dirLight.position.set(0, 100, 100);
         this.sceneGroup.add(dirLight);
 
-        // 紫色のワームホールを動的に生成して最奥に配置
+        // ★修正：ワームホールを霧(fog)の影響を受けないようにし、少し手前に配置
         const whCanvas = document.createElement('canvas');
         whCanvas.width = 1024; whCanvas.height = 1024;
         const wCtx = whCanvas.getContext('2d');
@@ -64,11 +63,12 @@ window.BGMindManager = {
         
         const whTex = new THREE.CanvasTexture(whCanvas);
         whTex.needsUpdate = true;
+        // fog: false を追加して奥でもくっきり見えるようにする
         const whMat = new THREE.MeshBasicMaterial({ 
-            map: whTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false 
+            map: whTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false
         });
-        this.wormhole = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), whMat);
-        this.wormhole.position.set(0, 800, -2500); // 海の奥の空に配置
+        this.wormhole = new THREE.Mesh(new THREE.PlaneGeometry(4000, 4000), whMat);
+        this.wormhole.position.set(0, 500, -1500); 
         this.sceneGroup.add(this.wormhole);
 
         let seaTex = null;
@@ -135,7 +135,7 @@ window.BGMindManager = {
         }
         
         if (this.wormhole) {
-            this.wormhole.rotation.z -= 0.2 * delta; // ワームホールを回転させる
+            this.wormhole.rotation.z -= 0.2 * delta;
         }
 
         if (this.sea && this.sea.material.map) {
