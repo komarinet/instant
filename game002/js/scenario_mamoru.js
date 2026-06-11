@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.7.0"; // バージョン更新（ステージ4：精神世界シナリオと、igariルートからのpost_stg流用を追加）
+const VER_SCENARIO_MAMORU = "0.7.1"; // バージョン更新（ステージ4：精神世界シナリオと、igariルートからのpost_stg流用を追加）
  
 window.scenarios = window.scenarios || {};
  
@@ -272,8 +272,6 @@ scenarios.mamoru = {
             { bg: 'hospital.webp', character: 'igari02.webp', spriteIndex: 5, speaker: '猪狩', text: '頼む、俺はもう千華を失いたくないんだ' },
             { bg: 'hospital.webp', character: 'hiragi01.webp', spriteIndex: 6, speaker: '柊', text: '俊基ーーーー！' },
             { bg: 'hospital.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '条件があります。一緒に来てもらえますか' }
-        ],
-        pre_stg: [
             { bg: 'sanrin.webp', place: 'Sanrin', time: '2025.05', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: 'ここで、何を', delay: 60, bgm: 'dark' },
             { bg: 'sanrin.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: 'テストです。あなた方が、こいつに認められるための、ね' },
             { bg: 'sanrin.webp', item: 'mask.webp', text: '', se: 'vibration.mp3' },
@@ -286,7 +284,7 @@ scenarios.mamoru = {
             { bg: 'sanrin.webp', character: 'igari02.webp', spriteIndex: 7, speaker: '猪狩', text: '手加減できねぇぞ' },
             { bg: 'sanrin.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'いらねーよ、ボケがぁ！', effect: 'shake' }
         ],
-        mid_stg: [
+        pre_stg: [
             { bg: 'mind.webp', place: 'Mind World', time: 'UNKNOWN', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'やっぱりこうなったか', delay: 60, bgm: 'dark' },
             { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '見てろ護。あいつら、ボッコボコにしてやっから', isRight: false },
             { bg: 'mind.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'それでいいのか？　彼らと協力しないと僕も、君も' },
