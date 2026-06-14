@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.27"; // バージョン更新（プレビューの自機画像をjikishiに戻し、アニメーション処理を復旧）
+export const VER_UI = "0.3.28"; // リトライボタンの整理とスキップボタン表示の修正
  
 let demoAnimId = null;
 let demoFrame = 0;
@@ -382,8 +382,11 @@ export function updatePreview(characters, selectedCharId) {
  
 export function updateGameUI(gameState, selectedCharId, stgManager) {
     const skipBtn = document.getElementById('skip-btn');
+    // ★修正：ADV中・DIALOGUE中であれば常にスキップボタンを表示する
     if (skipBtn) {
-        if (!gameState.includes('ADV') && !gameState.includes('DIALOGUE')) {
+        if (gameState.includes('ADV') || gameState.includes('DIALOGUE')) {
+            skipBtn.classList.remove('hidden');
+        } else {
             skipBtn.classList.add('hidden');
         }
     }
@@ -442,7 +445,7 @@ export function showVersions(moduleVersions) {
     const aVer = getV('VER_ADV');
     const b3Ver = getV('VER_3DBG');
     const b3ObjVer = getV('VER_3DBG_OBJ');
-    const b3MindVer = getV('VER_3DBG_MIND'); // ★追加
+    const b3MindVer = getV('VER_3DBG_MIND');
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
@@ -455,7 +458,7 @@ export function showVersions(moduleVersions) {
     const stgCap = getV('VER_STG_CAP');
     const stgEiji = getV('VER_STG_EIJI');
     const stgInvader = getV('VER_STG_INVADER');
-    const stgMind = getV('VER_STG_MIND'); // ★追加
+    const stgMind = getV('VER_STG_MIND');
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -554,7 +557,7 @@ export function initStageListTexts(selectedCharId) {
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
                 "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: 裏カジノ",
-                "Stage 4: 精神世界", "Stage 5: 神宮寺", "Final Stage: ？？？"
+                "Stage 4: 精神世界", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
             stageTexts = [
@@ -599,24 +602,19 @@ export function setupGameOverButtons(onRetryWithData, onRetryWithoutData, onGoTi
  
     const btnStyle = 'padding: 15px 20px; font-size: clamp(14px, 4vw, 18px); font-weight: bold; color: #fff; background: rgba(0, 243, 255, 0.1); border: 2px solid #00ffff; border-radius: 5px; cursor: pointer; width: 80%; max-width: 300px; text-align: center; white-space: nowrap;';
  
+    // ★修正：ボタンを「リトライする（引き継がないデフォルト）」「タイトルへ戻る」の2つに絞る
     const btn1 = document.createElement('button');
-    btn1.innerText = '引き継いでリトライ';
+    btn1.innerText = 'リトライする';
     btn1.style.cssText = btnStyle;
-    btn1.onclick = () => { resetResultButtons(); onRetryWithData(); };
+    btn1.onclick = () => { resetResultButtons(); onRetryWithoutData(); };
  
     const btn2 = document.createElement('button');
-    btn2.innerText = '引き継がずにリトライ';
-    btn2.style.cssText = btnStyle;
-    btn2.onclick = () => { resetResultButtons(); onRetryWithoutData(); };
- 
-    const btn3 = document.createElement('button');
-    btn3.innerText = 'タイトルへ戻る';
-    btn3.style.cssText = btnStyle.replace('#00ffff', '#ffaa00').replace('rgba(0, 243, 255, 0.1)', 'rgba(255, 170, 0, 0.1)');
-    btn3.onclick = () => { resetResultButtons(); onGoTitle(); };
+    btn2.innerText = 'タイトルへ戻る';
+    btn2.style.cssText = btnStyle.replace('#00ffff', '#ffaa00').replace('rgba(0, 243, 255, 0.1)', 'rgba(255, 170, 0, 0.1)');
+    btn2.onclick = () => { resetResultButtons(); onGoTitle(); };
  
     container.appendChild(btn1);
     container.appendChild(btn2);
-    container.appendChild(btn3);
  
     resultScreen.appendChild(container);
 }
