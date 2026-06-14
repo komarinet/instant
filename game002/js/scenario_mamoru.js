@@ -1,8 +1,7 @@
-const VER_SCENARIO_MAMORU = "0.7.2"; // バージョン更新（ステージ5：神宮寺戦のシナリオと追加ADVを実装）
+const VER_SCENARIO_MAMORU = "0.7.3"; // 各シーンのplaceとtimeの設定を補完
  
 window.scenarios = window.scenarios || {};
  
-// 椎名 護 ルートのシナリオデータ
 scenarios.mamoru = {
     'opening': [
         { bg: 'ope.webp', place: '解剖場', time: '2026.4', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'こ、ここは？', delay: 60, bgm: 'dark' },
@@ -22,7 +21,6 @@ scenarios.mamoru = {
         { bg: 'ope.webp', item: 'chain.webp', se: 'vibration.mp3', effect: 'shake', text: '' },
         { bg: 'ope.webp', character: 'shiina.webp', spriteIndex: 5, speaker: '護', text: 'やめろーーーー！', effect: 'whiteout' },
        
-        // 背景を赤一色に
         { bg: 'red', text: '', delay: 60, bgm: 'stop' },
        
         { bg: 'meeting.webp', place: 'Hospital', time: '2025.04', character: 'nurse.webp', spriteIndex: 4, speaker: '看護師', text: '先生、先生？', delay: 30, bgm: 'relax' },
@@ -130,7 +128,7 @@ scenarios.mamoru = {
     2: {
         stgId: 'kagami',
         adv: [
-            { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 12, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark' },
+            { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 12, speaker: '護', text: '確かにUFOが大量に現れてるね', delay: 60, bgm: 'dark', place: '都内某所', time: '2025.04' },
             { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 7, speaker: '各務', text: '・・・あれは!!'},
             { bg: 'citypanic.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '各務さん？' },
             { bg: 'citypanic.webp', character: 'kagami.webp', spriteIndex: 10, speaker: '各務', text: 'うん・・・非常にその・・・申し訳ないんだが' },
@@ -160,13 +158,13 @@ scenarios.mamoru = {
             { bg: 'citypanic.webp',character: 'tadashige.webp', spriteIndex: 8, speaker: '忠重', text: 'あいつ、怒らせんように気をつけよう・・・' }
         ],
         mid_stg: [
-            { bg: 'cityboss.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、なかなかデケェじゃねぇか' },
+            { bg: 'cityboss.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、なかなかデケェじゃねぇか', place: '都内某所上空', time: '2025.04' },
             { bg: 'cityboss.webp', character: 'kagami.webp', spriteIndex: 13, speaker: '各務', text: '母艦の弾幕は半端ないぞ、椎名くん' },
             { bg: 'cityboss.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '弾幕？　見えねぇな、そんなモン' },
             { bg: 'cityboss.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '真・言・展・開！', effect: 'shake' }
         ],
         post_stg: [
-            { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'やった・・・のか？　僕が？', delay: 60, bgm: 'relax' },
+            { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 9, speaker: '護', text: 'やった・・・のか？　僕が？', delay: 60, bgm: 'relax', place: '都市某所', time: '2025.04' },
             { bg: 'breakufo2.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: 'ああ、やり過ぎたくらいだ' },
             { bg: 'breakufo2.webp', character: 'tadashige.webp', spriteIndex: 4, speaker: '忠重', text: '護。後始末のコストも考えて動いてもらわねば困るぞ' },
             { bg: 'breakufo2.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: 'ご、ごめんなさい、父さん', effect: 'shake' },
@@ -200,7 +198,7 @@ scenarios.mamoru = {
             { bg: 'casino01.webp', character: 'kagami.webp', spriteIndex: 6, speaker: '各務', text: '凄いな' },
             { bg: 'casino01.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '護', text: '残念ながら後ろ暗い組織には名が知れているんです' },
             
-            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 5, speaker: 'カジノオーナー', text: '噂は聞いてますよ、椎名の新当主', isRight: false, bgm: 'dark' },
+            { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 5, speaker: 'カジノオーナー', text: '噂は聞いてますよ、椎名の新当主', isRight: false, bgm: 'dark', place: 'カジノ内', time: '2025.05' },
             { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 0, speaker: 'カジノオーナー', text: '我々に何の御用で？', isRight: false },
             { bg: 'casino02.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: '我々を狙っている者がいると聞いている。何か知らないか' },
             { bg: 'casino02.webp', character: 'casinoboss.webp', spriteIndex: 5, speaker: 'カジノオーナー', text: 'まあ、椎名家ですからねぇ', isRight: false },
@@ -296,7 +294,7 @@ scenarios.mamoru = {
             { bg: 'mind.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'おもしれー。やってみろ', effect: 'shake', isRight: false }
         ],
         post_stg: [
-            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はぁ、はぁ・・・大丈夫かい、君たち？', isRight: false, bgm: 'relax' },
+            { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はぁ、はぁ・・・大丈夫かい、君たち？', isRight: false, bgm: 'relax', place: 'Sanrin', time: '2025.05' },
             { bg: 'yakerin.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: '戻った・・・のか？', isRight: true },
             { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 1, speaker: '護(裏)', text: '一時的に主導権を取り戻したよ。そして・・・', isRight: false },
             { bg: 'yakerin.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '認めてやるぜ。お前らと共に戦ってやる', isRight: false },
@@ -349,7 +347,7 @@ scenarios.mamoru = {
             { bg: 'advsnow.webp', character: 'jingu.webp', spriteIndex: 4, speaker: '神宮寺', text: '死んでもらうぞ、娘のためにな', isRight: false }
         ],
         pre_stg: [
-            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark' },
+            { bg: 'advrocket.webp', character: 'kagami.webp', spriteIndex: 13, speaker: '各務', text: 'な、なんだあれは！', isRight: true, bgm: 'dark', place: 'North Pole', time: '2025.06' },
             { bg: 'advrocket.webp', character: 'hiragi01.webp', spriteIndex: 15, speaker: '柊', text: '冷蔵庫が飛んでる・・・', isRight: true },
             { bg: 'advrocket.webp', character: 'jingu.webp', spriteIndex: 11, speaker: '神宮寺', text: 'んはーっはっは。こんなこともあろうかと武器を用意していたのだ', isRight: false },
             { bg: 'advrocket.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '普通にミサイルで良くないか？', isRight: true },
@@ -368,7 +366,7 @@ scenarios.mamoru = {
             { bg: 'advrocket.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '椎名', text: '先に行くぜ。遅れんじゃねぇぞ、お前ら！', isRight: true }
         ],
         mid_stg: [
-            { bg: 'robodon.webp', character: 'jingu.webp', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false },
+            { bg: 'robodon.webp', character: 'jingu.webp', spriteIndex: 8, speaker: '神宮寺', text: 'なかなかやるな、だがこんなこともあろうかと・・・', isRight: false, place: 'North Pole', time: '2025.06' },
             { bg: 'robodon.webp', character: 'hiragi01.webp', spriteIndex: 15, speaker: '柊', text: 'え？　なに？　家電が合体して・・・', isRight: true },
             { bg: 'robodon.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: 'ロボになったな', isRight: true },
             { bg: 'robodon.webp', character: 'jingu.webp', spriteIndex: 2, speaker: '神宮寺', text: 'うはははっ、どうだ！　これで貴様らは一巻の終わりだ', isRight: false },
@@ -377,7 +375,7 @@ scenarios.mamoru = {
             { bg: 'robodon.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '同感だ', isRight: true }
         ],
         post_stg: [
-            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop' },
+            { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 9, speaker: '神宮寺', text: '俺の全資産が・・・', isRight: false, bgm: 'stop', place: 'North Pole', time: '2025.06' },
             { bg: 'boro.webp', character: 'igari02.webp', spriteIndex: 11, speaker: '猪狩', text: 'あれに全部注ぎ込んだの？　マジ？', isRight: true, bgm: 'relax' },
             { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5, speaker: '神宮寺', text: 'だってAIがよ・・・', isRight: false },
             { bg: 'boro.webp', character: 'jingu.webp', spriteIndex: 5,speaker: 'AI', item: 'potable.webp', text: '大丈夫だ、神宮寺', isRight: false },
