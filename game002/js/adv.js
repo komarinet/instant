@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.32"; // バージョン更新（monbanとcasinobossの画像分割指定を追加）
+const VER_ADV = "0.4.33"; // 以前のplaceやtimeを引き継ぐように修正
 
 class ADVManager {
     constructor() {
@@ -171,8 +171,16 @@ class ADVManager {
         const dialogueY = gameY + gameHeight - dynamicHeight; 
         const visualAreaHeight = gameHeight - dynamicHeight; 
 
+        // ★修正：今のインデックスまでに設定された最新のplaceとtimeを引き継ぐ
+        let currentPlace = '';
+        let currentTime = '';
+        for (let i = 0; i <= this.index; i++) {
+            if (this.currentScenario[i].place !== undefined) currentPlace = this.currentScenario[i].place;
+            if (this.currentScenario[i].time !== undefined) currentTime = this.currentScenario[i].time;
+        }
+
         this.cyberMarginAlpha = this.isActive ? 1.0 : 0.2; 
-        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentMsg.place, currentMsg.time, visualAreaHeight, dynamicHeight, isTransparent);
+        this.drawCyberMargin(ctx, cssWidth, cssHeight, gameX, gameY, gameWidth, gameHeight, currentPlace, currentTime, visualAreaHeight, dynamicHeight, isTransparent);
 
         ctx.save();
         ctx.beginPath();
@@ -276,7 +284,6 @@ class ADVManager {
         ctx.globalAlpha = charAlpha; 
 
         const getRows = (key) => {
-            // ★修正：monban.webp (2行) と casinoboss.webp (3行) の指定を追記
             if (key === 'urashiina.webp' || key === 'nurse.webp' || key === 'uraeiji.webp' || key === 'monban.webp') return 2; 
             if (key === 'igari01.webp' || key === 'godai.webp' || key === 'godaimo.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'casinoboss.webp') return 3; 
             if (key === 'shiina.webp' || key === 'cap.webp' || key === 'jingu.webp' || key === 'kagejingu.webp') return 4; 
@@ -284,7 +291,6 @@ class ADVManager {
         };
 
         const getCols = (key) => {
-            // ★修正：monban.webp と casinoboss.webp は4列なのでデフォルトでも動作しますが、念のため明示的に追記
             if (key === 'nurse.webp') return 5; 
             if (key === 'jingu.webp' || key === 'kagejingu.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'uraeiji.webp' || key === 'monban.webp' || key === 'casinoboss.webp') return 4; 
             return 4; 
