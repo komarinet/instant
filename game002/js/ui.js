@@ -557,7 +557,7 @@ export function initStageListTexts(selectedCharId) {
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
                 "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: 裏カジノ",
-                "Stage 4: 精神世界", "Stage 5: 神宮寺", "Final Stage: ？？？"
+                "Stage 4: 精神世界", "Stage 5: 神宮寺", "Final Stage: お仕事な日常"
             ];
         } else {
             stageTexts = [
