@@ -7,10 +7,8 @@ export const imagesToPreload = [
     '2typea.webp', '2typeb.webp', '2typec.webp', '2typeboss.webp', 'cityboss.webp','casino01.webp','casino02.webp',
     'darkcandle.webp','hospital.webp', 'mountain.webp','sanrin.webp', 'yakerin.webp', 'casinoboss.webp',
     'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp',
-    // --- ステージ3追加分 ---
     'shiinaboss.webp','shiki.webp','sans.webp','invader.webp','sea.webp','torii.webp','jikishiina01.webp',
-    // --- 新規追加分 ---
-    'advsnow.webp','jingu.webp','robot.webp','boro.webp',
+    'advsnow.webp','jingu.webp','robot.webp','boro.webp','yamahead.webp','yamauro.webp','zonbi.webp',
     'rei.webp','renji.webp','snow.webp','sui.webp','mask.webp',
     'tv.webp','advrocket.webp','aboro.webp','robodon.webp',
     'potable.webp','potable2.webp','phone.webp','bluesky.webp','phone2.webp','phone3.webp',
