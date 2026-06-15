@@ -1,4 +1,4 @@
-const VER_MAIN = "0.9.12"; // バージョン更新（ステージ1開始時にそのステージ自身のadvパートがスキップされてしまう不具合を修正）
+const VER_MAIN = "0.9.13"; // バージョン更新（ステージ6 'zonbi' の3D背景駆動ロジックをメインループに登録）
 
 import { VER_CONFIG, imagesToPreload, imagesToPreload3D } from './config.js';
 import { VER_AUDIO, soundManager } from './audio.js';
@@ -312,10 +312,8 @@ function executeStart(stageNum) {
             stgManager = new STGManager(canvas, charData, stgId);
             
             gameState = 'ADV';
-            // kagami_arrival がある場合は再生し、終わった後に 1面の adv を再生する
             advManager.start(charScenario['kagami_arrival'] || [], () => {
                 
-                // ★修正：ここで 1面に設定された本編の adv パートを再生！
                 gameState = 'ADV';
                 advManager.start(charScenario[currentStage].adv || [], () => {
                     
@@ -585,6 +583,11 @@ function loop(timestamp) {
 
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr); 
+
+    // ★追加: ステージ6（zonbi）の3D背景用アニメーションの更新フックを毎フレーム追加
+    if (window.BGZonbiManager && window.BGZonbiManager.isActive) {
+        window.BGZonbiManager.update(1 / 60);
+    }
 
     switch (gameState) {
         case 'ADV':
