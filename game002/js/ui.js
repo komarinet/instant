@@ -1,4 +1,4 @@
-export const VER_UI = "0.3.28"; // リトライボタンの整理とスキップボタン表示の修正
+export const VER_UI = "0.3.29"; // バージョン更新（ステージ6 'zonbi' 関連のバージョンチェック表示を追加）
  
 let demoAnimId = null;
 let demoFrame = 0;
@@ -382,7 +382,6 @@ export function updatePreview(characters, selectedCharId) {
  
 export function updateGameUI(gameState, selectedCharId, stgManager) {
     const skipBtn = document.getElementById('skip-btn');
-    // ★修正：ADV中・DIALOGUE中であれば常にスキップボタンを表示する
     if (skipBtn) {
         if (gameState.includes('ADV') || gameState.includes('DIALOGUE')) {
             skipBtn.classList.remove('hidden');
@@ -446,6 +445,7 @@ export function showVersions(moduleVersions) {
     const b3Ver = getV('VER_3DBG');
     const b3ObjVer = getV('VER_3DBG_OBJ');
     const b3MindVer = getV('VER_3DBG_MIND');
+    const b3ZonbiVer = getV('VER_3DBG_ZONBI'); // ★追加：ステージ6背景用
     const stgCore = getV('VER_STG_CORE');
     const stgCom = getV('VER_STG_COMMON');
     const plIgari = getV('VER_PLAYER_IGARI');
@@ -459,6 +459,7 @@ export function showVersions(moduleVersions) {
     const stgEiji = getV('VER_STG_EIJI');
     const stgInvader = getV('VER_STG_INVADER');
     const stgMind = getV('VER_STG_MIND');
+    const stgZonbi = getV('VER_STG_ZONBI'); // ★追加：ステージ6本編用
     const scIgari = getV('VER_SCENARIO_IGARI');
     const scMamoru = getV('VER_SCENARIO_MAMORU');
     const scHiragi = getV('VER_SCENARIO_HIRAGI');
@@ -474,6 +475,7 @@ export function showVersions(moduleVersions) {
             3dbg:v${b3Ver}<br>
             3dbo:v${b3ObjVer}<br>
             3dbm:v${b3MindVer}<br>
+            3dbz:v${b3ZonbiVer}<br>
             main:v${moduleVersions.main}<br>
             conf:v${moduleVersions.config}<br>
             aud:v${moduleVersions.audio}<br>
@@ -494,7 +496,8 @@ export function showVersions(moduleVersions) {
             s_cap:v${stgCap}<br>
             s_eiji:v${stgEiji}<br>
             s_inv:v${stgInvader}<br>
-            s_mnd:v${stgMind}
+            s_mnd:v${stgMind}<br>
+            s_znb:v${stgZonbi}
         </div>
         <div style="text-align: left;">
             <span style="color:#ff3366">[SCENARIO]</span><br>
@@ -557,7 +560,7 @@ export function initStageListTexts(selectedCharId) {
         if (selectedCharId === 'shiina' || selectedCharId === 'mamoru') {
             stageTexts = [
                 "Stage 1: 家督", "Stage 2: 宇宙人襲来", "Stage 3: 裏カジノ",
-                "Stage 4: 精神世界", "Stage 5: 神宮寺", "Final Stage: デイリーワーク"
+                "Stage 4: 精神世界", "Stage 5: ？？？", "Final Stage: ？？？"
             ];
         } else {
             stageTexts = [
@@ -602,7 +605,6 @@ export function setupGameOverButtons(onRetryWithData, onRetryWithoutData, onGoTi
  
     const btnStyle = 'padding: 15px 20px; font-size: clamp(14px, 4vw, 18px); font-weight: bold; color: #fff; background: rgba(0, 243, 255, 0.1); border: 2px solid #00ffff; border-radius: 5px; cursor: pointer; width: 80%; max-width: 300px; text-align: center; white-space: nowrap;';
  
-    // ★修正：ボタンを「リトライする（引き継がないデフォルト）」「タイトルへ戻る」の2つに絞る
     const btn1 = document.createElement('button');
     btn1.innerText = 'リトライする';
     btn1.style.cssText = btnStyle;
