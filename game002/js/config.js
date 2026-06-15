@@ -6,7 +6,7 @@ export const imagesToPreload = [
     'typea.webp', 'typeb.webp', 'typec.webp', 'typeboss.webp','shiinabomb.webp','meeting.webp','monban.webp',
     '2typea.webp', '2typeb.webp', '2typec.webp', '2typeboss.webp', 'cityboss.webp','casino01.webp','casino02.webp',
     'darkcandle.webp','hospital.webp', 'mountain.webp','sanrin.webp', 'yakerin.webp', 'casinoboss.webp',
-    'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp',
+    'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp','tsuti.webp','tree.webp',
     'shiinaboss.webp','shiki.webp','sans.webp','invader.webp','sea.webp','torii.webp','jikishiina01.webp',
     'advsnow.webp','jingu.webp','robot.webp','boro.webp','yamahead.webp','yamauro.webp','zonbi.webp',
     'rei.webp','renji.webp','snow.webp','sui.webp','mask.webp',
