@@ -9,7 +9,7 @@ export const imagesToPreload = [
     'shiina.webp', 'urashiina.webp','baku01.webp','igari_jiki.webp','igaribomb.webp','tsuti.webp','tree.webp',
     'shiinaboss.webp','shiki.webp','sans.webp','invader.webp','sea.webp','torii.webp','jikishiina01.webp',
     'advsnow.webp','jingu.webp','robot.webp','boro.webp','yamahead.webp','yamauro.webp','zonbi.webp',
-    'rei.webp','renji.webp','snow.webp','sui.webp','mask.webp',
+    'rei.webp','renji.webp','snow.webp','sui.webp','mask.webp','noonsky.webp',
     'tv.webp','advrocket.webp','aboro.webp','robodon.webp',
     'potable.webp','potable2.webp','phone.webp','bluesky.webp','phone2.webp','phone3.webp',
     // --- 新規追加分 ---
