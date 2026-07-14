@@ -1,12 +1,12 @@
-const VER_3DBG_ZONBI = "0.1.0"; // 椎名最終ステージ：斜め上視点、交差樹木、ウネウネ動く8本の首（yamauroテクスチャ）を完全実装
+const VER_3DBG_ZONBI = "0.1.1"; // カメラ角度の修正、木の増量、変な壁の強制非表示、背景のシームレス化
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 1.95, // 椎名ステージ3の山スクロールに近いスピード感
+    scrollSpeed: 1.95, 
     bgScrollY: 0,
     trees: [],
-    necks: [], // 3Dの首チューブの配列
+    necks: [], 
     numNecks: 8,
     timeCounter: 0,
 
@@ -19,33 +19,32 @@ window.BGZonbiManager = {
         this.sceneGroup = new THREE.Group();
         bgManager.scene.add(this.sceneGroup);
 
-        // ★超重要：真上（真下向き）より少しだけ下がる、やや斜め上からの目線にカメラを調整
         this.origCamY = bgManager.camera.position.y;
         this.origCamRotX = bgManager.camera.rotation.x;
         this.origFog = bgManager.scene.fog;
 
-        bgManager.camera.position.set(0, 140, 40); // 少し手前に引き、高さを上げる
-        bgManager.camera.rotation.x = -Math.PI / 2.3; // 真下より少し前方を向かせる
+        // ★修正：カメラを少し下げて斜め45度にし、立体感がしっかり出るように調整
+        bgManager.camera.position.set(0, 180, 250); 
+        bgManager.camera.rotation.x = -Math.PI / 3.5; 
 
-        // 深緑～黒の禍々しい山の霧を設定
-        bgManager.scene.fog = new THREE.FogExp2(0x0a140a, 0.0015);
+        bgManager.scene.fog = new THREE.FogExp2(0x0a140a, 0.002);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         this.sceneGroup.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xaaffaa, 1.0); // わずかに緑がかった月光
+        const dirLight = new THREE.DirectionalLight(0xaaffaa, 1.2); 
         dirLight.position.set(0, 200, 100);
         this.sceneGroup.add(dirLight);
 
-        // 地面（tsuti.webp）の設定
+        // ★修正：地面の溝（つなぎ目）を消すため、鏡像ループ(Mirrored)に変更して巨大化
         let tsutiTex = null;
         if (window.advManager && window.advManager.assets['tsuti.webp']) {
             tsutiTex = new THREE.CanvasTexture(window.advManager.assets['tsuti.webp']);
             tsutiTex.needsUpdate = true;
-            tsutiTex.wrapS = THREE.RepeatWrapping;
-            tsutiTex.wrapT = THREE.RepeatWrapping;
-            tsutiTex.repeat.set(2, 4);
+            tsutiTex.wrapS = THREE.MirroredRepeatWrapping;
+            tsutiTex.wrapT = THREE.MirroredRepeatWrapping;
+            tsutiTex.repeat.set(10, 10);
         }
-        const groundGeo = new THREE.PlaneGeometry(600, 1200);
+        const groundGeo = new THREE.PlaneGeometry(4000, 4000);
         const groundMat = new THREE.MeshStandardMaterial({
             map: tsutiTex,
             roughness: 0.9,
@@ -53,49 +52,48 @@ window.BGZonbiManager = {
         });
         this.ground = new THREE.Mesh(groundGeo, groundMat);
         this.ground.rotation.x = -Math.PI / 2;
-        this.ground.position.set(0, 0, -200);
+        // 変な壁（トレンチ）を隠すために少しだけ高さを上げる
+        this.ground.position.set(0, 2, -800);
         this.sceneGroup.add(this.ground);
 
-        // 木（tree.webp）を4枚交差させて立てるビルボード拡張オブジェクトの生成
+        // 木の設定
         let treeTex = null;
         if (window.advManager && window.advManager.assets['tree.webp']) {
             treeTex = new THREE.CanvasTexture(window.advManager.assets['tree.webp']);
             treeTex.needsUpdate = true;
         }
-        // 透過設定をONにしたマテリアル
+        // ★修正：木の透過部分を完全に切り抜く alphaTest を追加して綺麗に交差させる
         const treeMat = new THREE.MeshBasicMaterial({
             map: treeTex,
             transparent: true,
-            alphaTest: 0.5,
+            alphaTest: 0.5, 
             side: THREE.DoubleSide
         });
 
         this.trees = [];
-        // フィールドに30本の交差樹木をランダムに初期配置
-        for (let i = 0; i < 30; i++) {
+        // ★修正：木の数を80本に大幅増量し、中央の道を開けて両サイドに森を作る
+        for (let i = 0; i < 80; i++) {
             const treeGroup = new THREE.Group();
-            const treeW = 40;
-            const treeH = 90;
+            const treeW = 60;
+            const treeH = 140;
             const planeGeo = new THREE.PlaneGeometry(treeW, treeH);
 
-            // 4枚のプレーンを45度ずつずらして交差（十字＋対角線）させ、どこから見ても立体的な木にする
             for (let j = 0; j < 4; j++) {
                 const p = new THREE.Mesh(planeGeo, treeMat);
                 p.rotation.y = (Math.PI / 4) * j;
-                p.position.y = treeH / 2; // 根元を地面(y=0)に合わせる
+                p.position.y = treeH / 2; 
                 treeGroup.add(p);
             }
 
-            treeGroup.position.set(
-                (Math.random() - 0.5) * 450,
-                0,
-                -Math.random() * 1000 + 200
-            );
+            // 中央のプレイヤーが通る道を少しあける
+            let tx = (Math.random() - 0.5) * 1000;
+            if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
+
+            treeGroup.position.set(tx, 0, -Math.random() * 2000 + 200);
             this.sceneGroup.add(treeGroup);
             this.trees.push(treeGroup);
         }
 
-        // オロチの首用の蛇皮テクスチャ（yamauro.webp）の設定
         this.uroTex = null;
         if (window.advManager && window.advManager.assets['yamauro.webp']) {
             this.uroTex = new THREE.CanvasTexture(window.advManager.assets['yamauro.webp']);
@@ -106,12 +104,11 @@ window.BGZonbiManager = {
         }
         this.neckMat = new THREE.MeshStandardMaterial({
             map: this.uroTex,
-            color: 0x444444,
-            roughness: 0.3,
-            metalness: 0.7
+            color: 0x666666,
+            roughness: 0.4,
+            metalness: 0.5
         });
 
-        // 8本の首のメッシュ枠を確保（最初は非表示、ボス戦開始でうねり出す）
         this.necks = [];
         this.isActive = true;
         this.timeCounter = 0;
@@ -120,63 +117,59 @@ window.BGZonbiManager = {
     update: function(delta) {
         if (!this.isActive) return;
 
-        // ステージが切り替わったらクリーンアップ
         if (window.currentStage !== 6 || (window.stgManager && window.stgManager.stgId !== 'zonbi')) {
             this.dispose();
             return;
         }
 
+        // ★追加修正：両サイドの「変な壁（トレンチ）」を毎フレーム強制的に非表示にする
+        if (this.bgManager.trenchGroup) this.bgManager.trenchGroup.visible = false;
+        if (this.bgManager.coreGroup) this.bgManager.coreGroup.visible = false;
+        if (this.bgManager.ground && this.bgManager.ground !== this.ground) this.bgManager.ground.visible = false;
+
         this.timeCounter += delta * 0.05;
 
-        // 地面のシームレススクロール（上下反転引き継ぎループ風にマッピングのオフセットを回す）
         if (this.ground && this.ground.material.map) {
             this.ground.material.map.offset.y -= (this.scrollSpeed * 0.002) * delta;
         }
 
-        // 木々を手前にスクロールさせ、画面外に出たら奥に再配置（わらわら感を維持）
         this.trees.forEach(t => {
             t.position.z += this.scrollSpeed * 2.5 * delta;
-            if (t.position.z > 200) {
-                t.position.z = -1000;
-                t.position.x = (Math.random() - 0.5) * 450;
+            if (t.position.z > 300) {
+                t.position.z = -1800;
+                let tx = (Math.random() - 0.5) * 1000;
+                if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
+                t.position.x = tx;
             }
         });
 
-        // STGManager側でボスが湧いている場合、8本の首を3D空間にリアルタイム生成・ウネウネ更新
         if (window.stgManager && window.stgManager.bossSpawned && window.stgManager.enemies.length > 0) {
             this.updateOrochiNecks(delta);
         } else {
-            // ボスがいない、または撃破されたら首をクリア
             this.clearNecks();
         }
     },
 
     updateOrochiNecks: function(delta) {
-        // 一度古い首チューブをシーンから削除して再構築（ウネウネを動的なパスで表現するため）
         this.clearNecks();
 
         const stg = window.stgManager;
-        // 2Dの敵リストからヤマタノオロチの頭（ヘッドパーツ）を最大8個抽出
         const heads = stg.enemies.filter(e => e.type === 'orochi_head');
 
         heads.forEach((h, index) => {
-            // 2Dのキャンバス座標から3D空間のXY座標へ擬似変換マッピング
             const canvas = document.getElementById('gameCanvas');
             const dpr = window.devicePixelRatio || 1;
             const sW = canvas.width / dpr;
             const sH = canvas.height / dpr;
 
-            // 画面の比率から3D空間の位置を概算
             const target3dX = ((h.x / sW) - 0.5) * 350;
-            const target3dZ = ((h.y / sH) - 0.5) * 400 - 300;
-            const target3dY = 40; // 頭の高さ
+            const target3dZ = ((h.y / sH) - 0.5) * 400 - 150;
+            const target3dY = 40; 
 
-            // 画面最奥上部（天から生える根元）から、各2Dボスの頭部位置までを繋ぐウネウネ曲線を定義
-            const startX = ((index - 3.5) * 40); // 根元を等間隔に分散
+            const startX = ((index - 3.5) * 40); 
             const startZ = -700;
-            const startY = 150; // 空高くから生やす
+            const startY = 150; 
 
-            // 不規則なうねりを演出するための正弦波ノイズ
             const waveOffset1 = Math.sin(this.timeCounter + index * 4.0) * 40;
             const waveOffset2 = Math.cos(this.timeCounter * 1.5 + index * 2.0) * 30;
 
@@ -187,8 +180,7 @@ window.BGZonbiManager = {
                 new THREE.Vector3(target3dX, target3dY, target3dZ)
             ]);
 
-            // チューブ状の立体を生成（半径4.5、分割数20）
-            const tubeGeo = new THREE.TubeGeometry(curve, 20, 4.5, 8, false);
+            const tubeGeo = new THREE.TubeGeometry(curve, 20, 6.0, 8, false);
             const tubeMesh = new THREE.Mesh(tubeGeo, this.neckMat);
             
             this.sceneGroup.add(tubeMesh);
@@ -209,7 +201,6 @@ window.BGZonbiManager = {
         this.clearNecks();
         if (this.sceneGroup && this.bgManager) {
             this.bgManager.scene.remove(this.sceneGroup);
-            // カメラとフォグを元の状態に戻す
             this.bgManager.camera.position.set(0, 60, 0);
             this.bgManager.camera.rotation.x = this.origCamRotX;
             this.bgManager.scene.fog = this.origFog;
