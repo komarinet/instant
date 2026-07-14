@@ -1,4 +1,4 @@
-const VER_STG_ZONBI = "0.2.0"; // 中間ADVの実装、ボス全回復ギミック、味方CPU（猪狩）の自動援護射撃を追加
+const VER_STG_ZONBI = "0.2.1"; // クラッシュ（フリーズ）の完全修正、ゾンビ出現制御の正常化
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['zonbi'] = {
@@ -8,19 +8,17 @@ window.StageConfigs['zonbi'] = {
         stg.totalBossHp = stg.totalBossMaxHp;
         stg.lastActiveHeadsCount = 8; 
 
-        // ★追加：イベント進行管理フラグ
-        stg.zonbiPhase = 1; // 1:初期戦闘, 2:ボス全回復後(15秒耐久), 3:猪狩参戦後
+        stg.zonbiPhase = 1; 
         stg.phaseTimer = 0;
         stg.advTriggeredPhase2 = false;
 
-        // ★追加：味方CPU（猪狩）のデータ
         stg.allyIgari = {
             active: false,
             x: canvas.width / (window.devicePixelRatio || 1) / 2,
             y: canvas.height / (window.devicePixelRatio || 1) * 0.85,
             moveTimer: 0
         };
-        stg.allyBullets = []; // 味方の弾を別枠で管理
+        stg.allyBullets = []; 
 
         if (window._bgManagerInstance) {
             window._bgManagerInstance.buildings.forEach(b => b.visible = false);
@@ -46,7 +44,6 @@ window.StageConfigs['zonbi'] = {
         if (type === 'orochi_head') return { imgSrc: 'yamahead.webp', size: 45, hp: 125, maxHp: 125, isBoss: true };
     },
 
-    // ★追加：オロチの頭部を8本まとめて生成する共通関数
     spawnOrochiHeads: function(stg, sW, sH) {
         for (let i = 0; i < 8; i++) {
             let hX = sW * 0.12 + i * (sW * 0.11);
@@ -59,7 +56,8 @@ window.StageConfigs['zonbi'] = {
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                const img = stg.advManager.assets['yamahead.webp'];
+                // ★修正：this.advManager に変更しエラーを回避
+                const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['yamahead.webp'] : null;
                 if (img && img.naturalWidth > 0) {
                     ctx.shadowColor = 'rgba(255,0,0,0.5)';
                     ctx.shadowBlur = 15;
@@ -86,7 +84,6 @@ window.StageConfigs['zonbi'] = {
             }
         }
 
-        // ボス降臨
         if (timer === 3700 && !stg.bossSpawned) {
             stg.bossSpawned = true;
             this.spawnOrochiHeads(stg, sW, sH);
@@ -98,15 +95,13 @@ window.StageConfigs['zonbi'] = {
             heads.forEach(h => currentHpSum += Math.max(0, h.hp));
             stg.totalBossHp = currentHpSum;
 
-            // ★追加：フェーズ1で体力が半分（500）以下になったらフル回復イベント発動
             if (stg.zonbiPhase === 1 && stg.totalBossHp <= stg.totalBossMaxHp / 2) {
                 stg.zonbiPhase = 2;
                 stg.totalBossHp = stg.totalBossMaxHp;
                 stg.lastActiveHeadsCount = 8;
                 
-                // 古い首を全て消去して、再度8本完全な状態で出し直す（全回復の表現）
                 stg.enemies = stg.enemies.filter(e => e.type !== 'orochi_head');
-                stg.explosions.push(new Explosion(sW/2, sH*0.2, 300, stg.advManager)); // 復活のフラッシュ演出
+                stg.explosions.push(new Explosion(sW/2, sH*0.2, 300, stg.advManager)); 
                 if (typeof soundManager !== 'undefined') soundManager.playSE('smallb');
                 this.spawnOrochiHeads(stg, sW, sH);
             }
@@ -125,10 +120,9 @@ window.StageConfigs['zonbi'] = {
                 stg.lastActiveHeadsCount = expectedHeadsCount;
             }
 
-            // ★追加：フェーズ2（復活後）は15秒間戦闘を続け、その後ADVへ移行
             if (stg.zonbiPhase === 2) {
                 stg.phaseTimer++;
-                if (stg.phaseTimer >= 900 && !stg.advTriggeredPhase2) { // 15秒経過
+                if (stg.phaseTimer >= 900 && !stg.advTriggeredPhase2) { 
                     stg.advTriggeredPhase2 = true;
                     
                     let midAdvData = [];
@@ -143,8 +137,8 @@ window.StageConfigs['zonbi'] = {
 
                     const onAdvEnd = () => {
                         stg.zonbiPhase = 3; 
-                        stg.allyIgari.active = true; // ★猪狩参戦！
-                        stg.enemyBullets = []; // リスタートしやすいように敵弾クリア
+                        stg.allyIgari.active = true; 
+                        stg.enemyBullets = []; 
                     };
 
                     if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
@@ -168,7 +162,8 @@ window.StageConfigs['zonbi'] = {
         const sH = canvas.height / dpr;
 
         if (e.type.includes('zombie')) {
-            let zSpeed = e.config.getEnemyData ? e.config.getEnemyData(e.type).speed : 1.5;
+            // config経由でアクセスするため安全に取得
+            let zSpeed = e.config && e.config.getEnemyData ? e.config.getEnemyData(e.type).speed : 1.5;
             e.y += zSpeed;
             e.x += Math.sin(e.moveTimer * 0.03 + e.startX) * 0.6;
             return;
@@ -185,8 +180,9 @@ window.StageConfigs['zonbi'] = {
     },
 
     transformEnemy: function(e, ctx) {
+        // ★修正：クラッシュの原因となっていた stg.advManager の参照エラーを e.advManager に完全修正
         if (e.type.includes('zombie')) {
-            const img = stg.advManager.assets['zonbi.webp'];
+            const img = (e.advManager && e.advManager.assets) ? e.advManager.assets['zonbi.webp'] : null;
             if (img && img.naturalWidth > 0) {
                 const typeIdx = parseInt(e.type.split('_')[1], 10);
                 const animeFrame = Math.floor(e.moveTimer / 40) % 2;
@@ -250,7 +246,6 @@ window.StageConfigs['zonbi'] = {
     }
 };
 
-// ★STGManagerへの割り込み処理（UIと味方CPUの処理を追加）
 if (window.StageConfigs && window.StageConfigs['zonbi']) {
     const origUpdate = STGManager.prototype.updateGameplay;
     STGManager.prototype.updateGameplay = function() {
@@ -260,17 +255,14 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
                 this.customBarDraw = window.StageConfigs['zonbi'].drawCenterTextExtension;
             }
 
-            // ★追加：味方CPU（猪狩）のロジック
             if (this.allyIgari && this.allyIgari.active && !this.isTimeStopped) {
                 const c = document.getElementById('gameCanvas');
                 const dpr = window.devicePixelRatio || 1;
                 const sW = c.width / dpr;
 
                 this.allyIgari.moveTimer++;
-                // 画面下部を素早く往復して位置取りする
                 this.allyIgari.x = (sW / 2) + Math.sin(this.allyIgari.moveTimer * 0.04) * (sW * 0.4);
 
-                // パワー4状態の5WAY青色レーザー発射
                 if (this.frame % 8 === 0) {
                     const bS = 20; 
                     const cColor = '#00ffff';
@@ -284,7 +276,6 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
                     this.allyBullets.push(new Bullet(ax + 5, ay, 3.0, -bS, cColor, null, 'ally_igari'));
                 }
 
-                // 味方弾の更新と敵への当たり判定
                 this.allyBullets.forEach(b => {
                     b.x += b.vx; b.y += b.vy;
                     if (b.y < -50 || b.x < -50 || b.x > sW + 50) b.alive = false;
@@ -292,7 +283,7 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
                     this.enemies.forEach(e => {
                         if (b.alive && e.alive && !e.isDying && Math.hypot(b.x - e.x, b.y - e.y) < e.size + b.size) {
                             b.alive = false; 
-                            e.hp -= 2; // CPU猪狩のレーザーは威力高め
+                            e.hp -= 2; 
                             if (e.hp <= 0 && !e.isBoss) {
                                 e.alive = false;
                                 this.explosions.push(new Explosion(e.x, e.y, e.size * 2, this.advManager));
@@ -314,7 +305,6 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
             const c = document.getElementById('gameCanvas');
             const dpr = window.devicePixelRatio || 1;
             
-            // ★追加：味方CPU（猪狩）の描画
             if (this.allyIgari && this.allyIgari.active) {
                 ctx.save();
                 const igariImg = this.advManager.assets['igari_jiki.webp'];
@@ -331,7 +321,6 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
                     ctx.fill();
                 }
 
-                // 猪狩のレーザー描画
                 this.allyBullets.forEach(b => {
                     ctx.save(); ctx.translate(b.x, b.y);
                     ctx.rotate(Math.atan2(b.vy, b.vx));
