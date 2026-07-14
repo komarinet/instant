@@ -1,9 +1,9 @@
-const VER_3DBG_ZONBI = "0.1.1"; // カメラ角度の修正、木の増量、変な壁の強制非表示、背景のシームレス化
+const VER_3DBG_ZONBI = "0.1.2"; // 背景スクロール速度の正常化、首のウネウネをより激しく修正
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 1.95, 
+    scrollSpeed: 600, // ★修正：3D用の適切なスピード数値に大幅引き上げ（背景が動くようになります）
     bgScrollY: 0,
     trees: [],
     necks: [], 
@@ -23,7 +23,6 @@ window.BGZonbiManager = {
         this.origCamRotX = bgManager.camera.rotation.x;
         this.origFog = bgManager.scene.fog;
 
-        // ★修正：カメラを少し下げて斜め45度にし、立体感がしっかり出るように調整
         bgManager.camera.position.set(0, 180, 250); 
         bgManager.camera.rotation.x = -Math.PI / 3.5; 
 
@@ -35,7 +34,6 @@ window.BGZonbiManager = {
         dirLight.position.set(0, 200, 100);
         this.sceneGroup.add(dirLight);
 
-        // ★修正：地面の溝（つなぎ目）を消すため、鏡像ループ(Mirrored)に変更して巨大化
         let tsutiTex = null;
         if (window.advManager && window.advManager.assets['tsuti.webp']) {
             tsutiTex = new THREE.CanvasTexture(window.advManager.assets['tsuti.webp']);
@@ -52,17 +50,14 @@ window.BGZonbiManager = {
         });
         this.ground = new THREE.Mesh(groundGeo, groundMat);
         this.ground.rotation.x = -Math.PI / 2;
-        // 変な壁（トレンチ）を隠すために少しだけ高さを上げる
         this.ground.position.set(0, 2, -800);
         this.sceneGroup.add(this.ground);
 
-        // 木の設定
         let treeTex = null;
         if (window.advManager && window.advManager.assets['tree.webp']) {
             treeTex = new THREE.CanvasTexture(window.advManager.assets['tree.webp']);
             treeTex.needsUpdate = true;
         }
-        // ★修正：木の透過部分を完全に切り抜く alphaTest を追加して綺麗に交差させる
         const treeMat = new THREE.MeshBasicMaterial({
             map: treeTex,
             transparent: true,
@@ -71,7 +66,6 @@ window.BGZonbiManager = {
         });
 
         this.trees = [];
-        // ★修正：木の数を80本に大幅増量し、中央の道を開けて両サイドに森を作る
         for (let i = 0; i < 80; i++) {
             const treeGroup = new THREE.Group();
             const treeW = 60;
@@ -85,7 +79,6 @@ window.BGZonbiManager = {
                 treeGroup.add(p);
             }
 
-            // 中央のプレイヤーが通る道を少しあける
             let tx = (Math.random() - 0.5) * 1000;
             if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
 
@@ -122,21 +115,21 @@ window.BGZonbiManager = {
             return;
         }
 
-        // ★追加修正：両サイドの「変な壁（トレンチ）」を毎フレーム強制的に非表示にする
         if (this.bgManager.trenchGroup) this.bgManager.trenchGroup.visible = false;
         if (this.bgManager.coreGroup) this.bgManager.coreGroup.visible = false;
         if (this.bgManager.ground && this.bgManager.ground !== this.ground) this.bgManager.ground.visible = false;
 
         this.timeCounter += delta * 0.05;
 
+        // ★修正：スクロールスピードの計算式を修正し、地面がしっかり動くように
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y -= (this.scrollSpeed * 0.002) * delta;
+            this.ground.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
         }
 
         this.trees.forEach(t => {
-            t.position.z += this.scrollSpeed * 2.5 * delta;
+            t.position.z += this.scrollSpeed * delta;
             if (t.position.z > 300) {
-                t.position.z = -1800;
+                t.position.z -= 2300;
                 let tx = (Math.random() - 0.5) * 1000;
                 if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
                 t.position.x = tx;
@@ -170,8 +163,9 @@ window.BGZonbiManager = {
             const startZ = -700;
             const startY = 150; 
 
-            const waveOffset1 = Math.sin(this.timeCounter + index * 4.0) * 40;
-            const waveOffset2 = Math.cos(this.timeCounter * 1.5 + index * 2.0) * 30;
+            // ★修正：3Dの首のウネウネをさらに激しく、大蛇らしく動かす
+            const waveOffset1 = Math.sin(this.timeCounter * 2.0 + index * 4.0) * 80;
+            const waveOffset2 = Math.cos(this.timeCounter * 2.5 + index * 2.0) * 60;
 
             const curve = new THREE.CatmullRomCurve3([
                 new THREE.Vector3(startX, startY, startZ),
