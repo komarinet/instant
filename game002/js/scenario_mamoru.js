@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.7.3"; // 各シーンのplaceとtimeの設定を補完
+const VER_SCENARIO_MAMORU = "0.7.4"; // ステージ6のシナリオを追加
  
 window.scenarios = window.scenarios || {};
  
@@ -413,5 +413,107 @@ scenarios.mamoru = {
             { bg: 'boro.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'よく言われます', isRight: false }
         ]
     },
-    6: { adv: [], pre_stg: [], post_stg: [] }
+    6: {
+        stgId: 'zonbi',
+        adv: [
+            { bg: 'brokenbase.webp', place: '月の裏', time: '2025.07', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: 'そして、僕は猪狩たちと月まで行き', delay: 60, isRight: false, bgm: 'dark' },
+            { bg: 'brokenbase.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '彼らの宿敵を倒した', isRight: false },
+            { bg: 'brokenbase.webp', character: 'cap.webp', spriteIndex: 6, speaker: '科学文明軍隊長', text: 'この程度で勝ったと思うなよ！', isRight: true },
+            { bg: 'brokenbase.webp', character: 'igari02.webp', spriteIndex: 12, speaker: '猪狩', text: 'いや勝ってるだろどう見ても', isRight: true },
+            { bg: 'city.webp', place: '東京都', time: '2025.07', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'ありがとう、椎名。お陰で大切な人を失わずに済んだ', isRight: true, bgm: 'relax' },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'どうかな。君らだけでも倒せたんじゃないかな', isRight: false },
+            { bg: 'city.webp', character: 'hiragi01.webp', spriteIndex: 1, speaker: '柊', text: '確かに〜。装備の割に小物キャラだったわよね', isRight: true },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'これからどうするんだ', isRight: true },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: 'どうするも何も、普通に生きるだけさ', isRight: false },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '医師として、椎名の人間として', isRight: false },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: '・・・またどこかで会えるか？', isRight: true },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: '僕に会うとすれば君が病気になった時か、地球の敵になったときだね', isRight: false },
+            { bg: 'city.webp', character: 'hiragi01.webp', spriteIndex: 2, speaker: '柊', text: 'どっちにもなる気もないし、会いたくもないよーだ', isRight: true },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 12, speaker: '猪狩', text: '病気にはなるだろ、いつか', isRight: true },
+            { bg: 'city.webp', character: 'hiragi01.webp', spriteIndex: 15, speaker: '柊', text: '嫌っ！　絶対ならない！', isRight: true, effect: 'shake' },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 5, speaker: '猪狩', text: '無茶言うな・・・', isRight: true },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '一つ、忠告しておく。魔女の君ならわかるだろうが', isRight: false, bgm: 'stop' },
+            { bg: 'city.webp', character: 'shiina.webp', spriteIndex: 10, speaker: '椎名', text: '運命を回避することにはリバウンドが付き物だ', isRight: false, bgm: 'dark' },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 9, speaker: '猪狩', text: 'リバウンド？', isRight: true },
+            { bg: 'city.webp', character: 'hiragi01.webp', spriteIndex: 9, speaker: '柊', text: '元の運命に戻ろうとする力のことよ', isRight: true },
+            { bg: 'city.webp', character: 'igari02.webp', spriteIndex: 7, speaker: '猪狩', text: 'まさか科学文明軍が帰ってくるのか？', isRight: true },
+            { bg: 'city.webp', character: 'hiragi01.webp', spriteIndex: 14, speaker: '柊', text: 'もしくは別の何かが私たちを狙うかもってことだね', isRight: true },
+            { bg: 'noonsky.webp', place: '空', time: '一年後', speaker: '', text: '一年後', delay: 60, bgm: 'stop' },
+            { bg: 'shiinake.webp', place: '椎名家', time: '2026.07', character: 'shiina.webp', spriteIndex: 0, speaker: '椎名', text: '今日は・・・あの日か。魔女さんは無事かな', delay: 60, isRight: false, bgm: 'relax' },
+            { bg: 'shiinake.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: 'いや、そんなことより自分のことからか', isRight: false },
+            { bg: 'shiinake.webp', character: 'eiji.webp', spriteIndex: 6, speaker: '衛二', text: '兄貴！　大変だ、山が！', isRight: true, effect: 'shake', bgm: 'dark' },
+            { bg: 'shiinake.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '椎名', text: 'どうした？', isRight: false },
+            { bg: 'shiinake.webp', character: 'eiji.webp', spriteIndex: 7, speaker: '衛二', text: 'ゾンビだらけなんだよ！', isRight: true, effect: 'shake' }
+        ],
+        pre_stg: [
+            { bg: 'zonbimt.webp', place: '山脈', time: '2026.07', character: 'tadashige.webp', spriteIndex: 8, speaker: '忠重', text: 'こ、これは・・・', delay: 60, isRight: true, bgm: 'dark' },
+            { bg: 'zonbimt.webp', character: 'eiji.webp', spriteIndex: 7, speaker: '衛二', text: 'やつら、倒しても倒してもキリがないんだ', isRight: true },
+            { bg: 'zonbimt.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '椎名', text: '僕が行くよ、衛二は援護を頼む', isRight: false },
+            { bg: 'zonbimt.webp', character: 'tadashige.webp', spriteIndex: 4, speaker: '忠重', text: 'これは・・・っ！　いかん。撤退するんだ、護', isRight: true, effect: 'shake' },
+            { bg: 'zonbimt.webp', character: 'shiina.webp', spriteIndex: 8, speaker: '椎名', text: '街にゾンビを放つわけにはいかないよ', isRight: false },
+            { bg: 'zonbimt.webp', character: 'tadashige.webp', spriteIndex: 4, speaker: '忠重', text: '同じなんだ。1500年前、初代が命を落としたとされる災厄と', isRight: true },
+            { bg: 'zonbimt.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '椎名', text: 'ゾンビなんかに椎名家が遅れを取るとは思えないけど？', isRight: false },
+            { bg: 'zonbimt.webp', character: 'tadashige.webp', spriteIndex: 8, speaker: '忠重', text: 'ゾンビを操る厄災がおる。しかし、まさかあの化物が・・・', isRight: true },
+            { bg: 'zonbimt.webp', item: 'mask.webp', se: 'vibration.mp3', text: '' },
+            { bg: 'zonbimt.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '要はそいつを倒しゃいいんだろ！', isRight: false },
+            { bg: 'zonbimt.webp', character: 'tadashige.webp', spriteIndex: 4, speaker: '忠重', text: '待つんだ護！', isRight: true, effect: 'shake' }
+        ],
+        mid_stg: [
+            { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、実在したのか、お前', delay: 60, isRight: false, bgm: 'stop' },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '人々が我が存在を忘れただけよ', isRight: true, bgm: 'dark' },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'お陰で封印の力も消え去り、自由の身になれた', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '残念だったな。バカンスはもう終わりだ', isRight: false },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '神宮寺の代わりがこいつか。運命ってのはどうしても俺を殺したいらしい', isRight: false },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'まさか我と戦う気でいるのか？　愚かな', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: '初代椎名は死力を尽くして我を封印するのが精一杯だったなぁ', isRight: true, effect: 'shake' },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'やってみねーとわかんねぇだろ？　行くぜ！', isRight: false, effect: 'shake' }
+        ],
+        mid1_adv: [
+            { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はあ・・・はあ・・・底なしかよ', delay: 60, isRight: false, bgm: 'dark' },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '弱い。弱すぎる。かようにも手応えがないものか', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '悪ぃな、最近家督を継いだばかりでよ', isRight: false },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: '時期が早かったと？　それも貴様の運よ', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: '我を封印せし椎名の血よ、ここで途絶えよ', isRight: true, effect: 'shake' },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'くそぉーーーーー！', isRight: false, effect: 'shake' },
+            { bg: 'sumika.webp', effect: 'whiteout', se: 'vibration.mp3', text: '' },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'な、なんだこれは', isRight: true, bgm: 'stop' },
+            { bg: 'sumika.webp', speaker: '？？？', text: '量子バリアだ。1500年前にはなかっただろ？', isRight: true, bgm: 'relax' },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '・・・お前', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'あ、今もないか。こっちの世界は', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'なんだ、貴様は！', isRight: true, effect: 'shake' },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 3, speaker: '猪狩', text: '誰でもいいだろ。つーか、名乗ってもわかんないだろ？', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 1, speaker: '護(裏)', text: '猪狩！　どうして', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: '月の件では世話になったからな。恩返しに来た', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '魔女はどうした？', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'あいつ？　なんともなかったぜ', isRight: true },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: '自分の分の不運をお前に押し付けたとか言ってたぞ', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: 'それでこの有様か。神宮寺の代理にしちゃ重いなと思ってたんだ。あの女', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 3, speaker: '猪狩', text: 'まあまあ、だから俺が来たんだ', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: '愚かなる人間よ・・・', isRight: true },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 10, speaker: '猪狩', text: 'お前に続く龍脈なら、さっき破壊しといたぞ', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: '！？', isRight: true, effect: 'shake' },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'どんな物質にも粒子と波がある。観測できるかどうかだけだ', isRight: true },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 4, speaker: '猪狩', text: '物の怪なんてのは証明できなかった人間の言い訳なんだよ', isRight: true },
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'き・・・貴様！', isRight: true, effect: 'shake' },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: '椎名、まさかもうヘバッてんじゃねぇだろうな？', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '馬鹿言え、少し休憩してただけだ', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: '頭４つ、引き受けたぜ', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: '勝手に決めるんじゃねぇ！', isRight: false, effect: 'shake' }
+        ],
+        ending: [
+            { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'ぐああーーーー！', delay: 60, isRight: true, effect: 'shake', bgm: 'stop' },
+            // ボスが消え去る演出としてキャラのみ消去
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'やったのか？', isRight: false, bgm: 'relax' },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'コアの消滅を確認した。ヤマタノオロチはこの世界から消し飛んだぜ', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '・・・礼は言わんぞ', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: 'いらねーよ。借りを返しただけだ。半分は千華のせいだしな', isRight: true },
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ふん、確かにそうだ', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 3, speaker: '猪狩', text: 'じゃ、俺行くわ', isRight: true },
+            { bg: 'sumika.webp', item: 'mask.webp', se: 'vibration.mp3', text: '' },
+            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '猪狩！　ごめん、なかなか仮面が外せなくて', isRight: false },
+            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: 'あいつは言わないつもりだったけど、僕は絶対に言いたくて・・・ありがとう！', isRight: false },
+            { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'お互い様だっつーの。じゃあな', isRight: true },
+            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: '・・・', isRight: false }
+        ]
+    }
 };
