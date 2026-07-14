@@ -1,4 +1,4 @@
-const VER_ADV = "0.4.33"; // 以前のplaceやtimeを引き継ぐように修正
+const VER_ADV = "0.4.34"; // ヤマタノオロチ（yamata.webp）のスプライト登録と名前色を追加
 
 class ADVManager {
     constructor() {
@@ -171,7 +171,6 @@ class ADVManager {
         const dialogueY = gameY + gameHeight - dynamicHeight; 
         const visualAreaHeight = gameHeight - dynamicHeight; 
 
-        // ★修正：今のインデックスまでに設定された最新のplaceとtimeを引き継ぐ
         let currentPlace = '';
         let currentTime = '';
         for (let i = 0; i <= this.index; i++) {
@@ -283,15 +282,19 @@ class ADVManager {
         }
         ctx.globalAlpha = charAlpha; 
 
+        // ★修正: ヤマタノオロチの行数を登録
         const getRows = (key) => {
+            if (key === 'yamata.webp') return 1; 
             if (key === 'urashiina.webp' || key === 'nurse.webp' || key === 'uraeiji.webp' || key === 'monban.webp') return 2; 
             if (key === 'igari01.webp' || key === 'godai.webp' || key === 'godaimo.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'casinoboss.webp') return 3; 
             if (key === 'shiina.webp' || key === 'cap.webp' || key === 'jingu.webp' || key === 'kagejingu.webp') return 4; 
             return 4; 
         };
 
+        // ★修正: ヤマタノオロチの列数を登録
         const getCols = (key) => {
             if (key === 'nurse.webp') return 5; 
+            if (key === 'yamata.webp') return 4; 
             if (key === 'jingu.webp' || key === 'kagejingu.webp' || key === 'eiji.webp' || key === 'tadashige.webp' || key === 'uraeiji.webp' || key === 'monban.webp' || key === 'casinoboss.webp') return 4; 
             return 4; 
         };
@@ -423,6 +426,8 @@ class ADVManager {
                     speakerName = 'AI'; speakerRuby = ''; nameColor = '#dddddd';
                 } else if (currentMsg.speaker === '科学文明軍隊長' || currentMsg.speaker === 'ジョン・サクラダ') { 
                     speakerName = '科学文明軍 隊長'; speakerRuby = 'たいちょう'; nameColor = '#ff6600';
+                } else if (currentMsg.speaker === 'ヤマタノオロチ') { // ★追加：ヤマタノオロチの名前色設定
+                    speakerName = 'ヤマタノオロチ'; speakerRuby = ''; nameColor = '#ff0000';
                 }
 
                 ctx.fillStyle = nameColor;
