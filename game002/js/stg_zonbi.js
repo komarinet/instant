@@ -1,10 +1,11 @@
-const VER_STG_ZONBI = "0.2.2"; // ボス全回復時に15秒待たずに即ADVへ移行、顔のウネウネ移動強化
+const VER_STG_ZONBI = "0.2.3"; // オロチのHPを3倍(3000)に引き上げ
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['zonbi'] = {
     init: function(stg, canvas) {
         stg.bossSpawned = false;
-        stg.totalBossMaxHp = 1000; 
+        // ★修正：ボスの最大HPを3倍の3000に強化
+        stg.totalBossMaxHp = 3000; 
         stg.totalBossHp = stg.totalBossMaxHp;
         stg.lastActiveHeadsCount = 8; 
 
@@ -40,7 +41,8 @@ window.StageConfigs['zonbi'] = {
         if (type === 'zombie_3') return { size: 26, hp: 3, maxHp: 3, speed: 1.8 }; 
         if (type === 'zombie_4') return { size: 24, hp: 4, maxHp: 4, speed: 1.5 }; 
 
-        if (type === 'orochi_head') return { imgSrc: 'yamahead.webp', size: 45, hp: 125, maxHp: 125, isBoss: true };
+        // ★修正：1本あたりのHPも3倍の375に強化
+        if (type === 'orochi_head') return { imgSrc: 'yamahead.webp', size: 45, hp: 375, maxHp: 375, isBoss: true };
     },
 
     spawnOrochiHeads: function(stg, sW, sH) {
@@ -93,7 +95,6 @@ window.StageConfigs['zonbi'] = {
             heads.forEach(h => currentHpSum += Math.max(0, h.hp));
             stg.totalBossHp = currentHpSum;
 
-            // ★修正：体力が半分になった瞬間、フル回復と同時にADVを即起動させる
             if (stg.zonbiPhase === 1 && stg.totalBossHp <= stg.totalBossMaxHp / 2) {
                 stg.zonbiPhase = 2;
                 stg.totalBossHp = stg.totalBossMaxHp;
@@ -104,7 +105,6 @@ window.StageConfigs['zonbi'] = {
                 if (typeof soundManager !== 'undefined') soundManager.playSE('smallb');
                 this.spawnOrochiHeads(stg, sW, sH);
 
-                // 即座に中間2番目のADVを呼び出す
                 stg.advTriggeredPhase2 = true;
                 let midAdvData = [];
                 try {
@@ -129,7 +129,8 @@ window.StageConfigs['zonbi'] = {
                 }
             }
 
-            let expectedHeadsCount = Math.ceil(stg.totalBossHp / 125);
+            // ★修正：計算式を375に変更
+            let expectedHeadsCount = Math.ceil(stg.totalBossHp / 375);
             if (stg.totalBossHp <= 0) expectedHeadsCount = 0;
 
             if (expectedHeadsCount < stg.lastActiveHeadsCount && heads.length > 0) {
@@ -166,7 +167,6 @@ window.StageConfigs['zonbi'] = {
             if (e.y < e.targetY) {
                 e.y += (e.targetY - e.y) * 0.03;
             } else {
-                // ★修正：顔（頭部）の移動幅と速度を拡張し、大蛇らしくもっとウネウネと広範囲に移動させる
                 e.x = e.startX + Math.sin(e.moveTimer * 0.03 + e.headIndex * 1.5) * 80;
                 e.y = e.targetY + Math.cos(e.moveTimer * 0.045 + e.headIndex * 2.0) * 50;
             }
