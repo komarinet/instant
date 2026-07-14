@@ -1,4 +1,4 @@
-const VER_STG_ZONBI = "0.2.1"; // クラッシュ（フリーズ）の完全修正、ゾンビ出現制御の正常化
+const VER_STG_ZONBI = "0.2.2"; // ボス全回復時に15秒待たずに即ADVへ移行、顔のウネウネ移動強化
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['zonbi'] = {
@@ -9,7 +9,6 @@ window.StageConfigs['zonbi'] = {
         stg.lastActiveHeadsCount = 8; 
 
         stg.zonbiPhase = 1; 
-        stg.phaseTimer = 0;
         stg.advTriggeredPhase2 = false;
 
         stg.allyIgari = {
@@ -56,7 +55,6 @@ window.StageConfigs['zonbi'] = {
                 ctx.save();
                 ctx.translate(this.x, this.y);
 
-                // ★修正：this.advManager に変更しエラーを回避
                 const img = (this.advManager && this.advManager.assets) ? this.advManager.assets['yamahead.webp'] : null;
                 if (img && img.naturalWidth > 0) {
                     ctx.shadowColor = 'rgba(255,0,0,0.5)';
@@ -95,6 +93,7 @@ window.StageConfigs['zonbi'] = {
             heads.forEach(h => currentHpSum += Math.max(0, h.hp));
             stg.totalBossHp = currentHpSum;
 
+            // ★修正：体力が半分になった瞬間、フル回復と同時にADVを即起動させる
             if (stg.zonbiPhase === 1 && stg.totalBossHp <= stg.totalBossMaxHp / 2) {
                 stg.zonbiPhase = 2;
                 stg.totalBossHp = stg.totalBossMaxHp;
@@ -104,6 +103,30 @@ window.StageConfigs['zonbi'] = {
                 stg.explosions.push(new Explosion(sW/2, sH*0.2, 300, stg.advManager)); 
                 if (typeof soundManager !== 'undefined') soundManager.playSE('smallb');
                 this.spawnOrochiHeads(stg, sW, sH);
+
+                // 即座に中間2番目のADVを呼び出す
+                stg.advTriggeredPhase2 = true;
+                let midAdvData = [];
+                try {
+                    const charId = (stg.player && stg.player.id) ? stg.player.id : 'mamoru';
+                    let charScenario = null;
+                    if (typeof window.scenarios !== 'undefined') charScenario = window.scenarios[charId];
+                    if (charScenario && charScenario[6] && charScenario[6].mid1_adv) {
+                        midAdvData = charScenario[6].mid1_adv;
+                    }
+                } catch(e) { console.warn("ADV取得エラー", e); }
+
+                const onAdvEnd = () => {
+                    stg.zonbiPhase = 3; 
+                    stg.allyIgari.active = true; 
+                    stg.enemyBullets = []; 
+                };
+
+                if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
+                    window.startMidStgADV(midAdvData, onAdvEnd);
+                } else {
+                    onAdvEnd();
+                }
             }
 
             let expectedHeadsCount = Math.ceil(stg.totalBossHp / 125);
@@ -120,35 +143,6 @@ window.StageConfigs['zonbi'] = {
                 stg.lastActiveHeadsCount = expectedHeadsCount;
             }
 
-            if (stg.zonbiPhase === 2) {
-                stg.phaseTimer++;
-                if (stg.phaseTimer >= 900 && !stg.advTriggeredPhase2) { 
-                    stg.advTriggeredPhase2 = true;
-                    
-                    let midAdvData = [];
-                    try {
-                        const charId = (stg.player && stg.player.id) ? stg.player.id : 'mamoru';
-                        let charScenario = null;
-                        if (typeof window.scenarios !== 'undefined') charScenario = window.scenarios[charId];
-                        if (charScenario && charScenario[6] && charScenario[6].mid1_adv) {
-                            midAdvData = charScenario[6].mid1_adv;
-                        }
-                    } catch(e) { console.warn("ADV取得エラー", e); }
-
-                    const onAdvEnd = () => {
-                        stg.zonbiPhase = 3; 
-                        stg.allyIgari.active = true; 
-                        stg.enemyBullets = []; 
-                    };
-
-                    if (midAdvData && midAdvData.length > 0 && typeof window.startMidStgADV !== 'undefined') {
-                        window.startMidStgADV(midAdvData, onAdvEnd);
-                    } else {
-                        onAdvEnd();
-                    }
-                }
-            }
-
             if (stg.zonbiPhase === 3 && stg.totalBossHp <= 0 && !stg.isStageClear) {
                 stg.enemies.forEach(e => { e.alive = false; });
                 stg.isStageClear = true;
@@ -162,7 +156,6 @@ window.StageConfigs['zonbi'] = {
         const sH = canvas.height / dpr;
 
         if (e.type.includes('zombie')) {
-            // config経由でアクセスするため安全に取得
             let zSpeed = e.config && e.config.getEnemyData ? e.config.getEnemyData(e.type).speed : 1.5;
             e.y += zSpeed;
             e.x += Math.sin(e.moveTimer * 0.03 + e.startX) * 0.6;
@@ -173,14 +166,14 @@ window.StageConfigs['zonbi'] = {
             if (e.y < e.targetY) {
                 e.y += (e.targetY - e.y) * 0.03;
             } else {
-                e.x = e.startX + Math.sin(e.moveTimer * 0.02 + e.headIndex * 1.5) * 40;
-                e.y = e.targetY + Math.cos(e.moveTimer * 0.035 + e.headIndex * 2.0) * 20;
+                // ★修正：顔（頭部）の移動幅と速度を拡張し、大蛇らしくもっとウネウネと広範囲に移動させる
+                e.x = e.startX + Math.sin(e.moveTimer * 0.03 + e.headIndex * 1.5) * 80;
+                e.y = e.targetY + Math.cos(e.moveTimer * 0.045 + e.headIndex * 2.0) * 50;
             }
         }
     },
 
     transformEnemy: function(e, ctx) {
-        // ★修正：クラッシュの原因となっていた stg.advManager の参照エラーを e.advManager に完全修正
         if (e.type.includes('zombie')) {
             const img = (e.advManager && e.advManager.assets) ? e.advManager.assets['zonbi.webp'] : null;
             if (img && img.naturalWidth > 0) {
