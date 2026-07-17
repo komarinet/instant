@@ -1,206 +1,314 @@
-const VER_3DBG_ZONBI = "0.1.3"; // 木のまばら配置、スクロールの上下逆転(引き撃ち表現)、首の表示と背景の溝修正
+const VER_3DBG = "0.8.0"; // バージョン更新（ステージ 'mind' への完全対応。既存の背景と競合しないようクリア処理を追加）
 
-window.BGZonbiManager = {
-    isActive: false,
-    sceneGroup: null,
-    scrollSpeed: 600, 
-    bgScrollY: 0,
-    trees: [],
-    necks: [], 
-    numNecks: 8,
-    timeCounter: 0,
-
-    init: function(bgManager) {
-        this.bgManager = bgManager;
-        if (!bgManager || !bgManager.scene) return;
-
-        if (this.isActive) this.dispose();
-
-        this.sceneGroup = new THREE.Group();
-        bgManager.scene.add(this.sceneGroup);
-
-        this.origCamY = bgManager.camera.position.y;
-        this.origCamRotX = bgManager.camera.rotation.x;
-        this.origFog = bgManager.scene.fog;
-
-        bgManager.camera.position.set(0, 180, 250); 
-        bgManager.camera.rotation.x = -Math.PI / 3.5; 
-
-        bgManager.scene.fog = new THREE.FogExp2(0x0a140a, 0.002);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
-        this.sceneGroup.add(ambientLight);
-        const dirLight = new THREE.DirectionalLight(0xaaffaa, 1.2); 
-        dirLight.position.set(0, 200, 100);
-        this.sceneGroup.add(dirLight);
-
-        // ★修正：溝をなくすため、通常のリピートとフィルタで滑らかにつなぐ
-        let tsutiTex = null;
-        if (window.advManager && window.advManager.assets['tsuti.webp']) {
-            tsutiTex = new THREE.CanvasTexture(window.advManager.assets['tsuti.webp']);
-            tsutiTex.needsUpdate = true;
-            tsutiTex.wrapS = THREE.RepeatWrapping;
-            tsutiTex.wrapT = THREE.RepeatWrapping;
-            tsutiTex.minFilter = THREE.LinearFilter;
-            tsutiTex.magFilter = THREE.LinearFilter;
-            tsutiTex.repeat.set(4, 4);
-        }
-        const groundGeo = new THREE.PlaneGeometry(4000, 4000);
-        const groundMat = new THREE.MeshStandardMaterial({
-            map: tsutiTex,
-            roughness: 0.9,
-            metalness: 0.1
-        });
-        this.ground = new THREE.Mesh(groundGeo, groundMat);
-        this.ground.rotation.x = -Math.PI / 2;
-        this.ground.position.set(0, 2, -800);
-        this.sceneGroup.add(this.ground);
-
-        let treeTex = null;
-        if (window.advManager && window.advManager.assets['tree.webp']) {
-            treeTex = new THREE.CanvasTexture(window.advManager.assets['tree.webp']);
-            treeTex.needsUpdate = true;
-        }
-        const treeMat = new THREE.MeshBasicMaterial({
-            map: treeTex,
-            transparent: true,
-            alphaTest: 0.5, 
-            side: THREE.DoubleSide
-        });
-
-        this.trees = [];
-        for (let i = 0; i < 80; i++) {
-            const treeGroup = new THREE.Group();
-            const treeW = 60;
-            const treeH = 140;
-            const planeGeo = new THREE.PlaneGeometry(treeW, treeH);
-
-            for (let j = 0; j < 4; j++) {
-                const p = new THREE.Mesh(planeGeo, treeMat);
-                p.rotation.y = (Math.PI / 4) * j;
-                p.position.y = treeH / 2; 
-                treeGroup.add(p);
-            }
-
-            // ★修正：よけずにフィールド全体にまばらに配置する
-            let tx = (Math.random() - 0.5) * 1000;
-            treeGroup.position.set(tx, 0, -Math.random() * 2000 + 200);
-            this.sceneGroup.add(treeGroup);
-            this.trees.push(treeGroup);
-        }
-
-        this.uroTex = null;
-        if (window.advManager && window.advManager.assets['yamauro.webp']) {
-            this.uroTex = new THREE.CanvasTexture(window.advManager.assets['yamauro.webp']);
-            this.uroTex.needsUpdate = true;
-            this.uroTex.wrapS = THREE.RepeatWrapping;
-            this.uroTex.wrapT = THREE.RepeatWrapping;
-            this.uroTex.repeat.set(1, 10);
-        }
+class BGManager3D {
+    constructor(canvasId) {
+        this.canvas = document.getElementById(canvasId);
+        this.isActive = false;
         
-        // ★修正：確実に明るく描画されるようにLambertに変更し、白く照らす
-        this.neckMat = new THREE.MeshLambertMaterial({
-            map: this.uroTex,
-            color: 0xffffff
-        });
+        this.scene = null;
+        this.camera = null;
+        this.renderer = null;
+        
+        this.ground = null;
+        this.buildings = [];
+        this.clouds = []; 
+        this.candles = []; 
+        
+        this.starField = null;
+        this.moon = null;
+        this.moonLight = null; 
 
-        this.necks = [];
-        this.isActive = true;
-        this.timeCounter = 0;
-    },
+        this.trenchGroup = null;
+        this.trenchFloorLeft = null;  
+        this.trenchFloorRight = null; 
+        this.trenchLeftWall = null;
+        this.trenchRightWall = null;
+        this.coreGroup = null;
+        this.coreBg = null;
+        this.coreReactor = null;
+        this.isCoreTransitioning = false; 
+        
+        this.textures = {
+            sideatlas: null,
+            topatlas: null,
+            ground: null,
+            ground2: null, 
+            candle: null,
+            moon: null,
+            trenchFloor: null, 
+            trenchWall: null, 
+            coreBg: null, 
+            coreReactor: null
+        };
+        this.textureAtlasSize = {
+            side: { cols: 3, rows: 2, count: 5 }, 
+            top: { cols: 4, rows: 3, count: 12 }   
+        };
+        this.scrollSpeed = 0.65; 
+        this.cloudScrollSpeed = 1.3; 
+        this.trenchScrollSpeed = 2.5; 
+        this.isLoaded = false;
+        
+        this.currentStage = 1;
+        this.stageKey = 'kagami'; 
+        this.flameMaterial = null;
+        this.lastTime = 0;
 
-    update: function(delta) {
-        if (!this.isActive) return;
+        if (!window._bgManagerInstance) {
+            window._bgManagerInstance = this;
+            const origFillText = CanvasRenderingContext2D.prototype.fillText;
+            CanvasRenderingContext2D.prototype.fillText = function(text, x, y, mw) {
+                if (typeof text === 'string' && text.includes('STAGE') && text.includes('START')) {
+                    const m = text.match(/STAGE\s+(\d+)/);
+                    if (m && window._bgManagerInstance) {
+                        const stageNum = parseInt(m[1], 10);
+                        if (window._bgManagerInstance.currentStage !== stageNum) {
+                            window._bgManagerInstance.setStage(stageNum);
+                        }
+                    }
+                }
+                if (mw !== undefined) return origFillText.call(this, text, x, y, mw);
+                return origFillText.call(this, text, x, y);
+            };
+        } else {
+            window._bgManagerInstance = this;
+        }
+    }
 
-        if (window.currentStage !== 6 || (window.stgManager && window.stgManager.stgId !== 'zonbi')) {
-            this.dispose();
+    preload(images, callback) {
+        if (!images || images.length === 0) {
+            this.isLoaded = true;
+            callback();
             return;
         }
 
-        if (this.bgManager.trenchGroup) this.bgManager.trenchGroup.visible = false;
-        if (this.bgManager.coreGroup) this.bgManager.coreGroup.visible = false;
-        if (this.bgManager.ground && this.bgManager.ground !== this.ground) this.bgManager.ground.visible = false;
+        let loaded = 0;
+        const total = images.length;
+        const textureLoader = new THREE.TextureLoader();
 
-        this.timeCounter += delta * 0.05;
-
-        // ★修正：自機が逃げる（後退する）表現のため、スクロール方向を下から上へ（手前から奥へ）加算する
-        if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y += (this.scrollSpeed / 1000) * delta;
-        }
-
-        // ★修正：木も手前から奥へスクロールして消えていくようにする
-        this.trees.forEach(t => {
-            t.position.z -= this.scrollSpeed * delta; 
-            if (t.position.z < -2000) { // 奥に消えたら手前に再配置
-                t.position.z += 2300;
-                t.position.x = (Math.random() - 0.5) * 1000; // まばらに再配置
+        const checkComplete = () => {
+            loaded++;
+            if (loaded >= total) {
+                this.isLoaded = true;
+                callback();
             }
+        };
+        images.forEach(imgData => {
+            const key = imgData.key;
+            const src = `img/${imgData.src}`;
+            textureLoader.load(
+                src, 
+                (texture) => {
+                    this.textures[key] = texture;
+                    checkComplete();
+                }, 
+                undefined, 
+                (err) => {
+                    console.error(`Failed to load texture: ${src}`, err);
+                    checkComplete(); 
+                }
+            );
         });
-
-        if (window.stgManager && window.stgManager.bossSpawned && window.stgManager.enemies.length > 0) {
-            this.updateOrochiNecks(delta);
-        } else {
-            this.clearNecks();
-        }
-    },
-
-    updateOrochiNecks: function(delta) {
-        this.clearNecks();
-
-        const stg = window.stgManager;
-        const heads = stg.enemies.filter(e => e.type === 'orochi_head');
-
-        heads.forEach((h, index) => {
-            const canvas = document.getElementById('gameCanvas');
-            const dpr = window.devicePixelRatio || 1;
-            const sW = canvas.width / dpr;
-            const sH = canvas.height / dpr;
-
-            // ★修正：画面にハッキリと太く映るようにZ座標とY座標を手前に調整
-            const target3dX = ((h.x / sW) - 0.5) * 400;
-            const target3dZ = ((h.y / sH) - 0.5) * 200 + 50; 
-            const target3dY = 20; 
-
-            const startX = ((index - 3.5) * 60); 
-            const startZ = -300; 
-            const startY = 100; 
-
-            const waveOffset1 = Math.sin(this.timeCounter * 2.0 + index * 4.0) * 80;
-            const waveOffset2 = Math.cos(this.timeCounter * 2.5 + index * 2.0) * 60;
-
-            const curve = new THREE.CatmullRomCurve3([
-                new THREE.Vector3(startX, startY, startZ),
-                new THREE.Vector3(startX + waveOffset1, (startY + target3dY) / 2 + 30, (startZ + target3dZ) / 2),
-                new THREE.Vector3(target3dX + waveOffset2, target3dY + 20, target3dZ - 50),
-                new THREE.Vector3(target3dX, target3dY, target3dZ)
-            ]);
-
-            // ★修正：首をさらに太く(radius: 15.0)して迫力を出す
-            const tubeGeo = new THREE.TubeGeometry(curve, 20, 15.0, 8, false);
-            const tubeMesh = new THREE.Mesh(tubeGeo, this.neckMat);
-            
-            this.sceneGroup.add(tubeMesh);
-            this.necks.push(tubeMesh);
-        });
-    },
-
-    clearNecks: function() {
-        this.necks.forEach(mesh => {
-            if (this.sceneGroup) this.sceneGroup.remove(mesh);
-            if (mesh.geometry) mesh.geometry.dispose();
-        });
-        this.necks = [];
-    },
-
-    dispose: function() {
-        if (!this.isActive) return;
-        this.clearNecks();
-        if (this.sceneGroup && this.bgManager) {
-            this.bgManager.scene.remove(this.sceneGroup);
-            this.bgManager.camera.position.set(0, 60, 0);
-            this.bgManager.camera.rotation.x = this.origCamRotX;
-            this.bgManager.scene.fog = this.origFog;
-        }
-        this.isActive = false;
     }
-};
+
+    init() {
+        if (!this.canvas || typeof THREE === 'undefined') return;
+        if (!this.isLoaded) return;
+        
+        const dpr = window.devicePixelRatio || 1;
+        this.renderer = new THREE.WebGLRenderer({
+            canvas: this.canvas,
+            antialias: false, 
+            alpha: true 
+        });
+        this.renderer.setPixelRatio(dpr);
+        const width = this.canvas.clientWidth || window.innerWidth;
+        const height = this.canvas.clientHeight || window.innerHeight;
+        this.renderer.setSize(width, height, false);
+        this.renderer.setClearColor(0x000000, 0);
+        this.scene = new THREE.Scene();
+        this.scene.fog = new THREE.Fog(0x0a0a14, 50, 300); 
+
+        this.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 8000);
+        this.camera.position.set(0, 60, 0); 
+        this.camera.rotation.x = -Math.PI / 2.5; 
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.4); 
+        this.scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(10, 50, -20); 
+        directionalLight.castShadow = false; 
+        this.scene.add(directionalLight);
+
+        this.renderer.shadowMap.enabled = false;
+        if (window.BG3DObjects) {
+            window.BG3DObjects.createGround(this);
+            window.BG3DObjects.createBuildings(this);
+            window.BG3DObjects.createClouds(this);
+            window.BG3DObjects.createCandles(this);
+            window.BG3DObjects.createSpace(this);
+            window.BG3DObjects.createFinalStage(this);
+        }
+
+        this.isActive = true;
+        this.lastTime = performance.now();
+        this.loop(this.lastTime);
+    }
+
+    transitionToCore() {
+        this.isCoreTransitioning = true;
+    }
+
+    setStage(stageNum) {
+        this.currentStage = stageNum;
+        if (!this.ground || !this.ground.material) return;
+        
+        let stageKey = 'kagami';
+        let charId = window.selectedCharId || 'igari';
+        if (charId === 'shiina') charId = 'mamoru';
+
+        if (typeof characters !== 'undefined' && Array.isArray(characters)) {
+            const foundChar = characters.find(c => c.id === charId);
+            if (foundChar && foundChar.stages && foundChar.stages[stageNum - 1]) {
+                stageKey = foundChar.stages[stageNum - 1];
+            }
+        }
+        
+        if (window.stgManager && window.stgManager.stgId) {
+            stageKey = window.stgManager.stgId;
+        }
+
+        this.stageKey = stageKey;
+
+        let visualMode = stageNum;
+        if (stageKey === 'kagami' || stageKey === 'stage1') visualMode = 1;
+        else if (stageKey === 'hiragi' || stageKey === 'stage2') visualMode = 2;
+        else if (stageKey === 'godai' || stageKey === 'stage5') visualMode = 5;
+        else if (stageKey === 'final' || stageKey === 'stage6') visualMode = 6;
+        else if (stageKey === 'eiji') visualMode = 99; 
+        else if (stageKey === 'mind') visualMode = 98; // ★精神世界用の識別を追加
+        
+        this.ground.visible = false;
+        this.buildings.forEach(b => b.visible = false);
+        this.candles.forEach(c => c.visible = false);
+        this.clouds.forEach(c => c.visible = (visualMode === 1 || visualMode === 3 || visualMode === 4));
+        if (this.starField) this.starField.visible = false;
+        if (this.moon) this.moon.visible = false;
+        if (this.moonLight) this.moonLight.visible = false;
+        if (this.trenchGroup) this.trenchGroup.visible = false;
+        if (this.coreGroup) this.coreGroup.visible = false;
+        this.isCoreTransitioning = false;
+        
+        const aspectFactor = Math.min(1, this.camera.aspect);
+
+        if (visualMode === 99) {
+            this.scene.fog.near = 9999999;
+            this.scene.fog.far = 10000000;
+            this.renderer.setClearColor(0x000000, 1);
+        }
+        else if (visualMode === 98) { 
+            // ★追加：精神世界の時は背景の地面を絶対に出さず、赤黒い霧を設定する
+            this.scene.fog = new THREE.FogExp2(0x1a0505, 0.002);
+            this.renderer.setClearColor(0x000000, 0);
+        }
+        else if (visualMode === 6) { 
+            this.scene.fog.near = 100;
+            this.scene.fog.far = 1200; 
+            this.scene.fog.color.setHex(0x050505); 
+            this.renderer.setClearColor(0x000000, 1); 
+            
+            if (this.trenchGroup) {
+                this.trenchGroup.visible = true;
+                const edgeX = 90 * this.camera.aspect; 
+                this.trenchLeftWall.position.x = -edgeX;
+                this.trenchRightWall.position.x = edgeX;
+                if (this.trenchFloorLeft) {
+                    this.trenchFloorLeft.position.x = -500;
+                    this.trenchFloorRight.position.x = 500;
+                }
+            }
+            if (this.coreGroup) {
+                this.coreGroup.visible = true;
+                this.coreGroup.position.y = 0; 
+                if (this.coreReactor) this.coreReactor.scale.set(aspectFactor, aspectFactor, aspectFactor);
+            }
+        } 
+        else if (visualMode === 5) {
+            this.scene.fog.near = 9999999;
+            this.scene.fog.far = 10000000; 
+            this.renderer.setClearColor(0x000000, 1); 
+            
+            if (this.starField) {
+                this.starField.visible = true;
+                this.starField.position.set(0, -2500, -800);
+            }
+            if (this.moon) {
+                this.moon.visible = true;
+                this.moon.position.set(0, -4500, -1200); 
+                this.moon.scale.set(0.6 * aspectFactor, 0.6 * aspectFactor, 0.6 * aspectFactor);
+            }
+            if (this.moonLight) this.moonLight.visible = true;
+        } else if (visualMode === 2) {
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300; 
+            this.scene.fog.color.setHex(0x0a0a14);
+            this.renderer.setClearColor(0x000000, 0);
+
+            this.ground.visible = true;
+            if (this.textures.ground2) {
+                this.ground.material.map = this.textures.ground2;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.repeat.set(4, -10); 
+                this.ground.material.needsUpdate = true;
+            }
+            this.candles.forEach(c => c.visible = true);
+        } else {
+            this.scene.fog.near = 50;
+            this.scene.fog.far = 300;
+            this.scene.fog.color.setHex(0x0a0a14);
+            this.renderer.setClearColor(0x000000, 0);
+
+            this.ground.visible = true;
+            if (this.textures.ground) {
+                this.ground.material.map = this.textures.ground;
+                this.ground.material.map.wrapS = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.wrapT = THREE.MirroredRepeatWrapping;
+                this.ground.material.map.repeat.set(4, 10);
+                this.ground.material.needsUpdate = true;
+            }
+            
+            if (visualMode === 3 || visualMode === 4) {
+                this.buildings.forEach(b => b.visible = false);
+            } else {
+                this.buildings.forEach(b => b.visible = true);
+            }
+        }
+    }
+
+    loop(timestamp) {
+        if (!this.isActive) return;
+        if (!timestamp) timestamp = performance.now();
+        let delta = (timestamp - this.lastTime) / (1000 / 60); 
+        this.lastTime = timestamp;
+        if (delta > 3.0) delta = 3.0; 
+
+        if (typeof currentStage !== 'undefined') {
+            if (this.currentStage !== currentStage) {
+                this.setStage(currentStage);
+            }
+        }
+
+        if (this.stageKey === 'eiji') {
+            requestAnimationFrame((ts) => this.loop(ts));
+            return;
+        }
+
+        if (window.BG3DObjects) {
+            window.BG3DObjects.updateAnimations(this, delta);
+        }
+
+        this.renderer.render(this.scene, this.camera);
+        requestAnimationFrame((ts) => this.loop(ts));
+    }
+}
