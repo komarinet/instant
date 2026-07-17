@@ -1,9 +1,9 @@
-const VER_3DBG_ZONBI = "0.1.2"; // 背景スクロール速度の正常化、首のウネウネをより激しく修正
+const VER_3DBG_ZONBI = "0.1.3"; // 木のまばら配置、スクロールの上下逆転(引き撃ち表現)、首の表示と背景の溝修正
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 600, // ★修正：3D用の適切なスピード数値に大幅引き上げ（背景が動くようになります）
+    scrollSpeed: 600, 
     bgScrollY: 0,
     trees: [],
     necks: [], 
@@ -28,19 +28,22 @@ window.BGZonbiManager = {
 
         bgManager.scene.fog = new THREE.FogExp2(0x0a140a, 0.002);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
         this.sceneGroup.add(ambientLight);
         const dirLight = new THREE.DirectionalLight(0xaaffaa, 1.2); 
         dirLight.position.set(0, 200, 100);
         this.sceneGroup.add(dirLight);
 
+        // ★修正：溝をなくすため、通常のリピートとフィルタで滑らかにつなぐ
         let tsutiTex = null;
         if (window.advManager && window.advManager.assets['tsuti.webp']) {
             tsutiTex = new THREE.CanvasTexture(window.advManager.assets['tsuti.webp']);
             tsutiTex.needsUpdate = true;
-            tsutiTex.wrapS = THREE.MirroredRepeatWrapping;
-            tsutiTex.wrapT = THREE.MirroredRepeatWrapping;
-            tsutiTex.repeat.set(10, 10);
+            tsutiTex.wrapS = THREE.RepeatWrapping;
+            tsutiTex.wrapT = THREE.RepeatWrapping;
+            tsutiTex.minFilter = THREE.LinearFilter;
+            tsutiTex.magFilter = THREE.LinearFilter;
+            tsutiTex.repeat.set(4, 4);
         }
         const groundGeo = new THREE.PlaneGeometry(4000, 4000);
         const groundMat = new THREE.MeshStandardMaterial({
@@ -79,9 +82,8 @@ window.BGZonbiManager = {
                 treeGroup.add(p);
             }
 
+            // ★修正：よけずにフィールド全体にまばらに配置する
             let tx = (Math.random() - 0.5) * 1000;
-            if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
-
             treeGroup.position.set(tx, 0, -Math.random() * 2000 + 200);
             this.sceneGroup.add(treeGroup);
             this.trees.push(treeGroup);
@@ -95,11 +97,11 @@ window.BGZonbiManager = {
             this.uroTex.wrapT = THREE.RepeatWrapping;
             this.uroTex.repeat.set(1, 10);
         }
-        this.neckMat = new THREE.MeshStandardMaterial({
+        
+        // ★修正：確実に明るく描画されるようにLambertに変更し、白く照らす
+        this.neckMat = new THREE.MeshLambertMaterial({
             map: this.uroTex,
-            color: 0x666666,
-            roughness: 0.4,
-            metalness: 0.5
+            color: 0xffffff
         });
 
         this.necks = [];
@@ -121,18 +123,17 @@ window.BGZonbiManager = {
 
         this.timeCounter += delta * 0.05;
 
-        // ★修正：スクロールスピードの計算式を修正し、地面がしっかり動くように
+        // ★修正：自機が逃げる（後退する）表現のため、スクロール方向を下から上へ（手前から奥へ）加算する
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
+            this.ground.material.map.offset.y += (this.scrollSpeed / 1000) * delta;
         }
 
+        // ★修正：木も手前から奥へスクロールして消えていくようにする
         this.trees.forEach(t => {
-            t.position.z += this.scrollSpeed * delta;
-            if (t.position.z > 300) {
-                t.position.z -= 2300;
-                let tx = (Math.random() - 0.5) * 1000;
-                if (tx > -120 && tx < 120) tx += (tx > 0 ? 150 : -150);
-                t.position.x = tx;
+            t.position.z -= this.scrollSpeed * delta; 
+            if (t.position.z < -2000) { // 奥に消えたら手前に再配置
+                t.position.z += 2300;
+                t.position.x = (Math.random() - 0.5) * 1000; // まばらに再配置
             }
         });
 
@@ -155,15 +156,15 @@ window.BGZonbiManager = {
             const sW = canvas.width / dpr;
             const sH = canvas.height / dpr;
 
-            const target3dX = ((h.x / sW) - 0.5) * 350;
-            const target3dZ = ((h.y / sH) - 0.5) * 400 - 150;
-            const target3dY = 40; 
+            // ★修正：画面にハッキリと太く映るようにZ座標とY座標を手前に調整
+            const target3dX = ((h.x / sW) - 0.5) * 400;
+            const target3dZ = ((h.y / sH) - 0.5) * 200 + 50; 
+            const target3dY = 20; 
 
-            const startX = ((index - 3.5) * 40); 
-            const startZ = -700;
-            const startY = 150; 
+            const startX = ((index - 3.5) * 60); 
+            const startZ = -300; 
+            const startY = 100; 
 
-            // ★修正：3Dの首のウネウネをさらに激しく、大蛇らしく動かす
             const waveOffset1 = Math.sin(this.timeCounter * 2.0 + index * 4.0) * 80;
             const waveOffset2 = Math.cos(this.timeCounter * 2.5 + index * 2.0) * 60;
 
@@ -174,7 +175,8 @@ window.BGZonbiManager = {
                 new THREE.Vector3(target3dX, target3dY, target3dZ)
             ]);
 
-            const tubeGeo = new THREE.TubeGeometry(curve, 20, 6.0, 8, false);
+            // ★修正：首をさらに太く(radius: 15.0)して迫力を出す
+            const tubeGeo = new THREE.TubeGeometry(curve, 20, 15.0, 8, false);
             const tubeMesh = new THREE.Mesh(tubeGeo, this.neckMat);
             
             this.sceneGroup.add(tubeMesh);
