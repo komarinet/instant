@@ -1,9 +1,9 @@
-const VER_3DBG_ZONBI = "0.1.4"; // 前進スクロールへの修正、木との同期、オロチの3D首の描画安定化
+const VER_3DBG_ZONBI = "0.1.5"; // 背景と木のスクロール方向・速度の完全同期（上から下へ流れる前進表現）
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 700, // スピード調整
+    scrollSpeed: 600, 
     trees: [],
     necks: [], 
     timeCounter: 0,
@@ -92,7 +92,6 @@ window.BGZonbiManager = {
             this.uroTex.repeat.set(1, 10);
         }
         
-        // ★修正：3D首が暗闇に紛れないよう明るく照らす設定
         this.neckMat = new THREE.MeshLambertMaterial({
             map: this.uroTex,
             color: 0xffffff,
@@ -118,11 +117,13 @@ window.BGZonbiManager = {
 
         this.timeCounter += delta * 0.05;
 
-        // ★修正：前進表現。テクスチャは下へ、木々はカメラ（手前）へ向かってくる
+        // ★修正：前進表現（画面上では「上から下へ」背景が流れる）
+        // 4000の広さに対してrepeatが4なので、1000につきoffset1.0動かすと木と完全同期します
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
+            this.ground.material.map.offset.y += (this.scrollSpeed / 1000) * delta;
         }
 
+        // ★修正：木は奥（-Z）から手前（+Z）へ向かってくる
         this.trees.forEach(t => {
             t.position.z += this.scrollSpeed * delta; 
             if (t.position.z > 300) { 
@@ -142,11 +143,10 @@ window.BGZonbiManager = {
         const stg = window.stgManager;
         const heads = stg.enemies.filter(e => e.type === 'orochi_head' && !e.isDying);
 
-        // ★修正：毎フレームオブジェクトを作り直す処理を廃止し、ジオメトリ（形）だけを更新してバグを防ぐ
         while (this.necks.length < 8) {
             const dummyCurve = new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0));
             const mesh = new THREE.Mesh(new THREE.TubeGeometry(dummyCurve, 20, 12.0, 8, false), this.neckMat);
-            mesh.frustumCulled = false; // 画面外判定による消失を防ぐ
+            mesh.frustumCulled = false; 
             this.sceneGroup.add(mesh);
             this.necks.push(mesh);
         }
