@@ -1,13 +1,11 @@
-const VER_3DBG_ZONBI = "0.1.3"; // 木のまばら配置、スクロールの上下逆転(引き撃ち表現)、首の表示と背景の溝修正
+const VER_3DBG_ZONBI = "0.1.4"; // 前進スクロールへの修正、木との同期、オロチの3D首の描画安定化
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 600, 
-    bgScrollY: 0,
+    scrollSpeed: 700, // スピード調整
     trees: [],
     necks: [], 
-    numNecks: 8,
     timeCounter: 0,
 
     init: function(bgManager) {
@@ -34,15 +32,12 @@ window.BGZonbiManager = {
         dirLight.position.set(0, 200, 100);
         this.sceneGroup.add(dirLight);
 
-        // ★修正：溝をなくすため、通常のリピートとフィルタで滑らかにつなぐ
         let tsutiTex = null;
         if (window.advManager && window.advManager.assets['tsuti.webp']) {
             tsutiTex = new THREE.CanvasTexture(window.advManager.assets['tsuti.webp']);
             tsutiTex.needsUpdate = true;
             tsutiTex.wrapS = THREE.RepeatWrapping;
             tsutiTex.wrapT = THREE.RepeatWrapping;
-            tsutiTex.minFilter = THREE.LinearFilter;
-            tsutiTex.magFilter = THREE.LinearFilter;
             tsutiTex.repeat.set(4, 4);
         }
         const groundGeo = new THREE.PlaneGeometry(4000, 4000);
@@ -82,8 +77,7 @@ window.BGZonbiManager = {
                 treeGroup.add(p);
             }
 
-            // ★修正：よけずにフィールド全体にまばらに配置する
-            let tx = (Math.random() - 0.5) * 1000;
+            let tx = (Math.random() - 0.5) * 1500;
             treeGroup.position.set(tx, 0, -Math.random() * 2000 + 200);
             this.sceneGroup.add(treeGroup);
             this.trees.push(treeGroup);
@@ -98,10 +92,11 @@ window.BGZonbiManager = {
             this.uroTex.repeat.set(1, 10);
         }
         
-        // ★修正：確実に明るく描画されるようにLambertに変更し、白く照らす
+        // ★修正：3D首が暗闇に紛れないよう明るく照らす設定
         this.neckMat = new THREE.MeshLambertMaterial({
             map: this.uroTex,
-            color: 0xffffff
+            color: 0xffffff,
+            emissive: 0x110000 
         });
 
         this.necks = [];
@@ -123,32 +118,40 @@ window.BGZonbiManager = {
 
         this.timeCounter += delta * 0.05;
 
-        // ★修正：自機が逃げる（後退する）表現のため、スクロール方向を下から上へ（手前から奥へ）加算する
+        // ★修正：前進表現。テクスチャは下へ、木々はカメラ（手前）へ向かってくる
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y += (this.scrollSpeed / 1000) * delta;
+            this.ground.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
         }
 
-        // ★修正：木も手前から奥へスクロールして消えていくようにする
         this.trees.forEach(t => {
-            t.position.z -= this.scrollSpeed * delta; 
-            if (t.position.z < -2000) { // 奥に消えたら手前に再配置
-                t.position.z += 2300;
-                t.position.x = (Math.random() - 0.5) * 1000; // まばらに再配置
+            t.position.z += this.scrollSpeed * delta; 
+            if (t.position.z > 300) { 
+                t.position.z -= 2300;
+                t.position.x = (Math.random() - 0.5) * 1500; 
             }
         });
 
         if (window.stgManager && window.stgManager.bossSpawned && window.stgManager.enemies.length > 0) {
             this.updateOrochiNecks(delta);
         } else {
-            this.clearNecks();
+            this.necks.forEach(n => n.visible = false);
         }
     },
 
     updateOrochiNecks: function(delta) {
-        this.clearNecks();
-
         const stg = window.stgManager;
-        const heads = stg.enemies.filter(e => e.type === 'orochi_head');
+        const heads = stg.enemies.filter(e => e.type === 'orochi_head' && !e.isDying);
+
+        // ★修正：毎フレームオブジェクトを作り直す処理を廃止し、ジオメトリ（形）だけを更新してバグを防ぐ
+        while (this.necks.length < 8) {
+            const dummyCurve = new THREE.LineCurve3(new THREE.Vector3(0,0,0), new THREE.Vector3(0,1,0));
+            const mesh = new THREE.Mesh(new THREE.TubeGeometry(dummyCurve, 20, 12.0, 8, false), this.neckMat);
+            mesh.frustumCulled = false; // 画面外判定による消失を防ぐ
+            this.sceneGroup.add(mesh);
+            this.necks.push(mesh);
+        }
+
+        this.necks.forEach(n => n.visible = false);
 
         heads.forEach((h, index) => {
             const canvas = document.getElementById('gameCanvas');
@@ -156,45 +159,40 @@ window.BGZonbiManager = {
             const sW = canvas.width / dpr;
             const sH = canvas.height / dpr;
 
-            // ★修正：画面にハッキリと太く映るようにZ座標とY座標を手前に調整
-            const target3dX = ((h.x / sW) - 0.5) * 400;
-            const target3dZ = ((h.y / sH) - 0.5) * 200 + 50; 
-            const target3dY = 20; 
+            const target3dX = ((h.x / sW) - 0.5) * 450;
+            const target3dZ = ((h.y / sH) - 0.5) * 350 + 50; 
+            const target3dY = 30; 
 
-            const startX = ((index - 3.5) * 60); 
-            const startZ = -300; 
-            const startY = 100; 
+            const startX = ((h.headIndex - 3.5) * 50); 
+            const startZ = -600; 
+            const startY = 180; 
 
-            const waveOffset1 = Math.sin(this.timeCounter * 2.0 + index * 4.0) * 80;
-            const waveOffset2 = Math.cos(this.timeCounter * 2.5 + index * 2.0) * 60;
+            const waveOffset1 = Math.sin(this.timeCounter * 2.0 + h.headIndex * 4.0) * 80;
+            const waveOffset2 = Math.cos(this.timeCounter * 2.5 + h.headIndex * 2.0) * 60;
 
             const curve = new THREE.CatmullRomCurve3([
                 new THREE.Vector3(startX, startY, startZ),
-                new THREE.Vector3(startX + waveOffset1, (startY + target3dY) / 2 + 30, (startZ + target3dZ) / 2),
-                new THREE.Vector3(target3dX + waveOffset2, target3dY + 20, target3dZ - 50),
+                new THREE.Vector3(startX + waveOffset1, startY - 40, startZ + 200),
+                new THREE.Vector3(target3dX + waveOffset2, target3dY + 50, target3dZ - 100),
                 new THREE.Vector3(target3dX, target3dY, target3dZ)
             ]);
 
-            // ★修正：首をさらに太く(radius: 15.0)して迫力を出す
-            const tubeGeo = new THREE.TubeGeometry(curve, 20, 15.0, 8, false);
-            const tubeMesh = new THREE.Mesh(tubeGeo, this.neckMat);
-            
-            this.sceneGroup.add(tubeMesh);
-            this.necks.push(tubeMesh);
+            const mesh = this.necks[h.headIndex];
+            if (mesh) {
+                if(mesh.geometry) mesh.geometry.dispose();
+                mesh.geometry = new THREE.TubeGeometry(curve, 20, 12.0, 8, false);
+                mesh.visible = true;
+            }
         });
     },
 
-    clearNecks: function() {
+    dispose: function() {
+        if (!this.isActive) return;
         this.necks.forEach(mesh => {
             if (this.sceneGroup) this.sceneGroup.remove(mesh);
             if (mesh.geometry) mesh.geometry.dispose();
         });
         this.necks = [];
-    },
-
-    dispose: function() {
-        if (!this.isActive) return;
-        this.clearNecks();
         if (this.sceneGroup && this.bgManager) {
             this.bgManager.scene.remove(this.sceneGroup);
             this.bgManager.camera.position.set(0, 60, 0);
