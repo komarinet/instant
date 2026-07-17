@@ -1,10 +1,9 @@
-const VER_STG_ZONBI = "0.2.3"; // オロチのHPを3倍(3000)に引き上げ
+const VER_STG_ZONBI = "0.2.4"; // オロチの顔のウネウネ強化、座標保持の修正
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['zonbi'] = {
     init: function(stg, canvas) {
         stg.bossSpawned = false;
-        // ★修正：ボスの最大HPを3倍の3000に強化
         stg.totalBossMaxHp = 3000; 
         stg.totalBossHp = stg.totalBossMaxHp;
         stg.lastActiveHeadsCount = 8; 
@@ -41,7 +40,6 @@ window.StageConfigs['zonbi'] = {
         if (type === 'zombie_3') return { size: 26, hp: 3, maxHp: 3, speed: 1.8 }; 
         if (type === 'zombie_4') return { size: 24, hp: 4, maxHp: 4, speed: 1.5 }; 
 
-        // ★修正：1本あたりのHPも3倍の375に強化
         if (type === 'orochi_head') return { imgSrc: 'yamahead.webp', size: 45, hp: 375, maxHp: 375, isBoss: true };
     },
 
@@ -50,7 +48,10 @@ window.StageConfigs['zonbi'] = {
             let hX = sW * 0.12 + i * (sW * 0.11);
             let head = new Enemy('orochi_head', hX, -100, stg.player.charData, stg.advManager, stg.stgId);
             head.headIndex = i; 
-            head.targetY = sH * 0.2 + (i % 2) * 30; 
+            // ★修正：初期位置を保存して、ウネウネ計算の基準点をブレさせない
+            head.startX = hX;
+            head.baseY = sH * 0.2 + (i % 2) * 40; 
+            head.targetY = head.baseY;
             
             head.draw = function(ctx) {
                 if (this.isHidden || !this.alive) return;
@@ -129,7 +130,6 @@ window.StageConfigs['zonbi'] = {
                 }
             }
 
-            // ★修正：計算式を375に変更
             let expectedHeadsCount = Math.ceil(stg.totalBossHp / 375);
             if (stg.totalBossHp <= 0) expectedHeadsCount = 0;
 
@@ -164,11 +164,12 @@ window.StageConfigs['zonbi'] = {
         }
 
         if (e.type === 'orochi_head') {
-            if (e.y < e.targetY) {
-                e.y += (e.targetY - e.y) * 0.03;
+            if (e.y < e.baseY && e.moveTimer < 100) {
+                e.y += (e.baseY - e.y) * 0.05;
             } else {
-                e.x = e.startX + Math.sin(e.moveTimer * 0.03 + e.headIndex * 1.5) * 80;
-                e.y = e.targetY + Math.cos(e.moveTimer * 0.045 + e.headIndex * 2.0) * 50;
+                // ★修正：大蛇が暴れ回るよう、顔の移動幅を大幅に拡大 (X方向±120px、Y方向±80px)
+                e.x = e.startX + Math.sin(e.moveTimer * 0.03 + e.headIndex * 1.5) * 120;
+                e.y = e.baseY + Math.cos(e.moveTimer * 0.045 + e.headIndex * 2.0) * 80;
             }
         }
     },
