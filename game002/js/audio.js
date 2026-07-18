@@ -1,4 +1,4 @@
-export const VER_AUDIO = "0.5.0"; // バージョン更新（全てoggに変更、stage_invaderを追加）
+export const VER_AUDIO = "0.6.0"; // バージョン更新（精神世界・ゾンビ山・オロチ戦のBGM4曲を追加）
 
 export const soundManager = {
     bgm: {},
@@ -93,10 +93,28 @@ export const soundManager = {
         this.bgm['eiji'].loop = true;
         this.bgm['eiji'].volume = 0.4;
         
-        // ★追加：インベーダーステージ BGM
+        // インベーダーステージ BGM
         this.bgm['stage_invader'] = new Audio('bgm/stage_invader.ogg');
         this.bgm['stage_invader'].loop = true;
         this.bgm['stage_invader'].volume = 0.4;
+
+        // ★追加：精神世界ステージ BGM
+        this.bgm['stage_mind'] = new Audio('bgm/stage_mental.ogg');
+        this.bgm['stage_mind'].loop = true;
+        this.bgm['stage_mind'].volume = 0.4;
+
+        // ★追加：ゾンビ山・オロチ戦ステージ BGM
+        this.bgm['stage_zonbi'] = new Audio('bgm/stage_zonbi.ogg');
+        this.bgm['stage_zonbi'].loop = true;
+        this.bgm['stage_zonbi'].volume = 0.4;
+
+        this.bgm['boss_zonbi'] = new Audio('bgm/boss_zonbi.ogg');
+        this.bgm['boss_zonbi'].loop = true;
+        this.bgm['boss_zonbi'].volume = 0.4;
+
+        this.bgm['boss_zonbi2'] = new Audio('bgm/boss_zonbi2.ogg');
+        this.bgm['boss_zonbi2'].loop = true;
+        this.bgm['boss_zonbi2'].volume = 0.4;
 
         // --- SE（効果音） ---
         this.se['smallb'] = new Audio('se/smallb.ogg');
