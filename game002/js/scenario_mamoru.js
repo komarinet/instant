@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.7.4"; // ステージ6のシナリオを追加
+const VER_SCENARIO_MAMORU = "0.7.5"; // ステージ6のBGM切り替え演出（boss_zonbi, boss_zonbi2）を組み込み
  
 window.scenarios = window.scenarios || {};
  
@@ -460,7 +460,8 @@ scenarios.mamoru = {
         ],
         mid_stg: [
             { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、実在したのか、お前', delay: 60, isRight: false, bgm: 'stop' },
-            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '人々が我が存在を忘れただけよ', isRight: true, bgm: 'dark' },
+            // ★変更：ヤマタノオロチ登場でBGMを boss_zonbi に切り替え
+            { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '人々が我が存在を忘れただけよ', isRight: true, bgm: 'boss_zonbi' },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'お陰で封印の力も消え去り、自由の身になれた', isRight: true },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '残念だったな。バカンスはもう終わりだ', isRight: false },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '神宮寺の代わりがこいつか。運命ってのはどうしても俺を殺したいらしい', isRight: false },
@@ -469,7 +470,7 @@ scenarios.mamoru = {
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 3, speaker: '護(裏)', text: 'やってみねーとわかんねぇだろ？　行くぜ！', isRight: false, effect: 'shake' }
         ],
         mid1_adv: [
-            { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はあ・・・はあ・・・底なしかよ', delay: 60, isRight: false, bgm: 'dark' },
+            { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'はあ・・・はあ・・・底なしかよ', delay: 60, isRight: false },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '弱い。弱すぎる。かようにも手応えがないものか', isRight: true },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '悪ぃな、最近家督を継いだばかりでよ', isRight: false },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: '時期が早かったと？　それも貴様の運よ', isRight: true },
@@ -477,7 +478,8 @@ scenarios.mamoru = {
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'くそぉーーーーー！', isRight: false, effect: 'shake' },
             { bg: 'sumika.webp', effect: 'whiteout', se: 'vibration.mp3', text: '' },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'な、なんだこれは', isRight: true, bgm: 'stop' },
-            { bg: 'sumika.webp', speaker: '？？？', text: '量子バリアだ。1500年前にはなかっただろ？', isRight: true, bgm: 'relax' },
+            // ★変更：猪狩（量子バリア）の登場で boss_zonbi2 に切り替え
+            { bg: 'sumika.webp', speaker: '？？？', text: '量子バリアだ。1500年前にはなかっただろ？', isRight: true, bgm: 'boss_zonbi2' },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '・・・お前', isRight: false },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'あ、今もないか。こっちの世界は', isRight: true },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'なんだ、貴様は！', isRight: true, effect: 'shake' },
@@ -502,7 +504,6 @@ scenarios.mamoru = {
         ],
         ending: [
             { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'ぐああーーーー！', delay: 60, isRight: true, effect: 'shake', bgm: 'stop' },
-            // ボスが消え去る演出としてキャラのみ消去
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'やったのか？', isRight: false, bgm: 'relax' },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'コアの消滅を確認した。ヤマタノオロチはこの世界から消し飛んだぜ', isRight: true },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '・・・礼は言わんぞ', isRight: false },
@@ -511,9 +512,9 @@ scenarios.mamoru = {
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 3, speaker: '猪狩', text: 'じゃ、俺行くわ', isRight: true },
             { bg: 'sumika.webp', item: 'mask.webp', se: 'vibration.mp3', text: '' },
             { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 4, speaker: '護', text: '猪狩！　ごめん、なかなか仮面が外せなくて', isRight: false },
-            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: 'あいつは言わないつもりだったけど、僕は絶対に言いたくて・・・ありがとう！', isRight: false },
+            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: 'これだけは僕の言葉でいわせてくれ・・・ありがとう！', isRight: false },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'お互い様だっつーの。じゃあな', isRight: true },
-            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 1, speaker: '護', text: '・・・', isRight: false }
+            { bg: 'sumika.webp', character: 'shiina.webp', spriteIndex: 0, speaker: '護', text: '・・・', isRight: false }
         ]
     }
 };
