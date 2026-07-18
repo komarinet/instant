@@ -1,9 +1,9 @@
-const VER_3DBG_ZONBI = "0.1.5"; // 背景と木のスクロール方向・速度の完全同期（上から下へ流れる前進表現）
+const VER_3DBG_ZONBI = "0.1.6"; // 首のCGが出ないスコープエラーを修正
 
 window.BGZonbiManager = {
     isActive: false,
     sceneGroup: null,
-    scrollSpeed: 600, 
+    scrollSpeed: 700, 
     trees: [],
     necks: [], 
     timeCounter: 0,
@@ -104,9 +104,15 @@ window.BGZonbiManager = {
     },
 
     update: function(delta) {
+        // main.jsからの古い呼び出しを無効化し、stg_zonbi.jsからの正確な呼び出しに移行
+        return;
+    },
+
+    // ★追加：stg本体を確実に受け取って更新する関数
+    updateWithStg: function(stg, delta) {
         if (!this.isActive) return;
 
-        if (window.currentStage !== 6 || (window.stgManager && window.stgManager.stgId !== 'zonbi')) {
+        if (window.currentStage !== 6 || stg.stgId !== 'zonbi') {
             this.dispose();
             return;
         }
@@ -117,13 +123,10 @@ window.BGZonbiManager = {
 
         this.timeCounter += delta * 0.05;
 
-        // ★修正：前進表現（画面上では「上から下へ」背景が流れる）
-        // 4000の広さに対してrepeatが4なので、1000につきoffset1.0動かすと木と完全同期します
         if (this.ground && this.ground.material.map) {
-            this.ground.material.map.offset.y += (this.scrollSpeed / 1000) * delta;
+            this.ground.material.map.offset.y -= (this.scrollSpeed / 1000) * delta;
         }
 
-        // ★修正：木は奥（-Z）から手前（+Z）へ向かってくる
         this.trees.forEach(t => {
             t.position.z += this.scrollSpeed * delta; 
             if (t.position.z > 300) { 
@@ -132,15 +135,15 @@ window.BGZonbiManager = {
             }
         });
 
-        if (window.stgManager && window.stgManager.bossSpawned && window.stgManager.enemies.length > 0) {
-            this.updateOrochiNecks(delta);
+        if (stg && stg.bossSpawned && stg.enemies.length > 0) {
+            this.updateOrochiNecks(stg, delta);
         } else {
             this.necks.forEach(n => n.visible = false);
         }
     },
 
-    updateOrochiNecks: function(delta) {
-        const stg = window.stgManager;
+    // ★修正：stgを引数で受け取る
+    updateOrochiNecks: function(stg, delta) {
         const heads = stg.enemies.filter(e => e.type === 'orochi_head' && !e.isDying);
 
         while (this.necks.length < 8) {
