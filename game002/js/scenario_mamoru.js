@@ -1,4 +1,4 @@
-const VER_SCENARIO_MAMORU = "0.7.5"; // ステージ6のBGM切り替え演出（boss_zonbi, boss_zonbi2）を組み込み
+const VER_SCENARIO_MAMORU = "0.7.6"; // BGMタイミングの修正、エンディング曲の指定修正
  
 window.scenarios = window.scenarios || {};
  
@@ -460,7 +460,7 @@ scenarios.mamoru = {
         ],
         mid_stg: [
             { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: 'ほう、実在したのか、お前', delay: 60, isRight: false, bgm: 'stop' },
-            // ★変更：ヤマタノオロチ登場でBGMを boss_zonbi に切り替え
+            // ★修正：ヤマタノオロチ登場時は boss_zonbi 
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 0, speaker: 'ヤマタノオロチ', text: '人々が我が存在を忘れただけよ', isRight: true, bgm: 'boss_zonbi' },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'お陰で封印の力も消え去り、自由の身になれた', isRight: true },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '残念だったな。バカンスはもう終わりだ', isRight: false },
@@ -478,7 +478,7 @@ scenarios.mamoru = {
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'くそぉーーーーー！', isRight: false, effect: 'shake' },
             { bg: 'sumika.webp', effect: 'whiteout', se: 'vibration.mp3', text: '' },
             { bg: 'sumika.webp', character: 'yamata.webp', spriteIndex: 1, speaker: 'ヤマタノオロチ', text: 'な、なんだこれは', isRight: true, bgm: 'stop' },
-            // ★変更：猪狩（量子バリア）の登場で boss_zonbi2 に切り替え
+            // ★修正：猪狩の救援登場時にヒートアップした boss_zonbi2 に切り替え
             { bg: 'sumika.webp', speaker: '？？？', text: '量子バリアだ。1500年前にはなかっただろ？', isRight: true, bgm: 'boss_zonbi2' },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 0, speaker: '護(裏)', text: '・・・お前', isRight: false },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'あ、今もないか。こっちの世界は', isRight: true },
@@ -504,7 +504,8 @@ scenarios.mamoru = {
         ],
         ending: [
             { bg: 'sumika.webp', place: 'オロチの住処', time: '2026.07', character: 'yamata.webp', spriteIndex: 2, speaker: 'ヤマタノオロチ', text: 'ぐああーーーー！', delay: 60, isRight: true, effect: 'shake', bgm: 'stop' },
-            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'やったのか？', isRight: false, bgm: 'relax' },
+            // ★修正：エンディングで確実に ending.ogg を流す
+            { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 4, speaker: '護(裏)', text: 'やったのか？', isRight: false, bgm: 'ending' },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 0, speaker: '猪狩', text: 'コアの消滅を確認した。ヤマタノオロチはこの世界から消し飛んだぜ', isRight: true },
             { bg: 'sumika.webp', character: 'urashiina.webp', spriteIndex: 2, speaker: '護(裏)', text: '・・・礼は言わんぞ', isRight: false },
             { bg: 'sumika.webp', character: 'igari02.webp', spriteIndex: 1, speaker: '猪狩', text: 'いらねーよ。借りを返しただけだ。半分は千華のせいだしな', isRight: true },
