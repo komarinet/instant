@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.6"; // アイテム飛来速度の緩和、ボム発動時に拡散してからホーミングするよう変更
+const VER_STG_MIND = "0.7.7"; // 弾速のマイルド化、自機・敵味方の弾の当たり判定（コア）視認性向上
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -41,9 +41,12 @@ window.StageConfigs['mind'] = {
                     ctx.fillRect(this.x - drawW/2, this.y - drawH/2, drawW, drawH);
                 }
                 
+                // ★修正：自機の当たり判定（半径8）をくっきりした色と枠線で明瞭化
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.beginPath(); ctx.arc(this.x, this.y, 8, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#00ffaa'; 
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.arc(this.x, this.y, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
             } else {
                 const fallbackImg = advManager.assets['jikishi.webp'];
                 if (fallbackImg && fallbackImg.naturalWidth > 0) {
@@ -79,7 +82,7 @@ window.StageConfigs['mind'] = {
                     let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 8;
                     let b = new Bullet(this.x + offset, this.y, 0, 0, '#00ffff', null, this.id);
                     b.z = 0;   
-                    b.vz = 60; 
+                    b.vz = 40; // ★修正：自機弾の速度を60から40に落とし、距離感を掴みやすく
                     b.vx = offset * 0.5; 
                     b.isHoming = true;
                     b.baseSize = 10;
@@ -183,6 +186,12 @@ window.StageConfigs['mind'] = {
                             ctx.fillStyle = '#ff0055';
                             ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
                         }
+                        
+                        // ★修正：敵弾の中心に真っ白なコアを追加し、弾の絶対位置を見失わないように
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+
                         ctx.restore();
                     }
                 });
@@ -213,6 +222,12 @@ window.StageConfigs['mind'] = {
                             ctx.fillStyle = b.isBomb ? '#ff00ff' : '#00ffff';
                             ctx.beginPath(); ctx.arc(0, 0, ds, 0, Math.PI*2); ctx.fill();
                         }
+                        
+                        // ★修正：自機弾の中心に真っ白なコアを追加し、エフェクトに埋もれないように
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath(); ctx.arc(0, 0, ds * 0.5, 0, Math.PI*2); ctx.fill();
+
                         ctx.restore();
                     }
                 });
@@ -303,19 +318,18 @@ window.StageConfigs['mind'] = {
 
             if (stg.player.invincibleTimer > 0) stg.player.invincibleTimer--;
 
-            // ★修正：ボム（奥義）発動時の動作。一斉に散らばってからホーミングする
             if (stg.bombState === 'ACTIVE') {
                 stg.bombTimer++;
                 if (stg.bombTimer < 100 && stg.bombTimer % 2 === 0) {
                     for(let i=0; i<4; i++) {
                         let b = new Bullet(stg.player.x, stg.player.y, 0, 0, '#ff00ff', null, stg.player.id);
                         b.z = 0;   
-                        b.vz = 5 + Math.random()*5; // 最初はほとんど手前に留まる
-                        b.vx = (Math.random()-0.5)*70; // 画面全体に大きく散る
+                        b.vz = 5 + Math.random()*5;
+                        b.vx = (Math.random()-0.5)*70; 
                         b.vy = (Math.random()-0.5)*70; 
-                        b.isHoming = false; // 最初はホーミングしない
+                        b.isHoming = false; 
                         b.isBomb = true; 
-                        b.bombTimer = 0; // ボム弾独自のタイマー
+                        b.bombTimer = 0; 
                         b.baseSize = 15;
                         b.shikiType = Math.floor(Math.random() * 4);
                         stg.player.bullets.push(b);
@@ -324,7 +338,6 @@ window.StageConfigs['mind'] = {
                 if (stg.bombTimer > 180) stg.bombState = 'READY';
             }
 
-            // ★修正：アイテムの吸い込み速度と飛来速度をマイルドに
             stg.items.forEach(it => {
                 if (it.z !== undefined) {
                     it.z += it.vz;
@@ -336,7 +349,7 @@ window.StageConfigs['mind'] = {
                         if (dist < 500) { 
                             it.x += (dx / dist) * 7; 
                             it.y += (dy / dist) * 7;
-                            it.z -= 2; // 手前への吸い込み速度をゆっくりに
+                            it.z -= 2; 
                         }
                     }
 
@@ -362,7 +375,8 @@ window.StageConfigs['mind'] = {
 
             stg.enemyBullets.forEach(b => {
                 if (b.z === undefined) b.z = 1000;
-                b.z -= 15; 
+                // ★修正：敵弾の速度を15から9に落とし、手前での急激な接近を和らげる
+                b.z -= 9; 
                 if (b.z < -50) b.alive = false;
 
                 if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - b.x, stg.player.y - b.y) < 8) {
@@ -377,15 +391,15 @@ window.StageConfigs['mind'] = {
             stg.player.bullets.forEach(pb => {
                 if (pb.z === undefined) pb.z = 0;
 
-                // ★修正：ボム弾は一定時間散らばった後、ホーミングを開始して加速する
                 if (pb.isBomb) {
                     pb.bombTimer = (pb.bombTimer || 0) + 1;
                     if (pb.bombTimer <= 20) {
-                        pb.vx *= 0.85; // 散らばる勢いを摩擦で減速
+                        pb.vx *= 0.85; 
                         pb.vy *= 0.85;
                     } else {
                         pb.isHoming = true;
-                        if (pb.vz < 60) pb.vz += 3; // ホーミング開始とともに奥へ急加速
+                        // ★修正：ボム弾の最高速度を40に落とす
+                        if (pb.vz < 40) pb.vz += 2; 
                     }
                 }
                 
@@ -454,7 +468,7 @@ window.StageConfigs['mind'] = {
                             
                             let item = new Item(type, eb.x, eb.y);
                             item.z = eb.z;
-                            item.vz = -8; // ★修正：アイテムが手前に飛んでくる基本速度をゆっくりに
+                            item.vz = -8; 
                             stg.items.push(item);
                         }
                     }
