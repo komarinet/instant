@@ -1,4 +1,4 @@
-const VER_STG_ZONBI = "0.2.4"; // オロチの顔のウネウネ強化、座標保持の修正
+const VER_STG_ZONBI = "0.2.5"; // 鳥居消去処理と3D首への連携強化
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['zonbi'] = {
@@ -24,6 +24,11 @@ window.StageConfigs['zonbi'] = {
             window._bgManagerInstance.clouds.forEach(c => c.visible = false);
             if (window._bgManagerInstance.ground) window._bgManagerInstance.ground.visible = false;
             
+            // ★追加：前のステージ（精神世界）の鳥居等のオブジェクトを確実に破壊・消去
+            if (window.BGMindManager && window.BGMindManager.isActive) {
+                window.BGMindManager.dispose();
+            }
+
             if (window.BGZonbiManager) {
                 window.BGZonbiManager.init(window._bgManagerInstance);
             }
@@ -48,7 +53,6 @@ window.StageConfigs['zonbi'] = {
             let hX = sW * 0.12 + i * (sW * 0.11);
             let head = new Enemy('orochi_head', hX, -100, stg.player.charData, stg.advManager, stg.stgId);
             head.headIndex = i; 
-            // ★修正：初期位置を保存して、ウネウネ計算の基準点をブレさせない
             head.startX = hX;
             head.baseY = sH * 0.2 + (i % 2) * 40; 
             head.targetY = head.baseY;
@@ -167,7 +171,6 @@ window.StageConfigs['zonbi'] = {
             if (e.y < e.baseY && e.moveTimer < 100) {
                 e.y += (e.baseY - e.y) * 0.05;
             } else {
-                // ★修正：大蛇が暴れ回るよう、顔の移動幅を大幅に拡大 (X方向±120px、Y方向±80px)
                 e.x = e.startX + Math.sin(e.moveTimer * 0.03 + e.headIndex * 1.5) * 120;
                 e.y = e.baseY + Math.cos(e.moveTimer * 0.045 + e.headIndex * 2.0) * 80;
             }
@@ -247,6 +250,11 @@ if (window.StageConfigs && window.StageConfigs['zonbi']) {
         if (this.stgId === 'zonbi') {
             if (window.StageConfigs['zonbi'].drawCenterTextExtension) {
                 this.customBarDraw = window.StageConfigs['zonbi'].drawCenterTextExtension;
+            }
+
+            // ★追加：3D背景側にゲーム本体(this)の情報を確実に渡して更新する
+            if (window.BGZonbiManager && window.BGZonbiManager.isActive) {
+                window.BGZonbiManager.updateWithStg(this, 1/60);
             }
 
             if (this.allyIgari && this.allyIgari.active && !this.isTimeStopped) {
