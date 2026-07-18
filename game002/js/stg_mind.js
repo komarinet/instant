@@ -1,4 +1,4 @@
-const VER_STG_MIND = "0.7.7"; // 弾速のマイルド化、自機・敵味方の弾の当たり判定（コア）視認性向上
+const VER_STG_MIND = "0.7.8"; // 当たり判定を完全なスクリーン座標ベース(見た目通り)に修正、手前接近時の警告エフェクト追加
 
 window.StageConfigs = window.StageConfigs || {};
 window.StageConfigs['mind'] = {
@@ -41,7 +41,6 @@ window.StageConfigs['mind'] = {
                     ctx.fillRect(this.x - drawW/2, this.y - drawH/2, drawW, drawH);
                 }
                 
-                // ★修正：自機の当たり判定（半径8）をくっきりした色と枠線で明瞭化
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.fillStyle = '#00ffaa'; 
                 ctx.strokeStyle = '#ffffff';
@@ -82,7 +81,7 @@ window.StageConfigs['mind'] = {
                     let offset = (shotCount === 1) ? 0 : (i - (shotCount - 1) / 2) * 8;
                     let b = new Bullet(this.x + offset, this.y, 0, 0, '#00ffff', null, this.id);
                     b.z = 0;   
-                    b.vz = 40; // ★修正：自機弾の速度を60から40に落とし、距離感を掴みやすく
+                    b.vz = 40; 
                     b.vx = offset * 0.5; 
                     b.isHoming = true;
                     b.baseSize = 10;
@@ -167,11 +166,26 @@ window.StageConfigs['mind'] = {
                         ctx.translate(cx + (b.x - cx) * scale, cy + (b.y - cy) * scale);
                         ctx.scale(scale, scale);
                         
-                        const distAlpha = Math.min(1, Math.max(0.2, (1000 - b.z) / 1000));
-                        ctx.shadowColor = '#ff0055';
-                        ctx.shadowBlur = 15;
-                        ctx.strokeStyle = `rgba(255, 100, 150, ${distAlpha})`;
-                        ctx.lineWidth = 3;
+                        let distAlpha = Math.min(1, Math.max(0.2, (1000 - b.z) / 1000));
+                        let shadowColor = '#ff0055';
+                        let strokeColor = `rgba(255, 100, 150, ${distAlpha})`;
+                        let lineWidth = 3;
+
+                        // ★追加：戦略B 奥行きの視覚化。手前(Z < 150)に来たら強烈に光り、危険を知らせる
+                        if (b.z < 150 && b.z > -20) {
+                            ctx.shadowColor = '#ffffff';
+                            ctx.shadowBlur = 30;
+                            strokeColor = '#ffffff';
+                            lineWidth = 5;
+                            ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                            ctx.beginPath(); ctx.arc(0, 0, 35, 0, Math.PI*2); ctx.fill();
+                        } else {
+                            ctx.shadowColor = shadowColor;
+                            ctx.shadowBlur = 15;
+                        }
+
+                        ctx.strokeStyle = strokeColor;
+                        ctx.lineWidth = lineWidth;
                         ctx.strokeRect(-25, -25, 50, 50);
 
                         const sansImg = stg.advManager.assets['sans.webp'];
@@ -187,7 +201,6 @@ window.StageConfigs['mind'] = {
                             ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
                         }
                         
-                        // ★修正：敵弾の中心に真っ白なコアを追加し、弾の絶対位置を見失わないように
                         ctx.shadowBlur = 0;
                         ctx.fillStyle = '#ffffff';
                         ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
@@ -223,7 +236,6 @@ window.StageConfigs['mind'] = {
                             ctx.beginPath(); ctx.arc(0, 0, ds, 0, Math.PI*2); ctx.fill();
                         }
                         
-                        // ★修正：自機弾の中心に真っ白なコアを追加し、エフェクトに埋もれないように
                         ctx.shadowBlur = 0;
                         ctx.fillStyle = '#ffffff';
                         ctx.beginPath(); ctx.arc(0, 0, ds * 0.5, 0, Math.PI*2); ctx.fill();
@@ -318,6 +330,13 @@ window.StageConfigs['mind'] = {
 
             if (stg.player.invincibleTimer > 0) stg.player.invincibleTimer--;
 
+            // ★追加：スクリーン座標計算用の基礎データ
+            const dpr = window.devicePixelRatio || 1;
+            const sW = canvas.width / dpr;
+            const sH = canvas.height / dpr;
+            const cx = sW / 2;
+            const cy = sH / 2;
+
             if (stg.bombState === 'ACTIVE') {
                 stg.bombTimer++;
                 if (stg.bombTimer < 100 && stg.bombTimer % 2 === 0) {
@@ -353,7 +372,12 @@ window.StageConfigs['mind'] = {
                         }
                     }
 
-                    if (it.z < 50 && it.z > -50 && Math.hypot(it.x - stg.player.x, it.y - stg.player.y) < 60) {
+                    // ★追加：戦略A アイテム取得判定をスクリーン座標に変更
+                    const scale = stg.fov / (Math.max(1, stg.fov + it.z));
+                    const screenX = cx + (it.x - cx) * scale;
+                    const screenY = cy + (it.y - cy) * scale;
+
+                    if (it.z < 50 && it.z > -50 && Math.hypot(screenX - stg.player.x, screenY - stg.player.y) < 60) {
                         it.alive = false;
                         if (it.type === 'power') {
                             stg.player.score += (stg.player.powerLevel >= 8) ? 1000 : 100;
@@ -375,11 +399,15 @@ window.StageConfigs['mind'] = {
 
             stg.enemyBullets.forEach(b => {
                 if (b.z === undefined) b.z = 1000;
-                // ★修正：敵弾の速度を15から9に落とし、手前での急激な接近を和らげる
                 b.z -= 9; 
                 if (b.z < -50) b.alive = false;
 
-                if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - b.x, stg.player.y - b.y) < 8) {
+                // ★追加：戦略A 敵弾の当たり判定をスクリーン座標（見た目上の位置）に変更
+                const scale = stg.fov / (Math.max(1, stg.fov + b.z));
+                const screenX = cx + (b.x - cx) * scale;
+                const screenY = cy + (b.y - cy) * scale;
+
+                if (b.z > -20 && b.z < 20 && Math.hypot(stg.player.x - screenX, stg.player.y - screenY) < 8) {
                     if (stg.player.invincibleTimer <= 0) {
                         stg.player.hp--;
                         stg.player.invincibleTimer = 90; 
@@ -398,7 +426,6 @@ window.StageConfigs['mind'] = {
                         pb.vy *= 0.85;
                     } else {
                         pb.isHoming = true;
-                        // ★修正：ボム弾の最高速度を40に落とす
                         if (pb.vz < 40) pb.vz += 2; 
                     }
                 }
@@ -406,13 +433,24 @@ window.StageConfigs['mind'] = {
                 let homingTarget = stg.enemies.find(e => e.type === 'boss');
                 let closestDist = Infinity;
                 
+                // ★追加：戦略A ホーミングや敵弾相殺の距離計算もスクリーン座標に変更
+                const pbScale = stg.fov / (Math.max(1, stg.fov + pb.z));
+                const screenPX = cx + (pb.x - cx) * pbScale;
+                const screenPY = cy + (pb.y - cy) * pbScale;
+
                 if (homingTarget) {
-                    closestDist = Math.sqrt((homingTarget.x - pb.x)**2 + (homingTarget.y - pb.y)**2 + (homingTarget.z - pb.z)**2);
+                    const hScale = stg.fov / (Math.max(1, stg.fov + homingTarget.z));
+                    const screenHX = cx + (homingTarget.x - cx) * hScale;
+                    const screenHY = cy + (homingTarget.y - cy) * hScale;
+                    closestDist = Math.hypot(screenHX - screenPX, screenHY - screenPY);
                 }
 
                 stg.enemyBullets.forEach(eb => {
                     if (eb.alive && eb.z > pb.z) { 
-                        let dist = Math.sqrt((eb.x - pb.x)**2 + (eb.y - pb.y)**2 + (eb.z - pb.z)**2);
+                        const ebScale = stg.fov / (Math.max(1, stg.fov + eb.z));
+                        const screenEX = cx + (eb.x - cx) * ebScale;
+                        const screenEY = cy + (eb.y - cy) * ebScale;
+                        let dist = Math.hypot(screenEX - screenPX, screenEY - screenPY);
                         if (dist < closestDist) {
                             closestDist = dist;
                             homingTarget = eb; 
@@ -431,8 +469,12 @@ window.StageConfigs['mind'] = {
                 pb.currentSize = pb.baseSize;
                 stg.enemyBullets.forEach(eb => {
                     if (eb.alive) {
-                        let dist = Math.sqrt((pb.x - eb.x)**2 + (pb.y - eb.y)**2 + (pb.z - eb.z)**2);
-                        if (dist < 150) pb.currentSize = pb.baseSize * 3; 
+                        // サイズアップ判定もスクリーン座標で
+                        const ebScale = stg.fov / (Math.max(1, stg.fov + eb.z));
+                        const screenEX = cx + (eb.x - cx) * ebScale;
+                        const screenEY = cy + (eb.y - cy) * ebScale;
+                        let dist = Math.hypot(screenPX - screenEX, screenPY - screenEY);
+                        if (dist < 150 * ebScale) pb.currentSize = pb.baseSize * 3; 
                     }
                 });
 
@@ -440,8 +482,14 @@ window.StageConfigs['mind'] = {
                 pb.x += pb.vx || 0;
                 if (pb.z > 1200) pb.alive = false;
 
+                // ★追加：戦略A ボスに対する当たり判定をスクリーン座標に変更
                 stg.enemies.forEach(e => {
-                    if (pb.z > e.z - 50 && pb.z < e.z + 50 && Math.hypot(e.x - pb.x, e.y - pb.y) < e.size) {
+                    const eScale = stg.fov / (Math.max(1, stg.fov + e.z));
+                    const screenEX = cx + (e.x - cx) * eScale;
+                    const screenEY = cy + (e.y - cy) * eScale;
+                    const hitDist = e.size * eScale;
+
+                    if (pb.z > e.z - 50 && pb.z < e.z + 50 && Math.hypot(screenEX - screenPX, screenEY - screenPY) < hitDist) {
                         e.hp -= pb.isBomb ? 3 : 1;
                         pb.alive = false;
                     }
@@ -450,7 +498,11 @@ window.StageConfigs['mind'] = {
                 stg.enemyBullets.forEach(eb => {
                     if (!eb.alive || !pb.alive) return;
                     
-                    if (Math.abs(pb.z - eb.z) < 150 && Math.hypot(pb.x - eb.x, pb.y - eb.y) < 100) {
+                    const ebScale = stg.fov / (Math.max(1, stg.fov + eb.z));
+                    const screenEX = cx + (eb.x - cx) * ebScale;
+                    const screenEY = cy + (eb.y - cy) * ebScale;
+
+                    if (Math.abs(pb.z - eb.z) < 150 && Math.hypot(screenPX - screenEX, screenPY - screenEY) < 100 * ebScale) {
                         pb.alive = false;
                         eb.alive = false;
                         stg.player.score += 50; 
