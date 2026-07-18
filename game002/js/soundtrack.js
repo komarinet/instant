@@ -1,4 +1,4 @@
-export const VER_SOUNDTRACK = "0.2.0"; // バージョン更新（全てoggに変更、stage_invaderをリストに追加）
+export const VER_SOUNDTRACK = "0.3.0"; // バージョン更新（追加された4曲をリストに登録しナンバリングを調整）
 
 // サントラに表示する曲のリスト
 const trackList = [
@@ -20,8 +20,12 @@ const trackList = [
     { id: 'clear', name: '16. Stage Clear', src: 'bgm/clear.ogg' },
     { id: 'ending', name: '17. Ending Theme', src: 'bgm/ending.ogg' }, 
     { id: 'eiji', name: '18. Stage - Eiji', src: 'bgm/eiji.ogg' }, 
-    { id: 'stage_invader', name: '19. Stage - Invader', src: 'bgm/stage_invader.ogg' }, // ★追加
-    { id: 'gameover', name: '20. Game Over', src: 'bgm/gameover.ogg' }
+    { id: 'stage_invader', name: '19. Stage - Invader', src: 'bgm/stage_invader.ogg' },
+    { id: 'stage_mind', name: '20. Stage - Mind', src: 'bgm/stage_mental.ogg' }, // ★追加
+    { id: 'stage_zonbi', name: '21. Stage - Zombie', src: 'bgm/stage_zonbi.ogg' }, // ★追加
+    { id: 'boss_zonbi', name: '22. Boss - Yamata no Orochi', src: 'bgm/boss_zonbi.ogg' }, // ★追加
+    { id: 'boss_zonbi2', name: '23. Boss - Counterattack', src: 'bgm/boss_zonbi2.ogg' }, // ★追加
+    { id: 'gameover', name: '24. Game Over', src: 'bgm/gameover.ogg' } // ナンバリング調整
 ];
 
 let currentAudio = null;
